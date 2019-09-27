@@ -139,6 +139,10 @@ class Toolbar {
       eventBus.dispatch('presentationmode', { source: self, });
     });
 
+    items.tunnelModeButton.addEventListener('click', function(){
+      eventBus.dispatch('tunnelmode', { source: self, });
+    });
+
     items.openFile.addEventListener('click', function() {
       eventBus.dispatch('openfile', { source: self, });
     });

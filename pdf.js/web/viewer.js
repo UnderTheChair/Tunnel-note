@@ -75,6 +75,7 @@ function getViewerConfiguration() {
       viewFind: document.getElementById('viewFind'),
       openFile: document.getElementById('openFile'),
       print: document.getElementById('print'),
+      tunnelModeButton: document.getElementById('tunnelMode'),
       presentationModeButton: document.getElementById('presentationMode'),
       download: document.getElementById('download'),
       viewBookmark: document.getElementById('viewBookmark'),
