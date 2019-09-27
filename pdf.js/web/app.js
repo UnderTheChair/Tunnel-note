@@ -40,6 +40,7 @@ import { PDFFindController } from './pdf_find_controller';
 import { PDFHistory } from './pdf_history';
 import { PDFLinkService } from './pdf_link_service';
 import { PDFOutlineViewer } from './pdf_outline_viewer';
+import { PDFTunnelMode } from './pdf_tunnel_mode';
 import { PDFPresentationMode } from './pdf_presentation_mode';
 import { PDFSidebarResizer } from './pdf_sidebar_resizer';
 import { PDFThumbnailViewer } from './pdf_thumbnail_viewer';
@@ -97,6 +98,8 @@ let PDFViewerApplication = {
   pdfThumbnailViewer: null,
   /** @type {PDFRenderingQueue} */
   pdfRenderingQueue: null,
+  /** @type {PDFTunnelMode} */
+  pdfTunnelMode: null,
   /** @type {PDFPresentationMode} */
   pdfPresentationMode: null,
   /** @type {PDFDocumentProperties} */
@@ -375,6 +378,13 @@ let PDFViewerApplication = {
         contextMenuItems: appConfig.fullscreen,
       });
     }
+
+    this.pdfTunnelMode = new PDFTunnelMode({
+      container,
+      viewer,
+      pdfViewer: this.pdfViewer,
+      eventBus,
+    });
 
     this.passwordPrompt = new PasswordPrompt(appConfig.passwordOverlay,
                                              this.overlayManager, this.l10n);
@@ -1340,6 +1350,13 @@ let PDFViewerApplication = {
     this.pdfPresentationMode.request();
   },
 
+  requestTunnelMode() {
+    if (!this.pdfTunnelMode) {
+      return;
+    }
+    this.pdfTunnelMode.request();
+  },
+
   bindEvents() {
     let { eventBus, _boundEvents, } = this;
 
@@ -1359,6 +1376,7 @@ let PDFViewerApplication = {
     eventBus.on('sidebarviewchanged', webViewerSidebarViewChanged);
     eventBus.on('pagemode', webViewerPageMode);
     eventBus.on('namedaction', webViewerNamedAction);
+    eventBus.on('tunnelmode', webViewerTunnelMode);
     eventBus.on('presentationmodechanged', webViewerPresentationModeChanged);
     eventBus.on('presentationmode', webViewerPresentationMode);
     eventBus.on('openfile', webViewerOpenFile);
@@ -1434,6 +1452,7 @@ let PDFViewerApplication = {
     eventBus.off('sidebarviewchanged', webViewerSidebarViewChanged);
     eventBus.off('pagemode', webViewerPageMode);
     eventBus.off('namedaction', webViewerNamedAction);
+    eventBus.off('tunnelMode', webViewerTunnelMode);
     eventBus.off('presentationmodechanged', webViewerPresentationModeChanged);
     eventBus.off('presentationmode', webViewerPresentationMode);
     eventBus.off('openfile', webViewerOpenFile);
@@ -1929,6 +1948,9 @@ if (typeof PDFJSDev === 'undefined' || PDFJSDev.test('GENERIC')) {
   };
 }
 
+function webViewerTunnelMode() {
+  PDFViewerApplication.requestTunnelMode();
+}
 function webViewerPresentationMode() {
   PDFViewerApplication.requestPresentationMode();
 }
