@@ -1,4 +1,3 @@
-const url = '../docs/sample.pdf';
 
 
 //pdf default값 지정
@@ -71,13 +70,36 @@ const showNextPage = () =>{
     queueRenderPage(pageNum);
 
 }
-//페이지 긁어오는거
-pdfjsLib.getDocument(url).promise.then(pdfDoc_ =>{
-    pdfDoc = pdfDoc_;
-    document.querySelector('#page-count').textContent = pdfDoc.numPages;
 
-    renderPage(pageNum);
-});
+let inputElement = document.getElementById('input_file')
+inputElement.onchange = function(event) {
+
+    var file = event.target.files[0];
+
+    //Step 2: Read the file using file reader
+    var fileReader = new FileReader();
+
+    fileReader.onload = function() {
+
+        //Step 4:turn array buffer into typed array
+        var typedarray = new Uint8Array(this.result);
+
+        //Step 5:PDFJS should be able to read this
+        pdfjsLib.getDocument(typedarray).promise.then(pdfDoc_ =>{
+		      pdfDoc = pdfDoc_;
+			  document.querySelector('#page-count').textContent = pdfDoc.numPages;
+
+			  renderPage(pageNum);
+
+		});
+		
+
+    };
+    //Step 3:Read the file as ArrayBuffer
+    fileReader.readAsArrayBuffer(file);
+
+ }
+
 
 //버튼 이벤트
 document.querySelector('#prev-page').addEventListener('click', showPrevPage);

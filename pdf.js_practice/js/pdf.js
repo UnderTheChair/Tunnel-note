@@ -23803,9 +23803,9 @@
                                 if (typeof value === 'undefined') {
                                     continue;
                                 }
-
                                 xhr.setRequestHeader(property, value);
                             }
+							
 
                             if (this.isHttp && 'begin' in args && 'end' in args) {
                                 xhr.setRequestHeader('Range', "bytes=".concat(args.begin, "-").concat(args.end - 1));
