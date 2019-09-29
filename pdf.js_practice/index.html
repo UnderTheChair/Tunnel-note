@@ -6,17 +6,26 @@
     <title>PDF Viewer</title>
 </head>
 <body>
-    <div class="top-bar">
-		<input type='file' id='input_file'/>
-        <button class="btn" id="prev-page">Prev Page
-        </button>
-        <button class="btn" id="next-page">Next Page
-        </button>
-        <span class="pagle-info">
-            Page <span id="page-num"></span> of <span id="page-count"></span>
-        </span>
+    <div id="outContainer">
+
+    <div class="toolbar">
+        <div id="toolbarContainer">
+		        <input type='file' id='input_file'/>
+                <button class="btn" id="prev-page">Prev Page
+                </button>
+                <button class="btn" id="next-page">Next Page
+                </button>
+                <span class="page-info" id="page-info-container">
+                    Page <span id="page-num"></span> of <span id="page-count"></span>
+                </span>
+            </div>
+        </div>
+        <div id="viewerContainer">
+            <div id="viewer" class="pdfViewer"></div>
+            <canvas id="pdf-render"></canvas>
+        </div>
     </div>
-    <canvas id="pdf-render"></canvas>
+
     <!-- <canvas id ="the-canvas"></canvas> -->
     <script src="js/pdf.js"></script>
     <script src="js/main.js"></script>

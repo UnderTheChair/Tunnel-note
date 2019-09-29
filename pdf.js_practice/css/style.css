@@ -1,4 +1,72 @@
-.btn{
-    background : red;
-    color: black;
+
+:root {
+    --sidebar-width: 200px;
 }
+
+* {
+    padding: 0;
+    margin: 0;
+}
+
+html {
+    height: 100%;
+    width: 100%;
+    /* Font size is needed to make the activity bar the correct size. */
+    font-size: 10px;
+}
+
+body {
+    height: 100%;
+    width: 100%;
+    background-color: dimgrey;
+}
+
+#outContainer{
+    background :dimgrey;
+}
+
+#toolbarContainer {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #333;
+
+}
+.btn{
+    float: left;
+    display: block;
+    color: white;
+    background-color: #333;
+    text-align: center;
+    padding: 7px 8px;
+    text-decoration: none;
+}
+
+.page-info{
+    float: left;
+    display: block;
+    color: white;
+    background-color: #333;
+}
+
+#pdf-render {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    position: absolute;
+    margin: auto;
+    top: 32px;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    outline: none;
+    padding: 0;
+    display: block;
+    width: 70%;
+}
+
+
+

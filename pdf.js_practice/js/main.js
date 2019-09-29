@@ -8,11 +8,11 @@ let pdfDoc = null,
 
 
 //렌더링 할 pdf크기 지정 (ex 1.5면 화면에서 크게 보이고, 0.5면 작게 축소되어 보임)
-const scale = 1,
+const scale = 1.5,
     canvas = document.querySelector('#pdf-render'),
     ctx = canvas.getContext('2d');
 
-// 페이지 렌더링하는거 
+// 페이지 렌더링하는거
 const renderPage = num =>{
     pageIsRendering = true; //초기 렌더링 default true로 변경
 
@@ -37,7 +37,7 @@ const renderPage = num =>{
             }
         });
         //현재페이지 보여주는거
-        document.querySelector('#page-num').textContent = num; 
+        document.querySelector('#page-num').textContent = num;
     });
 
 };
@@ -92,7 +92,7 @@ inputElement.onchange = function(event) {
 			  renderPage(pageNum);
 
 		});
-		
+
 
     };
     //Step 3:Read the file as ArrayBuffer
