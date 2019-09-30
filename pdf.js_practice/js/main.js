@@ -6,33 +6,38 @@ let pdfDoc = null,
     pageIsRendering = false,
     pageNumIsPending = null;
 
-//렌더링 할 pdf크기 지정 (ex 1.5면 화면에서 크게 보이고, 0.5면 작게 축소되어 보임)
-const svg = document.getElementById('pdf-canvas')
-    , container = document.getElementById('viewerContainer')
+const pdf_render = document.getElementById('pdf-render')
+    , container = document.getElementById('container')
     , scale = 1.5;
 
 // 페이지 렌더링하는거
 const renderPage = num =>{
     pageIsRendering = true; //초기 렌더링 default true로 변경
-
     //get page
     pdfDoc.getPage(num).then(page => {
         //set scale
         const viewport = page.getViewport({scale}); //페이지 크기 정보 가져오는거
-        svg.height = viewport.height;
-        svg.width = viewport.width;
+        pdf_render.height = viewport.height;
+        pdf_render.width = viewport.width;
 
         page.getOperatorList()
             .then(function (opList) {
-            var svgGfx = new pdfjsLib.SVGGraphics(page.commonObjs, page.objs);
-            return svgGfx.getSVG(opList, viewport);
+                
+                var svgGfx = new pdfjsLib.SVGGraphics(page.commonObjs, page.objs);
+                return svgGfx.getSVG(opList, viewport);
             })
             .then(function (svg) {
-            container.appendChild(svg);
+                
+				if(pdf_render.hasChildNodes()===true){
+				    pdf_render.replaceChild(svg,pdf_render.childNodes.item(0));
+				}else{
+				    pdf_render.appendChild(svg);
+				}
             });
 
         //현재페이지 보여주는거
-        document.querySelector('#page-num').textContent = num;
+        document.querySelector('#page-num').textContent = num; 
+        pageIsRendering = false;
     });
 
 };
