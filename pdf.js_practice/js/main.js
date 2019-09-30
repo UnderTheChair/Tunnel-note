@@ -6,9 +6,9 @@ let pdfDoc = null,
     pageIsRendering = false,
     pageNumIsPending = null;
 
-const pdf_render = document.getElementById('pdf-render')
-    , container = document.getElementById('container')
-    , scale = 1.5;
+const pdf_render = document.getElementById('viewer')
+    , container = document.getElementById('viewerContainer')
+    , scale = 1.2;
 
 // 페이지 렌더링하는거
 const renderPage = num =>{
@@ -98,8 +98,6 @@ inputElement.onchange = function(event) {
 
     };
     //Step 3:Read the file as ArrayBuffer
-    fileReader.readAsArrayBuffer(file);
-    file = event.target.files[1];
     fileReader.readAsArrayBuffer(file);
 
  };
