@@ -36,6 +36,15 @@ body {
     background-color: #333;
 
 }
+#file_select{
+    float: left;
+    display: block;
+    color: white;
+    background-color: #333;
+    text-align: center;
+    padding: 7px 8px;
+    text-decoration: none;
+}
 .btn{
     float: left;
     display: block;
@@ -53,7 +62,7 @@ body {
     background-color: #333;
 }
 
-#pdf-render {
+#viewer {
     overflow: auto;
     -webkit-overflow-scrolling: touch;
     position: absolute;

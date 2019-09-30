@@ -7,8 +7,8 @@ let pdfDoc = null,
     pageNumIsPending = null;
 
 //렌더링 할 pdf크기 지정 (ex 1.5면 화면에서 크게 보이고, 0.5면 작게 축소되어 보임)
-const svg = document.getElementById('pdf-render')
-    , container = document.getElementById('container')
+const svg = document.getElementById('pdf-canvas')
+    , container = document.getElementById('viewerContainer')
     , scale = 1.5;
 
 // 페이지 렌더링하는거
@@ -45,7 +45,7 @@ const queueRenderPage = num =>{
     else{
         renderPage(num);
     }
-}
+};
 
 //이전페이지 가는거
 const showPrevPage = () =>{
@@ -55,7 +55,7 @@ const showPrevPage = () =>{
     pageNum--;
     queueRenderPage(pageNum);
 
-}
+};
 //다음 페이지 가는거
 const showNextPage = () =>{
     if(pageNum>= pdfDoc.numPages){
@@ -64,7 +64,7 @@ const showNextPage = () =>{
     pageNum++;
     queueRenderPage(pageNum);
 
-}
+};
 
 
 
@@ -82,11 +82,11 @@ inputElement.onchange = function(event) {
         let typedarray = new Uint8Array(this.result);
 
         //Step 5:PDFJS should be able to read this
-        let loadingTask = pdfjsLib.getDocument(typedarray)
+        let loadingTask = pdfjsLib.getDocument(typedarray);
 
 
         loadingTask.promise.then((pdfDocument)=>{
-            pdfDoc = pdfDocument
+            pdfDoc = pdfDocument;
             document.querySelector('#page-count').textContent = pdfDocument.numPages;
             renderPage(pageNum);
         })
@@ -94,9 +94,10 @@ inputElement.onchange = function(event) {
     };
     //Step 3:Read the file as ArrayBuffer
     fileReader.readAsArrayBuffer(file);
+    file = event.target.files[1];
+    fileReader.readAsArrayBuffer(file);
 
- }
-
+ };
 
 
 //버튼 이벤트
