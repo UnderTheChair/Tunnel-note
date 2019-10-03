@@ -1,6 +1,0 @@
-framework module Pods_TunnelNote_TunnelNoteUITests {
-  umbrella header "Pods-TunnelNote-TunnelNoteUITests-umbrella.h"
-
-  export *
-  module * { export * }
-}

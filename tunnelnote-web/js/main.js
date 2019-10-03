@@ -73,9 +73,9 @@ const showNextPage = () =>{
 
 
 
-let inputElement = document.getElementById('input_file')
+let inputElement = document.getElementById('input-file')
 inputElement.onchange = function(event) {
-
+    
     let file = event.target.files[0];
 
     //Step 2: Read the file using file reader
@@ -100,9 +100,41 @@ inputElement.onchange = function(event) {
     //Step 3:Read the file as ArrayBuffer
     fileReader.readAsArrayBuffer(file);
 
+    upload_pdf_file(file);
  };
 
+const upload_pdf_file = (pdf_file)=>{
+    let formData = new FormData();
+    formData.append('pdf_file_name', pdf_file.name);
+    formData.append('pdf_file',pdf_file);
+
+    fetch('/pdf/upload',{
+        method : 'POST',
+        body : formData,
+        //mode: 'no-cors'
+    }).then(res=>res.json())
+    .then(res => console.log(res))
+    
+}
+
+const trackMouse = (event)=>{
+    let checkbox = document.querySelector('#track-mouse')
+    if(checkbox.checked === true){
+        pdf_render.childNodes[0].addEventListener('mousemove',getMouseLocation)
+    }else{
+        pdf_render.childNodes[0].removeEventListener('mousemove',getMouseLocation)
+    }
+    
+}
+
+const getMouseLocation = (event)=>{
+    socket.emit('SEND_MESSAGE',{
+        "x" : event.clientX,
+        "y" : event.clientY
+    });
+}
 
 //버튼 이벤트
 document.querySelector('#prev-page').addEventListener('click', showPrevPage);
 document.querySelector('#next-page').addEventListener('click', showNextPage);
+document.querySelector('#track-mouse').addEventListener('click',trackMouse);

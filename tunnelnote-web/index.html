@@ -11,13 +11,16 @@
         <div class="toolbar">
             <div id="toolbarContainer">
                 <div id="file_select">
-                <input type='file' id='input_file'/>
+                <input type='file' id='input-file'/>
                 </div>
                 <button class="btn" id="prev-page">Prev Page</button>
                 <button class="btn" id="next-page">Next Page</button>
                 <span class="page-info" id="page-info-container">
                     Page <span id="page-num"></span> of <span id="page-count"></span>
                 </span>
+                <label>Track Mouse</label>
+                <input type="checkbox" id="track-mouse"/>
+                
             </div>
         </div>
         <div id="viewerContainer">
@@ -27,6 +30,8 @@
         </div>
         <script type="text/javascript" src="js/pdf.js"></script>
         <script type="text/javascript" src="js/main.js"></script>
+        <script type="text/javascript" src="js/socket.io/socket.io.js"></script>
+        <script type="text/javascript" src="js/socket.io/main.js"></script>
     </div>
 </body>
 </html>

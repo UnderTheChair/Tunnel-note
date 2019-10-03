@@ -1,4 +1,5 @@
 .DS_Store
 */.idea/
 */.vscode/
-*/Pods/
+*/uploads/
+*/node_modules/
