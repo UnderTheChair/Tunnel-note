@@ -20,6 +20,13 @@ class TunnelBox{
         canvas.addEventListener("mousedown", handleMouseDown);
         canvas.addEventListener("mouseup", handleMouseUp);
         
+        socket.emit('SEND_MESSAGE',{
+            x: rectPos.x,
+            y: rectPos.y,
+            width: rectSize.width,
+            height: rectSize.height
+        })
+
     }
     terminate(){
         this.mode = false;
@@ -78,6 +85,14 @@ function handleMouseMove(mouseEvent) {
         rectPos.y += mousePos.y - lastPos.y;
         draw();
         lastPos = mousePos;
+
+        
+        socket.emit('SEND_MESSAGE',{
+            x: rectPos.x,
+            y: rectPos.y,
+            width: rectSize.width,
+            height: rectSize.height
+        })
     }
 }
 
