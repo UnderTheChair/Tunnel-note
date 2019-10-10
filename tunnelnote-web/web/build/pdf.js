@@ -9867,7 +9867,7 @@ var fakeWorkerFilesLoader = null;
       require.ensure([], function () {
         try {
           var worker;
-          worker = require('./pdf.worker.js');
+          worker = require('./pdf.worker.js.js');
           resolve(worker.WorkerMessageHandler);
         } catch (ex) {
           reject(ex);

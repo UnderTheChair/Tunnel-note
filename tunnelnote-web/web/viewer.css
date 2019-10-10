@@ -13,6 +13,10 @@
  * limitations under the License.
  */
 
+ .tunnelCanvas{
+   opacity: 0.2;
+ }
+
 .textLayer {
   position: absolute;
   left: 0;
