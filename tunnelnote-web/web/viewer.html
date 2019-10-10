@@ -26,6 +26,10 @@ See https://github.com/adobe-type-tools/cmap-resources
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <meta name="google" content="notranslate">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <script type="text/javascript" src="http://code.jquery.com/jquery-3.2.1.min.js"></script>
+
+
+    <!-- changed -->
     <title>PDF.js viewer</title>
 
 
@@ -35,7 +39,6 @@ See https://github.com/adobe-type-tools/cmap-resources
 <!-- This snippet is used in production (included from viewer.html) -->
 <link rel="resource" type="application/l10n" href="locale/locale.properties">
 <script src="../build/pdf.js"></script>
-
 
     <script src="viewer.js"></script>
 
@@ -69,7 +72,12 @@ See https://github.com/adobe-type-tools/cmap-resources
         <div id="sidebarResizer" class="hidden"></div>
       </div>  <!-- sidebarContainer -->
 
-      <div id="mainContainer">
+      <canvas style ="position:absolute; z-index:3;" id="pdf-canvas"></canvas>
+      <!-- <div style="z-index:2;" id="annotation-layer"></div> -->
+      <div style="z-index:-1;" id="viewer" class="pdfViewer" ></div>
+
+
+      <div style="z-index:1;" id="mainContainer" >
         <div class="findbar hidden doorHanger" id="findbar">
           <div id="findbarInputContainer">
             <input id="findInput" class="toolbarField" title="Find" placeholder="Find in document…" tabindex="91" data-l10n-id="find_input">
@@ -388,7 +396,7 @@ See https://github.com/adobe-type-tools/cmap-resources
       </div>  <!-- overlayContainer -->
 
     </div> <!-- outerContainer -->
-    <div id="printContainer"></div>
+    <div id="printContainer"></div>  
   </body>
 </html>
 
