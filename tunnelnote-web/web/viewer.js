@@ -152,6 +152,7 @@ function getViewerConfiguration() {
       openFile: document.getElementById('openFile'),
       print: document.getElementById('print'),
       presentationModeButton: document.getElementById('presentationMode'),
+      TunnelModeButton: document.getElementById('tunnelMode'),
       download: document.getElementById('download'),
       viewBookmark: document.getElementById('viewBookmark')
     },
@@ -1460,7 +1461,7 @@ var PDFViewerApplication = {
       _this5.documentInfo = info;
       _this5.metadata = metadata;
       _this5.contentDispositionFilename = contentDispositionFilename;
-      console.log('PDF ' + pdfDocument.fingerprint + ' [' + info.PDFFormatVersion + ' ' + (info.Producer || '-').trim() + ' / ' + (info.Creator || '-').trim() + ']' + ' (PDF.js: ' + (_pdfjsLib.version || '-') + (_app_options.AppOptions.get('enableWebGL') ? ' [WebGL]' : '') + ')');
+      //console.log('PDF ' + pdfDocument.fingerprint + ' [' + info.PDFFormatVersion + ' ' + (info.Producer || '-').trim() + ' / ' + (info.Creator || '-').trim() + ']' + ' (PDF.js: ' + (_pdfjsLib.version || '-') + (_app_options.AppOptions.get('enableWebGL') ? ' [WebGL]' : '') + ')');
       var pdfTitle;
 
       if (metadata && metadata.has('dc:title')) {
@@ -4513,7 +4514,7 @@ var pdfjsLib;
 if (typeof window !== 'undefined' && window['pdfjs-dist/build/pdf']) {
   pdfjsLib = window['pdfjs-dist/build/pdf'];
 } else {
-  pdfjsLib = require('../build/pdf.js');
+  pdfjsLib = require('./build/pdf.js.js');
 }
 
 module.exports = pdfjsLib;
@@ -11049,9 +11050,11 @@ function () {
 //        $("#pdf-canvas").css({ left: topLeft[0] + 'px', top: topLeft[1] + 'px', height: sumincanvas.height + 'px', width: sumincanvas.width + 'px' });
 
       // J2
-      console.log("im;im;im;");
+
+
       console.log("left: ", topLeft[0], "top: ", topLeft[1]);
       console.log("viewport width: ", currentPageView.viewport.width);
+
     }
   }, {
     key: "_updateHelper",

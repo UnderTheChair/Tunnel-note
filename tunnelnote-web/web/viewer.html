@@ -38,15 +38,18 @@ See https://github.com/adobe-type-tools/cmap-resources
 
 <!-- This snippet is used in production (included from viewer.html) -->
 <link rel="resource" type="application/l10n" href="locale/locale.properties">
-<script src="../build/pdf.js"></script>
+<script src="build/pdf.js"></script>
 
     <script src="viewer.js"></script>
+    <script type="module" src="tunnelnote_app.js"></script>
+    <script type="module" src="tunnel_box.js"></script>
+    <script src="socket.io/socket.io.js"></script>
+    <script src="socket.io.js"></script>
 
   </head>
 
   <body tabindex="1" class="loadingInProgress">
     <div id="outerContainer">
-
       <div id="sidebarContainer">
         <div id="toolbarSidebar">
           <div class="splitToolbarButton toggled">
@@ -72,9 +75,8 @@ See https://github.com/adobe-type-tools/cmap-resources
         <div id="sidebarResizer" class="hidden"></div>
       </div>  <!-- sidebarContainer -->
 
+
       <canvas style ="position:absolute; z-index:3;" id="pdf-canvas"></canvas>
-      <!-- <div style="z-index:2;" id="annotation-layer"></div> -->
-      <div style="z-index:-1;" id="viewer" class="pdfViewer" ></div>
 
 
       <div style="z-index:1;" id="mainContainer" >
@@ -214,6 +216,9 @@ See https://github.com/adobe-type-tools/cmap-resources
                 <span id="numPages" class="toolbarLabel"></span>
               </div>
               <div id="toolbarViewerRight">
+                <button id="tunnelMode" class="toolbarButton tuunelMode hiddenMediumView" title="Switch to Tunnel Mode" tabindex="30">
+                  <span data-l10n-id="tunnel_mode_label">Tunnel Mode</span>
+                </button>
                 <button id="presentationMode" class="toolbarButton presentationMode hiddenLargeView" title="Switch to Presentation Mode" tabindex="31" data-l10n-id="presentation_mode">
                   <span data-l10n-id="presentation_mode_label">Presentation Mode</span>
                 </button>
@@ -287,9 +292,15 @@ See https://github.com/adobe-type-tools/cmap-resources
           <menuitem id="contextPageRotateCcw" label="Rotate Counter-Clockwise"
                     data-l10n-id="page_rotate_ccw"></menuitem>
         </menu>
-
-        <div id="viewerContainer" tabindex="0">
-          <div id="viewer" class="pdfViewer"></div>
+        
+        <div style="position:relatve; z-index:3;" id="tunnelContainer">
+            <canvas id="tunnelCanvas" width="1200" height="3000"></canvas>
+        </div>
+        
+        <div style="position:relatve; z-index:2;" id="viewerContainer" tabindex="0">
+          <div id="viewer" class="
+                                  ">
+          </div>
         </div>
 
         <div id="errorWrapper" hidden='true'>
