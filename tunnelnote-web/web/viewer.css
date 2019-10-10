@@ -13,9 +13,29 @@
  * limitations under the License.
  */
 
+
+ #pdf-canvas{
+   background : red;
+   opacity : 0.2;
+   direction: ltr;
+  margin: 1px auto -8px auto;
+  /* background-clip: content-box; */
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  top: 30px;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  outline: none;
+  
+
+ }
+
+
  .tunnelCanvas{
    opacity: 0.2;
  }
+
 
 .textLayer {
   position: absolute;
