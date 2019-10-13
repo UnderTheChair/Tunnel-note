@@ -2349,14 +2349,6 @@ function webViewerWheel(evt) {
       pdfViewer.container.scrollTop += dy * scaleCorrectionFactor;
     }
   } else {
-    // J2
-    /*
-    var rect = pdfViewer.container.getBoundingClientRect();
-    console.log(pdfViewer.container.scrollLeft, pdfViewer.container.scrollTop);
-    console.log("currentScale: ", pdfViewer.currentScale);
-    console.log("clientRect.top: ", rect.top);
-    console.log("window.pageYOffset.top: ", window.pageYOffset);
-    */
     setZoomDisabledTimeout();
   }
 }
