@@ -13,10 +13,6 @@
  * limitations under the License.
  */
 
- .tunnelCanvas{
-   opacity: 0.2;
- }
-
 .textLayer {
   position: absolute;
   left: 0;
@@ -288,7 +284,7 @@
   margin: 1px auto -8px auto;
   position: relative;
   overflow: visible;
-  border: 9px solid transparent;
+  border: 5px solid transparent;
   background-clip: content-box;
   -o-border-image: url(images/shadow.png) 9 9 repeat;
      border-image: url(images/shadow.png) 9 9 repeat;
@@ -633,9 +629,15 @@ html[dir='rtl'] #sidebarContent {
   outline: none;
 }
 
-#tunnelCanvas {
-  height: 100%;
-  width: 100%;
+#tunnel {
+  position: sticky;
+  padding: 10px;
+  height: 100px;
+  width: 100px;
+  background-color: transparent;
+  border: '';
+  display: inline-block;
+  color: #fff;
   z-index: 5000;
 }
 
