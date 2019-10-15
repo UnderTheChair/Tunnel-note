@@ -1351,6 +1351,12 @@ html[dir='rtl'] .toolbarButton.pageDown::before {
   content: url(images/toolbarButton-pageDown-rtl.png);
 }
 
+.toolbarButton.eraserMode::before{
+  content: 'era'
+}
+.toolbarButton.penMode::before{
+  content: 'pen'
+}
 .toolbarButton.zoomOut::before {
   content: url(images/toolbarButton-zoomOut.png);
 }

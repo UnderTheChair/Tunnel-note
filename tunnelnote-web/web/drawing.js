@@ -1,8 +1,7 @@
 // Set up the canvas
 let canvas;
 let ctx;
-
-let mode = "pen";
+let mode;
 
 // Set up mouse events for drawing
 let drawing = false;
@@ -35,7 +34,13 @@ class DrawService{
         canvas.addEventListener("mouseup", mousePenEvent.mouseup, false);
 
         canvas.addEventListener("mousemove", mousePenEvent.mousemove, false);
-    }
+	}
+	
+	registerDrawToolButton(btn,tool){
+		btn.addEventListener("click",(e)=>{
+			mode = tool;
+		},false)
+	}
 }
 
 
@@ -47,6 +52,8 @@ function renderCanvas(ctx) {
 		ctx.beginPath();
 		
 		if(mode == "pen"){
+			//ctx.strokeStyle = <line color>;
+			//ctx.lineWidth = <line width>;
 			ctx.globalCompositeOperation="source-over";
 			ctx.moveTo(lastPos.x, lastPos.y);
 			ctx.lineTo(mousePos.x, mousePos.y);

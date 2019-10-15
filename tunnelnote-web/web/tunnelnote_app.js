@@ -9,3 +9,9 @@ let drawService = new DrawService(canvas);
 
 drawService.enableMouseEventListener();
 
+let penBtn = document.getElementById('penMode');
+let eraserBtn = document.getElementById('eraserMode');
+
+drawService.registerDrawToolButton(penBtn,"pen");
+drawService.registerDrawToolButton(eraserBtn,"eraser");
+
