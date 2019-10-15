@@ -43,11 +43,33 @@ const server = app.listen(8000, function() {
 const io = require('socket.io').listen(9000);
 
 // Connection event
-// TODO add mouse move data
 io.sockets.on('connection', (socket) => {
+
+  // sockets.push(socket.id);
+  // console.log(sockets);
+  // let toSocket = sockets.find(id => id !== socket.id);
+  socket.join('draw');
+  
   socket.on('SEND_MESSAGE', (data) => {
-      io.emit('SENDED_MESSAGE',data); //broadcast
+      io.sockets.emit('SENDED_MESSAGE',data); //broadcast
   });
+
+  socket.on('MOUSEDOWN',(data)=>{
+    socket.broadcast.to('draw').emit('MOUSEDOWN',data);
+  })
+
+  socket.on('MOUSEUP',()=>{
+    socket.broadcast.to('draw').emit('MOUSEUP');
+  })
+
+  socket.on('MOUSEMOVE',(data)=>{
+    socket.broadcast.to('draw').emit('MOUSEMOVE',data);
+  })
+
+  socket.on('DISCONNECT',()=>{
+    socket.leave('draw');
+    socket.disconnect();
+  })
 });
 
 app.get('/',(req,res)=>{

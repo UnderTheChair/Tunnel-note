@@ -1,3 +1,5 @@
+import {socket} from "./socket.io.js";
+
 // Set up the canvas
 let canvas;
 let ctx;
@@ -12,12 +14,24 @@ let mousePenEvent = {
 	mousedown(e){
 		lastPos = getMousePos(canvas,e);
 		drawing = true;
+
+		socket.emit("MOUSEDOWN",{
+			lastPos:lastPos,
+			mode : mode,
+		})
 	},
 	mouseup(e){
 		drawing = false;
+
+		socket.emit('MOUSEUP')
 	},
 	mousemove(e){
 		mousePos = getMousePos(canvas,e)
+
+		socket.emit('MOUSEMOVE',{
+			mousePos:mousePos,
+		})
+		
 		renderCanvas(ctx);
 	}
 }
@@ -79,6 +93,20 @@ function getMousePos(canvasDom, mouseEvent) {
 	};
 }
 
+socket.on('MOUSEDOWN',(data)=>{
+	lastPos = data.lastPos;
+	mode = data.mode;
+	drawing = true;
+})
+
+socket.on('MOUSEUP',(data)=>{
+	drawing = false;
+})
+
+socket.on('MOUSEMOVE',(data)=>{
+	mousePos = data.mousePos;
+	renderCanvas(ctx);
+})
 // TOOD : Mobile code on below
 
 // Set up touch events for mobile, etc
