@@ -1,11 +1,13 @@
 class TunnelBox {
     constructor() {
+
         this.DOM = document.getElementById('tunnel');
         this.on = false;
         this.color = "#9400D3";
         this.lineWidth = 2;
         this.width = 100;
         this.height = 100;
+
     }
     _dragElement(elmnt) {
         var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
@@ -54,9 +56,11 @@ class TunnelBox {
 
 const tunnel = new TunnelBox();
 
+
 let toggle = function() {
         if (tunnel.on) tunnel.deactivate();
         else tunnel.activate();
+
 }
 
 document.querySelector("#tunnelMode").addEventListener('click', toggle);
