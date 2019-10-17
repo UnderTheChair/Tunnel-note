@@ -1,13 +1,17 @@
 
 import { TunnelBox } from './tunnel_box.js';
+import { DrawService } from './drawing.js';
+
+let canvas = document.getElementById('pdf-canvas');
 
 let tunnelBox = new TunnelBox();
-function requestTunnelMode(){
-    if(tunnelBox.getMode()){
-        tunnelBox.terminate();
-        return;
-    }
-    tunnelBox.request();
-}
+let drawService = new DrawService(canvas);
 
-document.querySelector("#tunnelMode").addEventListener('click', requestTunnelMode);
+drawService.enableMouseEventListener();
+
+let penBtn = document.getElementById('penMode');
+let eraserBtn = document.getElementById('eraserMode');
+
+drawService.registerDrawToolButton(penBtn,"pen");
+drawService.registerDrawToolButton(eraserBtn,"eraser");
+

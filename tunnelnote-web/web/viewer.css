@@ -308,7 +308,7 @@
   margin: 1px auto -8px auto;
   position: relative;
   overflow: visible;
-  border: 9px solid transparent;
+  border: 5px solid transparent;
   background-clip: content-box;
   -o-border-image: url(images/shadow.png) 9 9 repeat;
      border-image: url(images/shadow.png) 9 9 repeat;
@@ -638,6 +638,31 @@ html[dir='ltr'] #sidebarContent {
 html[dir='rtl'] #sidebarContent {
   right: 0;
   box-shadow: inset 1px 0 0 hsla(0,0%,0%,.25);
+}
+
+#tunnelContainer{
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  position: sticky;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  outline: none;
+}
+
+#tunnel {
+  position: sticky;
+  padding: 10px;
+  height: 100px;
+  width: 100px;
+  background-color: transparent;
+  border: '';
+  display: inline-block;
+  color: #fff;
+  z-index: 5000;
 }
 
 #viewerContainer {
@@ -1326,6 +1351,12 @@ html[dir='rtl'] .toolbarButton.pageDown::before {
   content: url(images/toolbarButton-pageDown-rtl.png);
 }
 
+.toolbarButton.eraserMode::before{
+  content: 'era'
+}
+.toolbarButton.penMode::before{
+  content: 'pen'
+}
 .toolbarButton.zoomOut::before {
   content: url(images/toolbarButton-zoomOut.png);
 }
