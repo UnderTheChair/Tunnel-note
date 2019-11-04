@@ -14,28 +14,6 @@
  */
 
 
- #pdf-canvas{
-   background : red;
-   opacity : 0.2;
-   direction: ltr;
-  margin: 1px auto -8px auto;
-  /* background-clip: content-box; */
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
-  top: 30px;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  outline: none;
-  
-
- }
-
-
- .tunnelCanvas{
-   opacity: 0.2;
- }
-
 
 .textLayer {
   position: absolute;
@@ -640,21 +618,44 @@ html[dir='rtl'] #sidebarContent {
   box-shadow: inset 1px 0 0 hsla(0,0%,0%,.25);
 }
 
+#customContainer{
+  position: absolute;
+  left:0;
+  right:0;
+  margin-left:auto;
+  margin-right:auto;
+}
+
+#penContainer{
+  background : red;
+  opacity : 0.2;
+  direction: ltr;
+  margin: 1px auto -8px auto;
+  -webkit-overflow-scrolling: touch;
+  top: 5px;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  outline: none;
+  position:absolute;
+  z-index:3;
+}
+
+
 #tunnelContainer{
   overflow: auto;
   -webkit-overflow-scrolling: touch;
-  position: sticky;
+  position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
   left: 0;
   height: 100%;
   width: 100%;
-  outline: none;
 }
 
 #tunnel {
-  position: sticky;
+  position: relative;
   padding: 10px;
   height: 100px;
   width: 100px;

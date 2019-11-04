@@ -134,7 +134,7 @@ function getViewerConfiguration() {
     mainContainer: document.getElementById('viewerContainer'),
     viewerContainer: document.getElementById('viewer'),
     //changed
-    sumincanvas : document.getElementById('pdf-canvas'),
+    sumincanvas : document.getElementById('penContainer'),
 
     eventBus: null,
     toolbar: {
@@ -10600,22 +10600,8 @@ function () {
           scale: scale * _ui_utils.CSS_UNITS
         });
 
-      
-        //   if(sumincanvas.getContext){
-        //     var ctx = sumincanvas.getContext("2d");
-        //     ctx.fillStyle - "rgb(200,0,0)";
-        //     ctx.fillRect (10, 10, 50, 50);
-        //     ctx.fillStyle = "rgba(0, 0, 200, 0.5)";
-        //     ctx.fillRect (30, 30, 50, 50);
-        //       }
-  
-
         for (var pageNum = 1; pageNum <= pagesCount; ++pageNum) {
           var textLayerFactory = null;
-          // var sumincanvas = document.getElementById('pdf-canvas');
-          // sumincanvas.height = viewport.height;
-          // sumincanvas.width = viewport.width;
-  
 
           if (_this2.textLayerMode !== _ui_utils.TextLayerMode.DISABLE) {
             textLayerFactory = _this2;
@@ -11036,13 +11022,9 @@ function () {
         rotation: this._pagesRotation,
         pdfOpenParams: pdfOpenParams
       }
-        var tunnelcanvas = document.getElementById('pdf-canvas');
+        var tunnelcanvas = document.getElementById('penContainer');
         tunnelcanvas.height = currentPageView.viewport.height;
         tunnelcanvas.width = currentPageView.viewport.width;
-//        $("#pdf-canvas").css({ left: topLeft[0] + 'px', top: topLeft[1] + 'px', height: sumincanvas.height + 'px', width: sumincanvas.width + 'px' });
-
-      // J2
-
 
       console.log("left: ", topLeft[0], "top: ", topLeft[1]);
       console.log("viewport width: ", currentPageView.viewport.width);
@@ -11743,7 +11725,7 @@ function () {
     this.viewport = defaultViewport;
     this.pdfPageRotate = defaultViewport.rotation;
     this.hasRestrictedScaling = false;
-    this.textLayerMode = Number.isInteger(options.textLayerMode) ? options.textLayerMode : _ui_utils.TextLayerMode.ENABLE;
+    this.textLayeMode = Number.isInteger(options.textLayerMode) ? options.textLayerMode : _ui_utils.TextLayerMode.ENABLE;
     this.imageResourcesPath = options.imageResourcesPath || '';
     this.renderInteractiveForms = options.renderInteractiveForms || false;
     this.useOnlyCssZoom = options.useOnlyCssZoom || false;
