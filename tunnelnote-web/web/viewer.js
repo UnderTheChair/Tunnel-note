@@ -3599,8 +3599,6 @@ function scrollIntoView(element, spot) {
     }
   }
 
-  // J2
-  // console.log("offsetX: ", offsetX, "offsetY: " , offsetY)
   parent.scrollTop = offsetY;
 }
 
@@ -11026,8 +11024,8 @@ function () {
         tunnelcanvas.height = currentPageView.viewport.height;
         tunnelcanvas.width = currentPageView.viewport.width;
 
-      console.log("left: ", topLeft[0], "top: ", topLeft[1]);
-      console.log("viewport width: ", currentPageView.viewport.width);
+      // console.log("left: ", topLeft[0], "top: ", topLeft[1]);
+      // console.log("viewport width: ", currentPageView.viewport.width);
 
     }
   }, {
@@ -15748,11 +15746,3 @@ function draw(){
     ctx.fillRect (30, 30, 50, 50);
       }
     }
-
-function t() {
-  var firstPage = window.PDFViewerApplication.pdfViewer._getVisiblePages().first;
-  var container = window.PDFViewerApplication.pdfViewer.container;
-  var currentPage = window.PDFViewerApplication.pdfViewer.currentPageNumber -1;
-  var currentPageView = window.PDFViewerApplication.pdfViewer._pages[currentPage];
-  console.log(currentPageView.getPagePoint(container.scrollLeft - firstPage.x, container.scrollTop - firstPage.y));
-}

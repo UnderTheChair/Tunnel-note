@@ -655,14 +655,11 @@ html[dir='rtl'] #sidebarContent {
 }
 
 #tunnel {
-  position: relative;
+  position: absolute;
   padding: 10px;
-  height: 100px;
-  width: 100px;
   background-color: transparent;
   border: '';
   display: inline-block;
-  color: #fff;
   z-index: 5000;
 }
 
