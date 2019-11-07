@@ -13,6 +13,7 @@ let tunnelBoxSocket = io.connect(serverURL, {
 // Disconnect socket before close window.
 window.onbeforeunload = function(){
   drawsocket.emit('DISCONNECT');
+  tunnelBoxSocket.emit('DISCONNECT');
 }
 export {
   drawSocket, tunnelBoxSocket
