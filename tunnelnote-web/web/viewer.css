@@ -626,7 +626,7 @@ html[dir='rtl'] #sidebarContent {
   margin-right:auto;
 }
 
-#penContainer{
+#penCanvas{
   background : red;
   opacity : 0.2;
   direction: ltr;

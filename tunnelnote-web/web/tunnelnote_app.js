@@ -2,7 +2,7 @@
 import { TunnelBox } from './tunnel_box.js';
 import { DrawService } from './drawing.js';
 
-let canvas = document.getElementById('penContainer');
+let canvas = document.getElementById('penCanvas');
 
 let tunnelBox = new TunnelBox();
 let drawService = new DrawService(canvas);

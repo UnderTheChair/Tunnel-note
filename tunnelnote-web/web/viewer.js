@@ -133,8 +133,6 @@ function getViewerConfiguration() {
     appContainer: document.body,
     mainContainer: document.getElementById('viewerContainer'),
     viewerContainer: document.getElementById('viewer'),
-    //changed
-    sumincanvas : document.getElementById('penContainer'),
 
     eventBus: null,
     toolbar: {
@@ -11020,9 +11018,9 @@ function () {
         rotation: this._pagesRotation,
         pdfOpenParams: pdfOpenParams
       }
-        var tunnelcanvas = document.getElementById('penContainer');
-        tunnelcanvas.height = currentPageView.viewport.height;
-        tunnelcanvas.width = currentPageView.viewport.width;
+      var tunnelcanvas = document.getElementById('penCanvas');
+      tunnelcanvas.height = currentPageView.viewport.height;
+      tunnelcanvas.width = currentPageView.viewport.width;
 
       // console.log("left: ", topLeft[0], "top: ", topLeft[1]);
       // console.log("viewport width: ", currentPageView.viewport.width);
