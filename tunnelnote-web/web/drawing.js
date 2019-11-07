@@ -1,4 +1,4 @@
-import {socket} from "./socket.io.js";
+import { drawSocket } from "./socket.io.js";
 
 // Set up the canvas
 let canvas;
@@ -15,7 +15,7 @@ let mousePenEvent = {
 		lastPos = getMousePos(canvas,e);
 		drawing = true;
 
-		socket.emit("MOUSEDOWN",{
+		drawSocket.emit("MOUSEDOWN",{
 			lastPos:lastPos,
 			mode : mode,
 		})
@@ -23,12 +23,12 @@ let mousePenEvent = {
 	mouseup(e){
 		drawing = false;
 
-		socket.emit('MOUSEUP')
+		drawSocket.emit('MOUSEUP')
 	},
 	mousemove(e){
 		mousePos = getMousePos(canvas,e)
 
-		socket.emit('MOUSEMOVE',{
+		drawSocket.emit('MOUSEMOVE',{
 			mousePos:mousePos,
 		})
 		
@@ -93,17 +93,17 @@ function getMousePos(canvasDom, mouseEvent) {
 	};
 }
 
-socket.on('MOUSEDOWN',(data)=>{
+drawSocket.on('MOUSEDOWN',(data)=>{
 	lastPos = data.lastPos;
 	mode = data.mode;
 	drawing = true;
 })
 
-socket.on('MOUSEUP',(data)=>{
+drawSocket.on('MOUSEUP',(data)=>{
 	drawing = false;
 })
 
-socket.on('MOUSEMOVE',(data)=>{
+drawSocket.on('MOUSEMOVE',(data)=>{
 	mousePos = data.mousePos;
 	renderCanvas(ctx);
 })
