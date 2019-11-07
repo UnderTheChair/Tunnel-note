@@ -10600,7 +10600,6 @@ function () {
 
         // J2 QUICK FIX
         canvasContainer = document.getElementById('penContainer');
-        canvases = [];
         for (var pageNum = 1; pageNum <= pagesCount; ++pageNum) {
           var textLayerFactory = null;
 
@@ -10632,7 +10631,6 @@ function () {
           div.style.height = Math.floor(viewport.height) + 'px';
           div.setAttribute('data-page-number', pageNum);
           canvasContainer.appendChild(div);
-          canvases.push(div);
 
           _this2._pages.push(pageView);
         }
@@ -11013,6 +11011,14 @@ function () {
       var currentScale = this._currentScale;
       var currentScaleValue = this._currentScaleValue;
       var normalizedScaleValue = parseFloat(currentScaleValue) === currentScale ? Math.round(currentScale * 10000) / 100 : currentScaleValue;
+      // J2
+      if(!this._location || this._location.scale != normalizedScaleValue) {
+        var canvases = document.getElementsByClassName('penCanvas');
+        for(var i = 0; i < canvases.length; i++) {
+          canvases[i].style.height = firstPage.view.div.style.height;
+          canvases[i].style.width = firstPage.view.div.style.width;
+        }
+      }
       var pageNumber = firstPage.id;
       var pdfOpenParams = '#page=' + pageNumber;
       pdfOpenParams += '&zoom=' + normalizedScaleValue;
@@ -11029,12 +11035,6 @@ function () {
         left: intLeft,
         rotation: this._pagesRotation,
         pdfOpenParams: pdfOpenParams
-      }
-      // J2
-      var canvases = document.getElementsByClassName('penCanvas');
-      for(var i = 0; i < canvases.length; i++) {
-        canvases[i].style.height = firstPage.view.div.style.height;
-        canvases[i].style.width = firstPage.view.div.style.width;
       }
     }
   }, {
