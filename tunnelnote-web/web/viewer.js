@@ -1,3 +1,5 @@
+// J2
+var canvasContainer, canvases;
 /**
  * @licstart The following is the entire license notice for the
  * Javascript code in this page
@@ -127,6 +129,7 @@ var pdfjsWebApp, pdfjsWebAppOptions;
 {
   __webpack_require__(41);
 }
+
 
 function getViewerConfiguration() {
   return {
@@ -3787,7 +3790,6 @@ function getVisibleElements(scrollEl, views) {
       bottom = top + scrollEl.clientHeight;
   var left = scrollEl.scrollLeft,
       right = left + scrollEl.clientWidth;
-  //J2: regardless to scale
   // console.log("top: ", top, "bottom: ", bottom, "left: ", left, "right: ", right);
   function isElementBottomAfterViewTop(view) {
     var element = view.div;
@@ -9643,9 +9645,9 @@ function () {
         var pagesCount = pdfDocument.numPages;
         var viewport = firstPage.getViewport({
           scale: 1
-          
+
         });
-       
+
         for (var pageNum = 1; pageNum <= pagesCount; ++pageNum) {
           var thumbnail = new _pdf_thumbnail_view.PDFThumbnailView({
             container: _this.container,
@@ -9656,7 +9658,7 @@ function () {
             disableCanvasToImageConversion: false,
             l10n: _this.l10n
           });
-          
+
           _this._thumbnails.push(thumbnail);
         }
 
@@ -10596,6 +10598,9 @@ function () {
           scale: scale * _ui_utils.CSS_UNITS
         });
 
+        // J2 QUICK FIX
+        canvasContainer = document.getElementById('penContainer');
+        canvases = [];
         for (var pageNum = 1; pageNum <= pagesCount; ++pageNum) {
           var textLayerFactory = null;
 
@@ -10621,6 +10626,13 @@ function () {
             maxCanvasPixels: _this2.maxCanvasPixels,
             l10n: _this2.l10n
           });
+          var div = document.createElement('div');
+          div.className = 'penCanvas';
+          div.style.width = Math.floor(viewport.width) + 'px';
+          div.style.height = Math.floor(viewport.height) + 'px';
+          div.setAttribute('data-page-number', pageNum);
+          canvasContainer.appendChild(div);
+          canvases.push(div);
 
           _this2._pages.push(pageView);
         }
@@ -11018,13 +11030,12 @@ function () {
         rotation: this._pagesRotation,
         pdfOpenParams: pdfOpenParams
       }
-      var tunnelcanvas = document.getElementById('penCanvas');
-      tunnelcanvas.height = currentPageView.viewport.height;
-      tunnelcanvas.width = currentPageView.viewport.width;
-
-      // console.log("left: ", topLeft[0], "top: ", topLeft[1]);
-      // console.log("viewport width: ", currentPageView.viewport.width);
-
+      // J2
+      var canvases = document.getElementsByClassName('penCanvas');
+      for(var i = 0; i < canvases.length; i++) {
+        canvases[i].style.height = firstPage.view.div.style.height;
+        canvases[i].style.width = firstPage.view.div.style.width;
+      }
     }
   }, {
     key: "_updateHelper",
@@ -11051,7 +11062,6 @@ function () {
 
       this._updateHelper(visiblePages);
 
-      // J2
       this._updateLocation(visible.first);
 
       this.eventBus.dispatch('updateviewarea', {
@@ -15434,13 +15444,13 @@ function renderPage(activeServiceOnEntry, pdfDocument, pageNumber, size) {
 
       //  page.getAnnotations()
       //       .then(function(annotationData) {
-      //           var pdf_canvas = $('#pdf-canvas'); 
+      //           var pdf_canvas = $('#pdf-canvas');
       //           var canvas_offset = pdfDocument.offset();
       //           var canvas_height = scratchCanvas.height
       //           var canvas_width = scratchCanvas.width;
-            
+
       //           $("#annotation-layer").css({ left: canvas_offset.left + 'px', top: canvas_offset.top + 'px', height: canvas_height + 'px', width: canvas_width + 'px' });
-            
+
       //           pdfjsLib.AnnotationLayer.render({
       //               viewport: viewport.clone({ dontFlip: true }),
       //               div: $("#annotation-layer").get(0),
