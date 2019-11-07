@@ -24,6 +24,11 @@ export default new Router({
       path:'/signup',
       name : 'SignUp',
       component : SignUp
+    },
+    {
+      path:'/pdflist',
+      naem : 'PdfList',
+      component : PdfList
     }
   ]
 })
