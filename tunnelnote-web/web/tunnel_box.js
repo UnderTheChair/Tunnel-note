@@ -8,8 +8,11 @@ class TunnelBox {
     this.width = 300;
     this.height = 150;
     this.stuck = false;
+    this.left = 0;
+    this.top = 0;
   }
   _dragElement(elmnt) {
+    let self = this
     var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
     elmnt.onmousedown = dragMouseDown;
     function dragMouseDown(e) {
@@ -29,10 +32,12 @@ class TunnelBox {
       pos3 = e.clientX;
       pos4 = e.clientY;
       // set the element's new position:
-      this.top = (elmnt.offsetTop - pos2);
-      this.left = (elmnt.offsetLeft - pos1);
-      elmnt.style.top = this.top + "px";
-      elmnt.style.left = this.left + "px";
+      self.top = (elmnt.offsetTop - pos2);
+      self.left = (elmnt.offsetLeft - pos1);
+      elmnt.style.top = self.top + "px";
+      elmnt.style.left = self.left + "px";
+
+      self.getPosition();
     }
     function closeDragElement() {
       // stop moving when mouse button is released:
@@ -40,6 +45,7 @@ class TunnelBox {
       document.onmousemove = null;
     }
   }
+
   activate() {
     this.on = true;
     this.DOM.style.height = this.height + 'px';
@@ -47,19 +53,32 @@ class TunnelBox {
     this.DOM.style.border = '2px solid #abc';
     this._dragElement(this.DOM);
   }
+
   deactivate() {
     this.on = false;
     this.DOM.style.border = '';
     this.DOM.onmousedown = null;
     this.DOM.onscroll = null;
   }
+
+  getPosition() {
+    let pdfViewer = window.PDFViewerApplication.pdfViewer;
+    let currentPage = pdfViewer._location.pageNumber;
+    let clientX, clientY;
+    
+    clientX = this.left;
+    clientY = this.top + this.height;
+
+    let [pageX, pageY] = pdfViewer._pages[currentPage].viewport.convertToPdfPoint(clientX, clientY)
+    console.log(pageX, pageY);
+  }
 }
 
 const tunnel = new TunnelBox();
 
 let toggle = function() {
-        if (tunnel.on) tunnel.deactivate();
-        else tunnel.activate();
+  if (tunnel.on) tunnel.deactivate();
+  else tunnel.activate();
 }
 
 

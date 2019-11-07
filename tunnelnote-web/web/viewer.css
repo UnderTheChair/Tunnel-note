@@ -661,6 +661,7 @@ html[dir='rtl'] #sidebarContent {
   border: '';
   display: inline-block;
   z-index: 5000;
+  padding : 0px;
 }
 
 #viewerContainer {
