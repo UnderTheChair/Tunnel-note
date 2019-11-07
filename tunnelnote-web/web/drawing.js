@@ -66,13 +66,22 @@ function renderCanvas(ctx) {
 		ctx.beginPath();
 		
 		if(mode == "pen"){
+			var selcolor = document.getElementById("selcolor");
+			selcolor.onchange = function(e) {
+				ctx.strokeStyle = selcolor.value;
+			}
+			var selwidth = document.getElementById("selwidth");
+			selwidth.onchange = function(e) {
+				ctx.lineWidth = selwidth.value;
+			}
 			//ctx.strokeStyle = <line color>;
 			//ctx.lineWidth = <line width>;
 			ctx.globalCompositeOperation="source-over";
 			ctx.moveTo(lastPos.x, lastPos.y);
 			ctx.lineTo(mousePos.x, mousePos.y);
 			ctx.stroke();
-		}else if(mode == "eraser"){
+		}
+		else if(mode == "eraser"){
 			ctx.globalCompositeOperation = "destination-out";  
 			ctx.arc(lastPos.x,lastPos.y,20,0,Math.PI*2,false);
 			ctx.fill();

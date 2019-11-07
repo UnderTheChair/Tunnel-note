@@ -40,6 +40,7 @@ See https://github.com/adobe-type-tools/cmap-resources
 <link rel="resource" type="application/l10n" href="locale/locale.properties">
 <script src="build/pdf.js"></script>
 
+    <script src="jscolor.js"></script>
     <script src="viewer.js"></script>
     <script src="socket.io/socket.io.js"></script>
 
@@ -217,6 +218,25 @@ See https://github.com/adobe-type-tools/cmap-resources
                 <button id="penMode" class="toolbarButton penMode hiddenMediumView" title="Switch to Pen Mode" tabindex="29" data-l10n-id="pen_mode">
                     <span data-l10n-id="pen_mode_label">Pen Mode</span>
                 </button>
+                  <select id="selcolor">
+			              <option value="black" style="background-color: black"></option>
+			              <option value="red" style="background-color: red"></option>
+			              <option value="green" style="background-color: green"></option>
+			              <option value="yellow" style="background-color: yellow"></option>
+                    <option value="blue" style="background-color: blue"></option>
+                  </select>
+                  <select id="selwidth">
+                      <option value="1">1</option>
+                      <option value="3">3</option>
+                      <option value="5">5</option>
+                      <option value="7">7</option>
+                      <option value="9">9</option>
+                      <option value="11">11</option>
+                      <option value="13">13</option>
+                      <option value="15">15</option>
+                      <option value="17">17</option>
+                      <option value="19">19</option>
+                    </select>
                 <button id="tunnelMode" class="toolbarButton tuunelMode hiddenMediumView" title="Switch to Tunnel Mode" tabindex="30">
                   <span data-l10n-id="tunnel_mode_label">Tunnel Mode</span>
                 </button>
