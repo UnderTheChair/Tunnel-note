@@ -41,7 +41,7 @@ See https://github.com/adobe-type-tools/cmap-resources
 <script src="build/pdf.js"></script>
 
     <script src="viewer.js"></script>
-    <script src="socket.io/socket.io.js"></script>
+    <!-- <script src="socket.io/socket.io.js"></script> -->
 
   </head>
 
@@ -72,7 +72,6 @@ See https://github.com/adobe-type-tools/cmap-resources
         <div id="sidebarResizer" class="hidden"></div>
       </div>  <!-- sidebarContainer -->
 
-      <canvas style ="position:absolute; z-index:3;" id="pdf-canvas"></canvas>
 
       <div id="mainContainer">
         <div class="findbar hidden doorHanger" id="findbar">
@@ -297,10 +296,13 @@ See https://github.com/adobe-type-tools/cmap-resources
 
 
         <div id="viewerContainer" tabindex="0">
-          <div id="viewer" class="pdfViewer"> </div>
-          <div id="tunnelContainer">
-            <div id="tunnel"></div>
-
+          <div id="customContainer">
+            <div id="viewer" class="pdfViewer"> </div>
+            <div id="penContainer">
+              <div id="tunnelContainer">
+                <div id="tunnel"></div>
+              </div>
+            </div>
           </div>
         </div>
 
