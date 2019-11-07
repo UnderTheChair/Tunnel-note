@@ -1,24 +1,37 @@
 <template>
   <div class="login">
+  
     <h3>로그인</h3>
-    <input type="text" placeholder="email"><br>
-    <input type="password" placeholder="password"><br>
+    <input type="text" v-model="email" placeholder="Email@domain.com"><br>
+    <input type="password" v-model="password" placeholder="Password"><br>
     <button v-on:click="login">로그인</button>
     <p>만약 계정이 없다면, <router-link to="/signup">회원가입</router-link> 먼저해라 임마!</p>
   </div>
 </template>
  
-<script>
+
+<script>   
+    import firebase from 'firebase'
+
   export default {
     name: 'login',
     data() {
       return {
+          email : '',
+          password : ''
       }
     },
-    methods: {
-        login() {
-            this.$router.replace('/')
-        }
+   methods: {
+      login() {
+        firebase.auth().signInWithEmailAndPassword(this.email, this.password).then(
+          function(user) {
+            alert('로그인 완료!')
+          },
+          function(err) {
+            alert('에러 : ' + err.message)
+          }
+        );
+      }
     }
   }
 </script>

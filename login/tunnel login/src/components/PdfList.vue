@@ -1,6 +1,6 @@
 <template>
-  <div class="sign-up">
-    <h3>회원가입</h3>
+  <div class="pdflist">
+    <h3>pdflist</h3>
     <input type="text" v-model="email" placeholder="Email@domain.com"><br>
     <input type="password" v-model="password" placeholder="Password"><br>
     <button v-on:click="signUp">가입하기</button>
@@ -9,32 +9,19 @@
 </template>
  
 <script>
-  import firebase from 'firebase'
   export default {
-    name: 'signUp',
+    name: 'pdflist',
     data() {
       return {
-        email:'',
-        password:''
       }
     },
     methods: {
-      signUp() {
-        firebase.auth().createUserWithEmailAndPassword(this.email, this.password).then(
-          function(user) {
-            alert('회원가입 완료!')
-          },
-          function(err) {
-            alert('에러 : ' + err.message)
-          }
-        );
-      }
     }
   }
 </script>
  
 <style scoped>
-  .signUp {
+  .pdflist {
     margin-top: 40px;
   }
   input {
