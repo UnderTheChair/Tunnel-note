@@ -74,6 +74,10 @@ function renderCanvas(ctx) {
 			selwidth.onchange = function(e) {
 				ctx.lineWidth = selwidth.value;
 			}
+			var seltransparency = document.getElementById("seltransparency");
+			seltransparency.onchange = function(e) {
+				ctx.globalAlpha = seltransparency.value;
+			}
 			//ctx.strokeStyle = <line color>;
 			//ctx.lineWidth = <line width>;
 			ctx.globalCompositeOperation="source-over";
