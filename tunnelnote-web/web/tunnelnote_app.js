@@ -14,9 +14,9 @@ function onPdfLoad(e) {
 
 function setup() {
   console.log('initializing canvas');
-  let canvas = document.getElementsByClassName('penCanvas')[0];
+  let canvases = document.getElementsByClassName('penCanvas');
   let tunnelBox = new TunnelBox();
-  let drawService = new DrawService(canvas);
+  let drawService = new DrawService(canvases);
   drawService.enableMouseEventListener();
 
   let penBtn = document.getElementById('penMode');
