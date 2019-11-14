@@ -1,5 +1,6 @@
 // J2
-var canvasContainer, canvases;
+var canvasContainer;
+
 /**
  * @licstart The following is the entire license notice for the
  * Javascript code in this page
@@ -10627,8 +10628,8 @@ function () {
           });
           var cvs = document.createElement('canvas');
           cvs.className = 'penCanvas';
-          cvs.style.width = Math.floor(viewport.width) + 'px';
-          cvs.style.height = Math.floor(viewport.height) + 'px';
+          cvs.setAttribute('width',  Math.floor(viewport.width) + 'px');
+          cvs.setAttribute('height',  Math.floor(viewport.height) + 'px');
           cvs.setAttribute('data-page-number', pageNum);
           canvasContainer.appendChild(cvs);
 
@@ -11014,9 +11015,9 @@ function () {
       // J2
       if(!this._location || this._location.scale != normalizedScaleValue) {
         var canvases = document.getElementsByClassName('penCanvas');
-        for(var i = 0; i < canvases.length; i++) {
-          canvases[i].style.height = firstPage.view.div.style.height;
-          canvases[i].style.width = firstPage.view.div.style.width;
+        for(let cvs of canvases) {
+          cvs.setAttribute('height', firstPage.view.div.style.height);
+          cvs.setAttribute('width', firstPage.view.div.style.width);
         }
       }
       var pageNumber = firstPage.id;

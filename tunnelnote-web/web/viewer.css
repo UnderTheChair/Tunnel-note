@@ -645,8 +645,8 @@ html[dir='rtl'] #sidebarContent {
 
   -o-border-image: url(images/shadow.png) 9 9 repeat;
   border-image: url(images/shadow.png) 9 9 repeat;
-  background-color : red;
-  opacity : 0.2;
+  background-color : transparent;
+  opacity : 1.0;
 }
 
 
