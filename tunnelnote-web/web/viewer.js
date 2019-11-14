@@ -10625,12 +10625,12 @@ function () {
             maxCanvasPixels: _this2.maxCanvasPixels,
             l10n: _this2.l10n
           });
-          var div = document.createElement('div');
-          div.className = 'penCanvas';
-          div.style.width = Math.floor(viewport.width) + 'px';
-          div.style.height = Math.floor(viewport.height) + 'px';
-          div.setAttribute('data-page-number', pageNum);
-          canvasContainer.appendChild(div);
+          var cvs = document.createElement('canvas');
+          cvs.className = 'penCanvas';
+          cvs.style.width = Math.floor(viewport.width) + 'px';
+          cvs.style.height = Math.floor(viewport.height) + 'px';
+          cvs.setAttribute('data-page-number', pageNum);
+          canvasContainer.appendChild(cvs);
 
           _this2._pages.push(pageView);
         }
