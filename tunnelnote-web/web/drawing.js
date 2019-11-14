@@ -65,6 +65,7 @@ function renderCanvas(ctx) {
       ctx.globalCompositeOperation = "source-over";
       ctx.moveTo(lastPos.x, lastPos.y);
       ctx.lineTo(mousePos.x, mousePos.y);
+      console.log(mousePos);
       ctx.stroke();
     } else if (mode == "eraser") {
       ctx.globalCompositeOperation = "destination-out";
