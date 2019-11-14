@@ -641,6 +641,7 @@ html[dir='rtl'] #sidebarContent {
   overflow: visible;
   border: 5px solid transparent;
   background-clip: content-box;
+  display: block;
 
   -o-border-image: url(images/shadow.png) 9 9 repeat;
   border-image: url(images/shadow.png) 9 9 repeat;
