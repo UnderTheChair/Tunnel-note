@@ -7,107 +7,101 @@ let mode;
 
 // Set up mouse events for drawing
 let drawing = false;
-let mousePos = { x:0, y:0 };
+let mousePos = { x: 0, y: 0 };
 let lastPos = mousePos;
 
 let mousePenEvent = {
-	mousedown(e){
-		lastPos = getMousePos(canvas,e);
-		drawing = true;
+  mousedown(e) {
+    lastPos = getMousePos(canvas, e);
+    drawing = true;
 
-		drawSocket.emit("MOUSEDOWN",{
-			lastPos:lastPos,
-			mode : mode,
-		})
-	},
-	mouseup(e){
-		drawing = false;
-
-		drawSocket.emit('MOUSEUP')
-	},
-	mousemove(e){
-		mousePos = getMousePos(canvas,e)
-
-		drawSocket.emit('MOUSEMOVE',{
-			mousePos:mousePos,
-		})
-		
-		renderCanvas(ctx);
-	}
+    drawSocket.emit(
+      "MOUSEDOWN", {
+        lastPos: lastPos,
+        mode: mode,
+      }
+    )
+  }, mouseup(e) {
+    drawing = false;
+    drawSocket.emit('MOUSEUP')
+  }, mousemove(e) {
+    mousePos = getMousePos(canvas, e)
+    drawSocket.emit('MOUSEMOVE', {
+      mousePos: mousePos,
+    })
+    renderCanvas(ctx);
+  }
 }
 
-class DrawService{
-    constructor(canvasDom){
-        canvas = canvasDom
-        ctx = canvasDom.getContext('2d');
-    }
-    
-    enableMouseEventListener(){
-        canvas.addEventListener("mousedown", mousePenEvent.mousedown, false);
+class DrawService {
+  constructor(canvasDOMs) {
+    canvases = canvasDOMs
+    ctx = [];
+    canvases.forEach(cvs => { ctx.push(cvs.getContext('2d')); });
+  }
 
-        canvas.addEventListener("mouseup", mousePenEvent.mouseup, false);
+  enableMouseEventListener() {
+    canvases.forEach(cvs => {
+      cvs.addEventListener("mousedown", mousePenEvent.mousedown, false);
+      cvs.addEventListener("mouseup", mousePenEvent.mouseup, false);
+      cvs.addEventListener("mousemove", mousePenEvent.mousemove, false);
+    });
+  }
 
-        canvas.addEventListener("mousemove", mousePenEvent.mousemove, false);
-	}
-	
-	registerDrawToolButton(btn,tool){
-		btn.addEventListener("click",(e)=>{
-			mode = tool;
-		},false)
-	}
+  registerDrawToolButton(btn, tool) {
+    btn.addEventListener("click", (e) => {
+      mode = tool;
+    }, false)
+  }
 }
 
 
 // Draw to the canvas
 function renderCanvas(ctx) {
-	
-	if (drawing) {
+  if (drawing) {
+    ctx.beginPath();
 
-		ctx.beginPath();
-		
-		if(mode == "pen"){
-			//ctx.strokeStyle = <line color>;
-			//ctx.lineWidth = <line width>;
-			ctx.globalCompositeOperation="source-over";
-			ctx.moveTo(lastPos.x, lastPos.y);
-			ctx.lineTo(mousePos.x, mousePos.y);
-			ctx.stroke();
-		}else if(mode == "eraser"){
-			ctx.globalCompositeOperation = "destination-out";  
-			ctx.arc(lastPos.x,lastPos.y,20,0,Math.PI*2,false);
-			ctx.fill();
-		}
-
-		lastPos = mousePos;
-	}
+    if (mode == "pen") {
+      //ctx.strokeStyle = <line color>;
+      //ctx.lineWidth = <line width>;
+      ctx.globalCompositeOperation = "source-over";
+      ctx.moveTo(lastPos.x, lastPos.y);
+      ctx.lineTo(mousePos.x, mousePos.y);
+      ctx.stroke();
+    } else if (mode == "eraser") {
+      ctx.globalCompositeOperation = "destination-out";
+      ctx.arc(lastPos.x, lastPos.y, 20, 0, Math.PI * 2, false);
+      ctx.fill();
+    }
+    lastPos = mousePos;
+  }
 }
 
 // Get the position of the mouse relative to the canvas
 function getMousePos(canvasDom, mouseEvent) {
-	
-	let rect = canvasDom.getBoundingClientRect();
-	
-	return {
-		x: mouseEvent.clientX - rect.left,
-		y: mouseEvent.clientY - rect.top
-	};
+  let rect = canvasDom.getBoundingClientRect();
+
+  return {
+    x: mouseEvent.clientX - rect.left,
+    y: mouseEvent.clientY - rect.top
+  };
 }
 
-drawSocket.on('MOUSEDOWN',(data)=>{
-	lastPos = data.lastPos;
-	mode = data.mode;
-	drawing = true;
+drawSocket.on('MOUSEDOWN', (data) => {
+  lastPos = data.lastPos;
+  mode = data.mode;
+  drawing = true;
 })
 
-drawSocket.on('MOUSEUP',(data)=>{
-	drawing = false;
+drawSocket.on('MOUSEUP', (data) => {
+  drawing = false;
 })
 
-drawSocket.on('MOUSEMOVE',(data)=>{
-	mousePos = data.mousePos;
-	renderCanvas(ctx);
+drawSocket.on('MOUSEMOVE', (data) => {
+  mousePos = data.mousePos;
+  renderCanvas(ctx);
 })
-// TOOD : Mobile code on below
+// TODO : Mobile code on below
 
 // Set up touch events for mobile, etc
 /*
