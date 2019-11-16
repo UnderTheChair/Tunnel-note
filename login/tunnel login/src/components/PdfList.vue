@@ -1,97 +1,60 @@
 <template>
-    <div class="pdflist">
-    <input :accept=fileTypes type="file" hidden :multiple="allowMultiple" @change="readFile" ref="fileInput" />
-    <div class="upload-icon" @click="$refs.fileInput.click()">
-        <div class="upload-items" v-if="!selectedFileName && fileFlag" >
-            <span>{{ $t('File_ReUpload_Button') }}</span>
-        </div>
-        <div class="upload-items" v-else-if="!selectedFileName && !fileFlag">
-            <span>{{ $t('File_Upload_Button') }}</span>
-        </div>
-        <div class="upload-items" v-else-if="selectedFileName">
-            <span>{{ selectedFileName }}</span>
-        </div>
-    </div>
-    </div>
+  <div class="pdflist">
+    <img src= "../assets/tunnel.png">
+    <h3>파이어베이스</h3>
+    <input type="text" v-model="email" placeholder="Email@domain.com"><br>
+    <input type="password" v-model="password" placeholder="Password"><br>
+    <button v-on:click="signUp">가입하기</button>
+    <span>또는 <router-link to="/login">로그인</router-link> 으로 돌아가즈아</span>
+  </div>
 </template>
-
+ 
 <script>
+  import firebase from 'firebase'
   export default {
-    data () {
+    name: 'signUp',
+    data() {
       return {
-        multipleFiles: [],
-        selectedFileName: null
+        email:'',
+        password:''
       }
     },
-    name: 'file-upload',
     methods: {
-      readFile: function (e) {
-        const files = e.target.files
-        const totalFiles = files.length
-        for (let index = 0; index < totalFiles; index += 1) {
-          const file = files[index]
-          let reader = new FileReader()
-          reader.readAsDataURL(file)
-          reader.addEventListener('load', () => {
-            const result = Object.assign(file, { fileUpload: reader.result })
-            this.multipleFiles.push(result)
-            if (totalFiles === this.multipleFiles.length) {
-              this.$emit(
-                'file-upload',
-                this.allowMultiple ? this.multipleFiles : this.multipleFiles[0]
-              )
-              this.multipleFiles = []
-            }
-            reader = null
-          })
-        }
-        this.selectedFileName = files[0]['name']
-      }
-    },
-    props: {
-      fileFlag: {
-        type: String
-      },
-      allowMultiple: {
-        type: Boolean,
-        default: false
-      },
-      fileTypes: {
-        type: String,
-        default: '.p12,.pem,application/x-pkcs12'
+      signUp() {
+        firebase.auth().createUserWithEmailAndPassword(this.email, this.password).then(
+          function(user) {
+            alert('회원가입 완료!')
+          },
+          function(err) {
+            alert('에러 : ' + err.message)
+          }
+        );
       }
     }
   }
 </script>
+ 
 <style scoped>
-    .upload-icon {
-        width: 220px;
-        height: 40px;
-        border: 1px solid #ccc;
-        background-color: #fff;
-        overflow: hidden;
-        border-radius: 2px;
-        text-align: center;
-    }
-    .upload-icon:hover {
-        cursor: pointer;
-    }
-    .upload-icon .upload-items {
-        display: flex;
-        flex-direction: row;
-        color: #989a9c;
-        padding: 0 5px;
-    }
-    .upload-icon img {
-        width: 32px;
-        height: 32px;
-        margin: auto 0;
-    }
-    .upload-icon span {
-        margin: auto 0;
-        padding-left: 4px;
-    }
-    .upload-items span{
-      margin: auto auto; padding: 0
-    }
+  .signUp {
+    margin-top: 40px;
+  }
+  input {
+    margin: 10px 0;
+    width: 20%;
+    padding: 15px;
+  }
+  button {
+    margin-top: 20px;
+    width: 10%;
+    cursor: pointer;
+  }
+  p {
+    margin-top: 40px;
+    font-size: 20px;
+  }
+  span {
+    display: block;
+    margin-top: 20px;
+    font-size: 15px;
+  }
 </style>
