@@ -1,3 +1,6 @@
+// J2
+var canvasContainer;
+
 /**
  * @licstart The following is the entire license notice for the
  * Javascript code in this page
@@ -128,13 +131,12 @@ var pdfjsWebApp, pdfjsWebAppOptions;
   __webpack_require__(41);
 }
 
+
 function getViewerConfiguration() {
   return {
     appContainer: document.body,
     mainContainer: document.getElementById('viewerContainer'),
     viewerContainer: document.getElementById('viewer'),
-    //changed
-    sumincanvas : document.getElementById('pdf-canvas'),
 
     eventBus: null,
     toolbar: {
@@ -3599,8 +3601,6 @@ function scrollIntoView(element, spot) {
     }
   }
 
-  // J2
-  // console.log("offsetX: ", offsetX, "offsetY: " , offsetY)
   parent.scrollTop = offsetY;
 }
 
@@ -3791,7 +3791,6 @@ function getVisibleElements(scrollEl, views) {
       bottom = top + scrollEl.clientHeight;
   var left = scrollEl.scrollLeft,
       right = left + scrollEl.clientWidth;
-  //J2: regardless to scale
   // console.log("top: ", top, "bottom: ", bottom, "left: ", left, "right: ", right);
   function isElementBottomAfterViewTop(view) {
     var element = view.div;
@@ -9647,9 +9646,9 @@ function () {
         var pagesCount = pdfDocument.numPages;
         var viewport = firstPage.getViewport({
           scale: 1
-          
+
         });
-       
+
         for (var pageNum = 1; pageNum <= pagesCount; ++pageNum) {
           var thumbnail = new _pdf_thumbnail_view.PDFThumbnailView({
             container: _this.container,
@@ -9660,7 +9659,7 @@ function () {
             disableCanvasToImageConversion: false,
             l10n: _this.l10n
           });
-          
+
           _this._thumbnails.push(thumbnail);
         }
 
@@ -10600,22 +10599,10 @@ function () {
           scale: scale * _ui_utils.CSS_UNITS
         });
 
-      
-        //   if(sumincanvas.getContext){
-        //     var ctx = sumincanvas.getContext("2d");
-        //     ctx.fillStyle - "rgb(200,0,0)";
-        //     ctx.fillRect (10, 10, 50, 50);
-        //     ctx.fillStyle = "rgba(0, 0, 200, 0.5)";
-        //     ctx.fillRect (30, 30, 50, 50);
-        //       }
-  
-
+        // J2 QUICK FIX
+        canvasContainer = document.getElementById('penContainer');
         for (var pageNum = 1; pageNum <= pagesCount; ++pageNum) {
           var textLayerFactory = null;
-          // var sumincanvas = document.getElementById('pdf-canvas');
-          // sumincanvas.height = viewport.height;
-          // sumincanvas.width = viewport.width;
-  
 
           if (_this2.textLayerMode !== _ui_utils.TextLayerMode.DISABLE) {
             textLayerFactory = _this2;
@@ -10639,6 +10626,12 @@ function () {
             maxCanvasPixels: _this2.maxCanvasPixels,
             l10n: _this2.l10n
           });
+          var cvs = document.createElement('canvas');
+          cvs.className = 'penCanvas';
+          cvs.setAttribute('width',  Math.floor(viewport.width) + 'px');
+          cvs.setAttribute('height',  Math.floor(viewport.height) + 'px');
+          cvs.setAttribute('data-page-number', pageNum);
+          canvasContainer.appendChild(cvs);
 
           _this2._pages.push(pageView);
         }
@@ -11019,6 +11012,14 @@ function () {
       var currentScale = this._currentScale;
       var currentScaleValue = this._currentScaleValue;
       var normalizedScaleValue = parseFloat(currentScaleValue) === currentScale ? Math.round(currentScale * 10000) / 100 : currentScaleValue;
+      // J2
+      if(!this._location || this._location.scale != normalizedScaleValue) {
+        var canvases = document.getElementsByClassName('penCanvas');
+        for(let cvs of canvases) {
+          cvs.setAttribute('height', firstPage.view.div.style.height);
+          cvs.setAttribute('width', firstPage.view.div.style.width);
+        }
+      }
       var pageNumber = firstPage.id;
       var pdfOpenParams = '#page=' + pageNumber;
       pdfOpenParams += '&zoom=' + normalizedScaleValue;
@@ -11036,17 +11037,6 @@ function () {
         rotation: this._pagesRotation,
         pdfOpenParams: pdfOpenParams
       }
-        var tunnelcanvas = document.getElementById('pdf-canvas');
-        tunnelcanvas.height = currentPageView.viewport.height;
-        tunnelcanvas.width = currentPageView.viewport.width;
-//        $("#pdf-canvas").css({ left: topLeft[0] + 'px', top: topLeft[1] + 'px', height: sumincanvas.height + 'px', width: sumincanvas.width + 'px' });
-
-      // J2
-
-
-      console.log("left: ", topLeft[0], "top: ", topLeft[1]);
-      console.log("viewport width: ", currentPageView.viewport.width);
-
     }
   }, {
     key: "_updateHelper",
@@ -11073,7 +11063,6 @@ function () {
 
       this._updateHelper(visiblePages);
 
-      // J2
       this._updateLocation(visible.first);
 
       this.eventBus.dispatch('updateviewarea', {
@@ -11743,7 +11732,7 @@ function () {
     this.viewport = defaultViewport;
     this.pdfPageRotate = defaultViewport.rotation;
     this.hasRestrictedScaling = false;
-    this.textLayerMode = Number.isInteger(options.textLayerMode) ? options.textLayerMode : _ui_utils.TextLayerMode.ENABLE;
+    this.textLayeMode = Number.isInteger(options.textLayerMode) ? options.textLayerMode : _ui_utils.TextLayerMode.ENABLE;
     this.imageResourcesPath = options.imageResourcesPath || '';
     this.renderInteractiveForms = options.renderInteractiveForms || false;
     this.useOnlyCssZoom = options.useOnlyCssZoom || false;
@@ -15456,13 +15445,13 @@ function renderPage(activeServiceOnEntry, pdfDocument, pageNumber, size) {
 
       //  page.getAnnotations()
       //       .then(function(annotationData) {
-      //           var pdf_canvas = $('#pdf-canvas'); 
+      //           var pdf_canvas = $('#pdf-canvas');
       //           var canvas_offset = pdfDocument.offset();
       //           var canvas_height = scratchCanvas.height
       //           var canvas_width = scratchCanvas.width;
-            
+
       //           $("#annotation-layer").css({ left: canvas_offset.left + 'px', top: canvas_offset.top + 'px', height: canvas_height + 'px', width: canvas_width + 'px' });
-            
+
       //           pdfjsLib.AnnotationLayer.render({
       //               viewport: viewport.clone({ dontFlip: true }),
       //               div: $("#annotation-layer").get(0),
@@ -15766,11 +15755,3 @@ function draw(){
     ctx.fillRect (30, 30, 50, 50);
       }
     }
-
-function t() {
-  var firstPage = window.PDFViewerApplication.pdfViewer._getVisiblePages().first;
-  var container = window.PDFViewerApplication.pdfViewer.container;
-  var currentPage = window.PDFViewerApplication.pdfViewer.currentPageNumber -1;
-  var currentPageView = window.PDFViewerApplication.pdfViewer._pages[currentPage];
-  console.log(currentPageView.getPagePoint(container.scrollLeft - firstPage.x, container.scrollTop - firstPage.y));
-}

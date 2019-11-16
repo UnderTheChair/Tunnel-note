@@ -39,38 +39,17 @@ const server = app.listen(8000, function() {
     console.log('server running on port 8000');
 });
 
+const socketServer = require('http').createServer().listen(9000);
 //Require socket.io about server
-const io = require('socket.io').listen(9000);
-
-// Connection event
-io.sockets.on('connection', (socket) => {
-
-  // sockets.push(socket.id);
-  // console.log(sockets);
-  // let toSocket = sockets.find(id => id !== socket.id);
-  socket.join('draw');
-  
-  socket.on('SEND_MESSAGE', (data) => {
-      io.sockets.emit('SENDED_MESSAGE',data); //broadcast
-  });
-
-  socket.on('MOUSEDOWN',(data)=>{
-    socket.broadcast.to('draw').emit('MOUSEDOWN',data);
-  })
-
-  socket.on('MOUSEUP',()=>{
-    socket.broadcast.to('draw').emit('MOUSEUP');
-  })
-
-  socket.on('MOUSEMOVE',(data)=>{
-    socket.broadcast.to('draw').emit('MOUSEMOVE',data);
-  })
-
-  socket.on('DISCONNECT',()=>{
-    socket.leave('draw');
-    socket.disconnect();
-  })
+const drawIo = require('socket.io')(socketServer, {
+  path : '/draw',
 });
+const tunnelBoxIo = require('socket.io')(socketServer, {
+  path : '/tunnelBox'
+})
+
+require(__dirname + "/routers/draw_socket.js")(drawIo);
+require(__dirname + "/routers/tunnel_box_socket.js")(tunnelBoxIo);
 
 app.get('/',(req,res)=>{
     res.render('web/viewer.html');

@@ -1,60 +1,60 @@
-import {socket} from "./socket.io.js";
+import { drawSocket } from "./socket.io.js";
 
-// Set up the canvas
-let canvas;
-let ctx;
-let mode;
 
 // Set up mouse events for drawing
 let drawing = false;
-let mousePos = { x:0, y:0 };
+let mousePos = { x: 0, y: 0 };
 let lastPos = mousePos;
+let mode;
+let ctx = [];
 
 let mousePenEvent = {
-	mousedown(e){
-		lastPos = getMousePos(canvas,e);
-		drawing = true;
+  mousedown(e) {
+    lastPos = getMousePos(e);
+    drawing = true;
 
-		socket.emit("MOUSEDOWN",{
-			lastPos:lastPos,
-			mode : mode,
-		})
-	},
-	mouseup(e){
-		drawing = false;
+    drawSocket.emit(
+      "MOUSEDOWN", {
+        lastPos: lastPos,
+		mode: mode,
+		pageNum: e.target.getAttribute('data-page-number')
+      }
+    )
+  }, mouseup(e) {
+    drawing = false;
+    drawSocket.emit('MOUSEUP')
+  }, mousemove(e) {
+	if(drawing == false) return;
 
-		socket.emit('MOUSEUP')
-	},
-	mousemove(e){
-		mousePos = getMousePos(canvas,e)
-
-		socket.emit('MOUSEMOVE',{
-			mousePos:mousePos,
-		})
-		
-		renderCanvas(ctx);
-	}
+    mousePos = getMousePos(e)
+    drawSocket.emit('MOUSEMOVE', {
+	  mousePos: mousePos,
+	  pageNum: e.target.getAttribute('data-page-number')
+    })
+    renderCanvas(ctx[e.target.getAttribute('data-page-number')-1]);
+  }
 }
 
-class DrawService{
-    constructor(canvasDom){
-        canvas = canvasDom
-        ctx = canvasDom.getContext('2d');
+class DrawService {
+  constructor(canvasDOMs) {
+    this.canvases = canvasDOMs;
+    for(let cvs of this.canvases) {
+      ctx.push(cvs.getContext('2d'));
     }
-    
-    enableMouseEventListener(){
-        canvas.addEventListener("mousedown", mousePenEvent.mousedown, false);
+  }
+  enableMouseEventListener() {
+    for(let cvs of this.canvases) {
+      cvs.addEventListener("mousedown", mousePenEvent.mousedown, false);
+      cvs.addEventListener("mouseup", mousePenEvent.mouseup, false);
+      cvs.addEventListener("mousemove", mousePenEvent.mousemove, false);
+    };
+  }
 
-        canvas.addEventListener("mouseup", mousePenEvent.mouseup, false);
-
-        canvas.addEventListener("mousemove", mousePenEvent.mousemove, false);
-	}
-	
-	registerDrawToolButton(btn,tool){
-		btn.addEventListener("click",(e)=>{
-			mode = tool;
-		},false)
-	}
+  registerDrawToolButton(btn, tool) {
+    btn.addEventListener("click", (e) => {
+      mode = tool;
+    }, false)
+  }
 }
 
 
@@ -96,31 +96,31 @@ function renderCanvas(ctx) {
 }
 
 // Get the position of the mouse relative to the canvas
-function getMousePos(canvasDom, mouseEvent) {
-	
-	let rect = canvasDom.getBoundingClientRect();
-	
-	return {
-		x: mouseEvent.clientX - rect.left,
-		y: mouseEvent.clientY - rect.top
-	};
+function getMousePos(mouseEvent) {
+  let rect = mouseEvent.target.getBoundingClientRect();
+
+  return {
+    x: mouseEvent.clientX - rect.left,
+    y: mouseEvent.clientY - rect.top
+  };
 }
 
-socket.on('MOUSEDOWN',(data)=>{
-	lastPos = data.lastPos;
-	mode = data.mode;
-	drawing = true;
+drawSocket.on('MOUSEDOWN', (data) => {
+  lastPos = data.lastPos;
+  mode = data.mode;
+  drawing = true;
 })
 
-socket.on('MOUSEUP',(data)=>{
-	drawing = false;
+drawSocket.on('MOUSEUP', (data) => {
+  drawing = false;
 })
 
-socket.on('MOUSEMOVE',(data)=>{
-	mousePos = data.mousePos;
-	renderCanvas(ctx);
+drawSocket.on('MOUSEMOVE', (data) => {
+  mousePos = data.mousePos;
+  let pageNum = data.pageNum;
+  renderCanvas(ctx[pageNum - 1]);
 })
-// TOOD : Mobile code on below
+// TODO : Mobile code on below
 
 // Set up touch events for mobile, etc
 /*

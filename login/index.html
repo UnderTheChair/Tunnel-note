@@ -1,0 +1,84 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name ="viewport" content = "width=device-width, initial-scale=1.0">
+        <title>Vue sample</title>
+    </head>
+    <body>
+
+        <div id="app">
+        <h1>뷰라우터예제</h1>
+        <p>
+            <router-link to="/main">Main 컴포이동</router-link>
+            <router-link to="/login">Login컴포이동</router-link>
+        </p>
+        <router-view></router-view>
+        </div>
+
+        <script src=https://vuejs.org/js/vue.js></script>
+        <script src="https://unpkg.com/vue-router@3.0.1/dist/vue-router.js"></script>
+
+        <script>
+            var main = {template : '<div>main</div>'};
+            var login = {template : '<div>login</div>'};
+
+            var routes = [
+                {path : '/main', component:main},
+                {path: '/login', component:login}
+            ];
+            var router = new VueRouter({
+                mode:'history',
+                routes
+            });
+            var app  = new Vue({
+                router
+            }).$mount('#app');
+            // var evnetBus = new Vue();
+            // Vue.component('child-component', {
+            //     template : '<div> 하위이다. <button v-on:click="showLog">show</button></div>',
+            //     methods: {
+            //         showLog : function(){
+            //             evnetBus.$emit('triggerEventBus', 100);
+            //         }
+            //     }
+            // });
+
+            // var app = new Vue({
+            //     el : '#app', 
+            //     created : function(){
+            //         evnetBus.$on('triggerEventBus', function(value){
+            //             console.log("전달받음: ", value);
+            //         });
+            //     }
+            // });
+        //     var cmp = {
+        //          template: '<div> 전역 컴포넌트가 등록되었습니다!</div>'
+        // };
+        // Vue.component('child-component', {
+        //     template : '<button v-on:click="showLog">show</button>',
+        //     methods:{
+        //         showLog : function(){
+        //             this.$emit('show-log');
+        //         }
+        //     }
+        // });
+            // new Vue({
+            //     el : '#app',
+            //     data : {
+            //         message : 'Hello Vue,! passed from parent component'
+            //     }
+            // });
+            // var app = new Vue({
+            //     el : '#app',
+            //     data : {
+            //     message : 'hello vue'
+            //     },
+            //     methods : {
+            //         printText : function(){
+            //             console.log("received an evenhjht");
+            //         }
+            //     }
+            // })
+        </script>
+    </body>
+</html>
