@@ -58,3 +58,8 @@ app.get('/',(req,res)=>{
 app.post('/pdf/upload',(req,res)=>{
     res.send({"data":"success"});
 })
+
+app.post('/login', (req, res) => {
+    console.log(req.body);
+    res.send({ "data" : "ok" });
+})
