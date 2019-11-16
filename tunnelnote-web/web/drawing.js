@@ -53,6 +53,7 @@ class DrawService {
   registerDrawToolButton(btn, tool) {
     btn.addEventListener("click", (e) => {
       mode = tool;
+      drawSocket.emit("SETUP");
     }, false)
   }
 }
@@ -118,8 +119,10 @@ drawSocket.on('MOUSEUP', (data) => {
 drawSocket.on('MOUSEMOVE', (data) => {
   mousePos = data.mousePos;
   let pageNum = data.pageNum;
+  
   renderCanvas(ctx[pageNum - 1]);
 })
+
 // TODO : Mobile code on below
 
 // Set up touch events for mobile, etc
