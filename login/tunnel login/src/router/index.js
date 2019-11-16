@@ -5,6 +5,7 @@ import Login from '@/components/Login'
 import SignUp from '@/components/SignUp'
 import PdfList from '@/components/PdfList'
 
+
 Vue.use(Router)
 
 export default new Router({
