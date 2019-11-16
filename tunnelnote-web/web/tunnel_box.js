@@ -1,4 +1,5 @@
 import { tunnelBoxSocket } from './socket.io.js' 
+import { screenControl } from './screen_control.js'
 
 class TunnelBox {
   constructor() {
@@ -78,7 +79,7 @@ class TunnelBox {
     let currentPage = pdfViewer._location.pageNumber;
     let x, y, p1, p2;
 
-    clientX = this.left - document.querySelector("#viewer > div:nth-child(1)").offsetLeft;
+    clientX = this.left - document.querySelector(`#viewer > div:nth-child(${currentPage})`).offsetLeft;
     clientY = this.top;
 
     // pt1 has [x, y] converted to PDF point
@@ -91,13 +92,21 @@ class TunnelBox {
     return {
       pagePoint : [p1, p2],
       currentPage : currentPage,
+      // For setting size of screen corresponded with the tunnel box
+      width: document.body.clientWidth,
+      currentScale : pdfViewer.currentScale,
+      boxHeight : this.height,
+      boxWidth : this.width,
     }
   }
 
   setPosition(position) {
-    let {pagePoint, currentPage} = position;
+    let {pagePoint, currentPage, width, currentScale, boxHeight, boxWidth} = position;
     let pdfViewer = window.PDFViewerApplication.pdfViewer;
+    let currentPageElment = document.querySelector(`#viewer > div:nth-child(${currentPage})`);
     let x, y, p1, p2;
+    let newScale;
+    
     
     [x, y] = pdfViewer._pages[currentPage].viewport.convertToViewportPoint(pagePoint[0].x, pagePoint[0].y);
     p1 = {x : x, y : y}; 
@@ -105,8 +114,14 @@ class TunnelBox {
     [x, y] = pdfViewer._pages[currentPage].viewport.convertToViewportPoint(pagePoint[1].x, pagePoint[1].y);
     p2 = {x : x, y : y};
 
-    this.left = p1.x + document.querySelector("#viewer > div:nth-child(1)").offsetLeft;
+    this.left = p1.x + currentPageElment.offsetLeft;
     this.top = p1.y;
+    
+    screenControl.setScrollTop(currentPageElment.offsetTop + this.top);
+    screenControl.setScrollLeft(currentPageElment.offsetLeft + this.left);
+
+    newScale = (document.body.clientWidth / (width / currentScale)) * (width / boxWidth);
+    pdfViewer.currentScaleValue = newScale;
     
     this.DOM.style.left = this.left + "px";
     this.DOM.style.top = this.top + "px";
