@@ -7,31 +7,44 @@ let mousePos = { x: 0, y: 0 };
 let lastPos = mousePos;
 let mode;
 let ctx = [];
+let pdfViewer;
 
 let mousePenEvent = {
-  mousedown(e) {
-    lastPos = getMousePos(e);
-    drawing = true;
+  async mousedown(e) {
+    let pdfMousePos;
+    let x,y;
+    let pageNum = e.target.getAttribute('data-page-number');
 
-    drawSocket.emit(
-      "MOUSEDOWN", {
-        lastPos: lastPos,
-		mode: mode,
-		pageNum: e.target.getAttribute('data-page-number')
-      }
-    )
+    lastPos = await getMousePos(e);
+    drawing = true;
+    
+    [x,y] = pdfViewer._pages[pageNum].viewport.convertToPdfPoint(lastPos.x, lastPos.y)
+    pdfMousePos = {x: x, y: y};
+    
+    drawSocket.emit("MOUSEDOWN", {
+      lastPos: pdfMousePos,
+		  mode: mode,
+		  pageNum: e.target.getAttribute('data-page-number')
+    })
   }, mouseup(e) {
     drawing = false;
     drawSocket.emit('MOUSEUP')
-  }, mousemove(e) {
-	if(drawing == false) return;
-
-    mousePos = getMousePos(e)
+  }, async mousemove(e) {
+	  if(drawing == false) return;
+    let pdfMousePos;
+    let x,y;
+    let pageNum = e.target.getAttribute('data-page-number');
+    
+    mousePos = await getMousePos(e);
+  
+    [x,y] = pdfViewer._pages[pageNum].viewport.convertToPdfPoint(mousePos.x, mousePos.y)
+    pdfMousePos = {x: x, y: y};
+    
     drawSocket.emit('MOUSEMOVE', {
-	  mousePos: mousePos,
+	  mousePos: pdfMousePos,
 	  pageNum: e.target.getAttribute('data-page-number')
     })
-    renderCanvas(ctx[e.target.getAttribute('data-page-number')-1]);
+    renderCanvas(ctx[e.target.getAttribute('data-page-number') - 1]);
   }
 }
 
@@ -41,6 +54,7 @@ class DrawService {
     for(let cvs of this.canvases) {
       ctx.push(cvs.getContext('2d'));
     }
+    pdfViewer = window.PDFViewerApplication.pdfViewer;
   }
   enableMouseEventListener() {
     for(let cvs of this.canvases) {
@@ -67,6 +81,7 @@ function renderCanvas(ctx) {
 		ctx.beginPath();
 		
 		if(mode == "pen"){
+
 			var selcolor = document.getElementById("selcolor");
 			selcolor.onchange = function(e) {
 				ctx.strokeStyle = selcolor.value;
@@ -80,7 +95,8 @@ function renderCanvas(ctx) {
 				ctx.globalAlpha = seltransparency.value;
 			}
 			//ctx.strokeStyle = <line color>;
-			//ctx.lineWidth = <line width>;
+      //ctx.lineWidth = <line width>;
+      
 			ctx.globalCompositeOperation="source-over";
 			ctx.moveTo(lastPos.x, lastPos.y);
 			ctx.lineTo(mousePos.x, mousePos.y);
@@ -107,7 +123,9 @@ function getMousePos(mouseEvent) {
 }
 
 drawSocket.on('MOUSEDOWN', (data) => {
-  lastPos = data.lastPos;
+  let [x, y]= pdfViewer._pages[data.pageNum].viewport.convertToViewportPoint(data.lastPos.x, data.lastPos.y);
+  lastPos = {x: x, y: y};
+  //lastPos = data.lastPos;
   mode = data.mode;
   drawing = true;
 })
@@ -117,7 +135,9 @@ drawSocket.on('MOUSEUP', (data) => {
 })
 
 drawSocket.on('MOUSEMOVE', (data) => {
-  mousePos = data.mousePos;
+  let [x, y] = pdfViewer._pages[data.pageNum].viewport.convertToViewportPoint(data.mousePos.x, data.mousePos.y);
+  mousePos = {x: x, y: y};
+  //mousePos = data.mousePos;
   let pageNum = data.pageNum;
   
   renderCanvas(ctx[pageNum - 1]);
