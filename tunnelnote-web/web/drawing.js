@@ -1,11 +1,13 @@
 import { drawSocket } from "./socket.io.js";
 
-
 // Set up mouse events for drawing
 let drawing = false;
 let mousePos = { x: 0, y: 0 };
 let lastPos = mousePos;
 let mode;
+let color;
+let width;
+let transparency
 let ctx = [];
 let pdfViewer;
 
@@ -82,18 +84,10 @@ function renderCanvas(ctx) {
 		
 		if(mode == "pen"){
 
-			var selcolor = document.getElementById("selcolor");
-			selcolor.onchange = function(e) {
-				ctx.strokeStyle = selcolor.value;
-			}
-			var selwidth = document.getElementById("selwidth");
-			selwidth.onchange = function(e) {
-				ctx.lineWidth = selwidth.value;
-			}
-			var seltransparency = document.getElementById("seltransparency");
-			seltransparency.onchange = function(e) {
-				ctx.globalAlpha = seltransparency.value;
-			}
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.globalAlpha = transparency;
+		
 			//ctx.strokeStyle = <line color>;
       //ctx.lineWidth = <line width>;
       
@@ -142,6 +136,27 @@ drawSocket.on('MOUSEMOVE', (data) => {
   
   renderCanvas(ctx[pageNum - 1]);
 })
+
+var selColor = document.getElementById("selColor");
+color = selColor.value;
+
+var selWidth = document.getElementById("selWidth");
+color = selWidth.value;
+
+var selTransparency = document.getElementById("selTransparency");
+transparency = selTransparency.value;
+
+selColor.onchange = function(e) {
+  color = selcolor.value;
+}
+
+selWidth.onchange = function(e) {
+  width = selWidth.value;
+}
+
+selTransparency.onchange = function(e) {
+  transparency = selTransparency.value;
+}
 
 // TODO : Mobile code on below
 
