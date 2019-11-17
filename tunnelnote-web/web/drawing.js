@@ -10,6 +10,8 @@ let ctx = [];
 
 let inMemCanvases = [];
 let inMemCtx = [];
+var curScale;
+var scaleTimestamp = 0;
 
 let mousePenEvent = { 
   mousedown(e) {
@@ -53,11 +55,18 @@ class DrawService {
     $('.penCanvas').attrchange({
       trackValues: true,
       callback: function (e) { 
-        for(let i = 0; i < ctx.length; i++) {
-          ctx[i].drawImage(inMemCanvases[i], 0, 0);
+        if(performance.now() - scaleTimestamp > 50) {
+          scaleTimestamp = performance.now();
+          console.log('scaling')
+          for(let i = 0; i < ctx.length; i++) {
+            let scaleDelta = window.PDFViewerApplication.pdfViewer._location.scale/curScale; 
+            ctx[i].scale(scaleDelta, scaleDelta);
+            ctx[i].drawImage(inMemCanvases[i], 0, 0);
+          }
         }
       }
     });
+    curScale = window.PDFViewerApplication.pdfViewer._location.scale;
   }
   enableMouseEventListener() {
     for(let cvs of this.canvases) {
