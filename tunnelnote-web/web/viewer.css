@@ -1362,15 +1362,18 @@ html[dir='rtl'] .toolbarButton.pageDown::before {
 .toolbarButton.drawSaveMode::before {
   content: url(images/toolbarButton-save.png);
 }
-.toolbarButton.eraserMode::before {
+.toolbarButton.eraserMode::before,
+.secondaryToolbarButton.eraserMode::before { 
   content: url(images/toolbarButton-eraser.png);
 }
-.toolbarButton.penMode::before {
+.toolbarButton.penMode::before,
+.secondaryToolbarButton.penMode::before {
   content: url(images/toolbarButton-pen.png);
 }
 .toolbarButton.tunnelMode::before {
   content: url(images/toolbarButton-tunnelMode.png);
 }
+
 .toolbarButton.zoomOut::before {
   content: url(images/toolbarButton-zoomOut.png);
 }
