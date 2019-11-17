@@ -217,30 +217,6 @@ selTransparency.onchange = function(e) {
   transparency = selTransparency.value;
 }
 
-// canvas.addEventListener("touchstart", function (e) {
-// 	mousePos = getTouchPos(canvas, e);
-// 	let touch = e.touches[0];
-// 	let mouseEvent = new MouseEvent("mousedown", {
-// 		clientX: touch.clientX,
-// 		clientY: touch.clientY
-// 	});
-// 	canvas.dispatchEvent(mouseEvent);
-// }, false);
-// canvas.addEventListener("touchend", function (e) {
-// 	let mouseEvent = new MouseEvent("mouseup", {});
-// 	canvas.dispatchEvent(mouseEvent);
-// }, false);
-// canvas.addEventListener("touchmove", function (e) {
-// 	let touch = e.touches[0];
-// 	let mouseEvent = new MouseEvent("mousemove", {
-// 		clientX: touch.clientX,
-// 		clientY: touch.clientY
-// 	});
-// 	canvas.dispatchEvent(mouseEvent);
-// }, false);
-
-
-
 export {
     DrawService
 }
