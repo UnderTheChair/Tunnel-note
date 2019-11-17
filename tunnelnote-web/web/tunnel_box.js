@@ -161,7 +161,8 @@ tunnelBoxSocket.on('BOX_INIT', (position) => {
 })
 
 tunnelBoxSocket.on('BOX_MOVE', (position) => {
-  if (tunnel.on == false ) return;
+  // Temporary remove for continue operating when page referch at remote device
+  //if (tunnel.on == false ) return;
   tunnel.setPosition(position);
 })
 

@@ -26,7 +26,10 @@ let mousePenEvent = {
     
     drawSocket.emit("MOUSEDOWN", {
       lastPos: pdfMousePos,
-		  mode: mode,
+      mode: mode,
+      color: color,
+      width: width,
+      transparency: transparency,
 		  pageNum: e.target.getAttribute('data-page-number')
     })
   }, mouseUp(e) {
@@ -45,7 +48,10 @@ let mousePenEvent = {
     
 
     drawSocket.emit('MOUSEMOVE', {
-	  mousePos: pdfMousePos,
+    mousePos: pdfMousePos,
+    color: color,
+    width: width,
+    transparency: transparency,
 	  pageNum: e.target.getAttribute('data-page-number')
     })
     renderCanvas(ctx[e.target.getAttribute('data-page-number') - 1]);
@@ -190,6 +196,9 @@ drawSocket.on('MOUSEUP', (data) => {
 drawSocket.on('MOUSEMOVE', (data) => {
   let [x, y] = pdfViewer._pages[data.pageNum].viewport.convertToViewportPoint(data.mousePos.x, data.mousePos.y);
   mousePos = {x: x, y: y};
+  color = data.color;
+  width = data.width;
+  transparency = data.transparency;
   //mousePos = data.mousePos;
   let pageNum = data.pageNum;
   
@@ -206,7 +215,7 @@ var selTransparency = document.getElementById("selTransparency");
 transparency = selTransparency.value;
 
 selColor.onchange = function(e) {
-  color = selcolor.value;
+  color = selColor.value;
 }
 
 selWidth.onchange = function(e) {
