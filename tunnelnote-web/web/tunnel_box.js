@@ -71,6 +71,8 @@ class TunnelBox {
   deactivate() {
     this.on = false;
     this.DOM.style.border = '';
+    this.DOM.style.height = '0px';
+    this.DOM.style.width = '0px';
     this.DOM.onmousedown = null;
     this.DOM.onscroll = null;
 
@@ -161,7 +163,8 @@ tunnelBoxSocket.on('BOX_INIT', (position) => {
 })
 
 tunnelBoxSocket.on('BOX_MOVE', (position) => {
-  if (tunnel.on == false ) return;
+  // Temporary remove for continue operating when page referch at remote device
+  //if (tunnel.on == false ) return;
   tunnel.setPosition(position);
 })
 
