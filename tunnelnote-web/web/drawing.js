@@ -27,11 +27,9 @@ let mousePenEvent = {
     let pageNum = e.target.getAttribute('data-page-number');
     drawing = false;
     drawSocket.emit('MOUSEUP')
-    console.log(inMemCanvases);
     inMemCanvases[pageNum-1].width = e.target.width;
     inMemCanvases[pageNum-1].height = e.target.height;
     inMemCtx[pageNum-1].drawImage(e.target, 0, 0);
-    console.log(inMemCanvases[pageNum-1].toDataURL());
   }, mousemove(e) {
 	if(drawing == false) return;
     mousePos = getMousePos(e)
@@ -52,15 +50,14 @@ class DrawService {
       inMemCtx.push(inMem.getContext('2d'));
       inMemCanvases.push(inMem);
     }
-
-    window.addEventListener('wheel', (evt) => {
-      if (evt.ctrlKey || evt.metaKey) {
-        for(let i = 0; i < this.canvases.length; i++) {
+    $('.penCanvas').attrchange({
+      trackValues: true,
+      callback: function (e) { 
+        for(let i = 0; i < ctx.length; i++) {
           ctx[i].drawImage(inMemCanvases[i], 0, 0);
         }
-        console.log(this.canvases[0].toDataURL());
       }
-    }, true);
+    });
   }
   enableMouseEventListener() {
     for(let cvs of this.canvases) {
@@ -89,7 +86,6 @@ function renderCanvas(ctx) {
       ctx.globalCompositeOperation = "source-over";
       ctx.moveTo(lastPos.x, lastPos.y);
       ctx.lineTo(mousePos.x, mousePos.y);
-      console.log(mousePos);
       ctx.stroke();
     } else if (mode == "eraser") {
       ctx.globalCompositeOperation = "destination-out";
