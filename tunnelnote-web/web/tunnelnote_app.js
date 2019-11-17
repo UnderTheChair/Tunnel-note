@@ -23,12 +23,17 @@ function setup() {
 
   isSetup = true;
   drawService.enableMouseEventListener();
+  drawService.enableTouchEventListener();
 
   let penBtn = document.getElementById('penMode');
   let eraserBtn = document.getElementById('eraserMode');
+  let secondaryPenBtn = document.getElementById('secondaryPenMode');
+  let secondaryEraserBtn = document.getElementById('secondaryEraserMode');
 
-  drawService.registerDrawToolButton(penBtn,"pen");
-  drawService.registerDrawToolButton(eraserBtn,"eraser");
+  drawService.registerDrawToolButton(penBtn, 'pen');
+  drawService.registerDrawToolButton(eraserBtn, 'eraser');
+  drawService.registerDrawToolButton(secondaryPenBtn, 'pen');
+  drawService.registerDrawToolButton(secondaryEraserBtn, 'eraser');
 
   return true;
 }

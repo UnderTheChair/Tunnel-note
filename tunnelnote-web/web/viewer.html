@@ -107,6 +107,12 @@ See https://github.com/adobe-type-tools/cmap-resources
 
         <div id="secondaryToolbar" class="secondaryToolbar hidden doorHangerRight">
           <div id="secondaryToolbarButtonContainer">
+            <button id="secondaryPenMode" class="secondaryToolbarButton penMode visibleMediumView" title="Switch to Pen Mode" tabindex="49" data-l10n-id="pen_mode">
+              <span data-l10n-id="pen_mode_label">Pen Mode</span>
+            </button>
+            <button id="secondaryEraserMode" class="secondaryToolbarButton eraserMode visibleMediumView" title="Switch to Eraser Mode" tabindex="50" data-l10n-id="eraser_mode">
+                <span data-l10n-id="eraser_mode_label">Eraser Mode</span>
+            </button>
             <button id="secondaryPresentationMode" class="secondaryToolbarButton presentationMode visibleLargeView" title="Switch to Presentation Mode" tabindex="51" data-l10n-id="presentation_mode">
               <span data-l10n-id="presentation_mode_label">Presentation Mode</span>
             </button>
@@ -210,39 +216,39 @@ See https://github.com/adobe-type-tools/cmap-resources
                 <span id="numPages" class="toolbarLabel"></span>
               </div>
               <div id="toolbarViewerRight">
+                <select id="selColor">
+                  <option value="black" style="background-color: black"></option>
+                  <option value="red" style="background-color: red"></option>
+                  <option value="green" style="background-color: green"></option>
+                  <option value="yellow" style="background-color: yellow"></option>
+                  <option value="blue" style="background-color: blue"></option>
+                </select>
+                <select id="selWidth">
+                  <option value="1">1</option>
+                  <option value="3">3</option>
+                  <option value="5">5</option>
+                  <option value="7">7</option>
+                  <option value="9">9</option>
+                  <option value="11">11</option>
+                  <option value="13">13</option>
+                  <option value="15">15</option>
+                  <option value="17">17</option>
+                  <option value="19">19</option>
+                </select>
+                <select id="selTransparency">
+                  <option value="0">0%</option>
+                  <option value="0.2">20%</option>
+                  <option value="0.4">40%</option>
+                  <option value="0.6">60%</option>
+                  <option value="0.8">80%</option>
+                  <option value="1" selected>100%</option>
+                </select>
                 <button id="eraserMode" class="toolbarButton eraserMode hiddenMediumView" title="Switch to Eraser Mode" tabindex="28" data-l10n-id="eraser_mode">
                     <span data-l10n-id="eraser_mode_label">Eraser Mode</span>
                 </button>
                 <button id="penMode" class="toolbarButton penMode hiddenMediumView" title="Switch to Pen Mode" tabindex="29" data-l10n-id="pen_mode">
                     <span data-l10n-id="pen_mode_label">Pen Mode</span>
                 </button>
-                  <select id="selColor">
-			              <option value="black" style="background-color: black"></option>
-			              <option value="red" style="background-color: red"></option>
-			              <option value="green" style="background-color: green"></option>
-			              <option value="yellow" style="background-color: yellow"></option>
-                    <option value="blue" style="background-color: blue"></option>
-                  </select>
-                  <select id="selWidth">
-                      <option value="1">1</option>
-                      <option value="3">3</option>
-                      <option value="5">5</option>
-                      <option value="7">7</option>
-                      <option value="9">9</option>
-                      <option value="11">11</option>
-                      <option value="13">13</option>
-                      <option value="15">15</option>
-                      <option value="17">17</option>
-                      <option value="19">19</option>
-                    </select>
-                  <select id="selTransparency">
-                      <option value="0">0%</option>
-                      <option value="0.2">20%</option>
-                      <option value="0.4">40%</option>
-                      <option value="0.6">60%</option>
-                      <option value="0.8">80%</option>
-                      <option value="1" selected>100%</option>
-                  </select>
                 <button id="tunnelMode" class="toolbarButton tuunelMode hiddenMediumView" title="Switch to Tunnel Mode" tabindex="30">
                   <span data-l10n-id="tunnel_mode_label">Tunnel Mode</span>
                 </button>

@@ -12,7 +12,7 @@ let ctx = [];
 let pdfViewer;
 
 let mousePenEvent = {
-  async mousedown(e) {
+  async mouseDown(e) {
     let pdfMousePos;
     let x,y;
     let pageNum = e.target.getAttribute('data-page-number');
@@ -28,10 +28,10 @@ let mousePenEvent = {
 		  mode: mode,
 		  pageNum: e.target.getAttribute('data-page-number')
     })
-  }, mouseup(e) {
+  }, mouseUp(e) {
     drawing = false;
     drawSocket.emit('MOUSEUP')
-  }, async mousemove(e) {
+  }, async mouseMove(e) {
 	  if(drawing == false) return;
     let pdfMousePos;
     let x,y;
@@ -50,6 +50,43 @@ let mousePenEvent = {
   }
 }
 
+// Set up touch events for mobile, etc
+
+let touchPenEvent = {
+  async touchStart(e) {
+    let canvas = e.target;
+    let touch = e.touches[0];
+
+    if (mode !== undefined) e.preventDefault();
+    
+    mousePos = await getTouchPos(e);
+
+    let mouseEvent = new MouseEvent("mousedown", {
+      clientX: touch.clientX,
+      clientY: touch.clientY
+    });
+    canvas.dispatchEvent(mouseEvent);
+  },
+  touchEnd(e) {
+    let canvas = e.target;
+    let mouseEvent = new MouseEvent("mouseup", {});
+
+    if (mode !== undefined) e.preventDefault();
+	  canvas.dispatchEvent(mouseEvent);
+  },
+  touchMove(e) {
+    let touch = e.touches[0];
+    let canvas = e.target;
+    let mouseEvent = new MouseEvent("mousemove", {
+      clientX: touch.clientX,
+      clientY: touch.clientY
+    });
+
+    if (mode !== undefined) e.preventDefault();
+    canvas.dispatchEvent(mouseEvent);
+  }
+}
+
 class DrawService {
   constructor(canvasDOMs) {
     this.canvases = canvasDOMs;
@@ -60,16 +97,26 @@ class DrawService {
   }
   enableMouseEventListener() {
     for(let cvs of this.canvases) {
-      cvs.addEventListener("mousedown", mousePenEvent.mousedown, false);
-      cvs.addEventListener("mouseup", mousePenEvent.mouseup, false);
-      cvs.addEventListener("mousemove", mousePenEvent.mousemove, false);
+      cvs.addEventListener("mousedown", mousePenEvent.mouseDown, false);
+      cvs.addEventListener("mouseup", mousePenEvent.mouseUp, false);
+      cvs.addEventListener("mousemove", mousePenEvent.mouseMove, false);
+    };
+  }
+  enableTouchEventListener() {
+    for(let cvs of this.canvases) {
+      cvs.addEventListener("touchstart", touchPenEvent.touchStart, false);
+      cvs.addEventListener("touchend", touchPenEvent.touchEnd, false);
+      cvs.addEventListener("touchmove", touchPenEvent.touchMove, false);
     };
   }
 
   registerDrawToolButton(btn, tool) {
     btn.addEventListener("click", (e) => {
-      mode = tool;
-      drawSocket.emit("SETUP");
+      if (mode === tool) mode = undefined;
+      else {
+        mode = tool;
+        drawSocket.emit("SETUP");
+      }
     }, false)
   }
 }
@@ -116,6 +163,16 @@ function getMousePos(mouseEvent) {
   };
 }
 
+// Get the position of a touch relative to the canvas
+function getTouchPos(touchEvent) {
+  let rect = touchEvent.target.getBoundingClientRect();
+  
+	return {
+		x: touchEvent.touches[0].clientX - rect.left,
+		y: touchEvent.touches[0].clientY - rect.top
+	};
+}
+
 drawSocket.on('MOUSEDOWN', (data) => {
   let [x, y]= pdfViewer._pages[data.pageNum].viewport.convertToViewportPoint(data.lastPos.x, data.lastPos.y);
   lastPos = {x: x, y: y};
@@ -158,42 +215,29 @@ selTransparency.onchange = function(e) {
   transparency = selTransparency.value;
 }
 
-// TODO : Mobile code on below
-
-// Set up touch events for mobile, etc
-/*
-canvas.addEventListener("touchstart", function (e) {
-	mousePos = getTouchPos(canvas, e);
-	let touch = e.touches[0];
-	let mouseEvent = new MouseEvent("mousedown", {
-		clientX: touch.clientX,
-		clientY: touch.clientY
-	});
-	canvas.dispatchEvent(mouseEvent);
-}, false);
-canvas.addEventListener("touchend", function (e) {
-	let mouseEvent = new MouseEvent("mouseup", {});
-	canvas.dispatchEvent(mouseEvent);
-}, false);
-canvas.addEventListener("touchmove", function (e) {
-	let touch = e.touches[0];
-	let mouseEvent = new MouseEvent("mousemove", {
-		clientX: touch.clientX,
-		clientY: touch.clientY
-	});
-	canvas.dispatchEvent(mouseEvent);
-}, false);
+// canvas.addEventListener("touchstart", function (e) {
+// 	mousePos = getTouchPos(canvas, e);
+// 	let touch = e.touches[0];
+// 	let mouseEvent = new MouseEvent("mousedown", {
+// 		clientX: touch.clientX,
+// 		clientY: touch.clientY
+// 	});
+// 	canvas.dispatchEvent(mouseEvent);
+// }, false);
+// canvas.addEventListener("touchend", function (e) {
+// 	let mouseEvent = new MouseEvent("mouseup", {});
+// 	canvas.dispatchEvent(mouseEvent);
+// }, false);
+// canvas.addEventListener("touchmove", function (e) {
+// 	let touch = e.touches[0];
+// 	let mouseEvent = new MouseEvent("mousemove", {
+// 		clientX: touch.clientX,
+// 		clientY: touch.clientY
+// 	});
+// 	canvas.dispatchEvent(mouseEvent);
+// }, false);
 
 
-// Get the position of a touch relative to the canvas
-function getTouchPos(canvasDom, touchEvent) {
-	let rect = canvasDom.getBoundingClientRect();
-	return {
-		x: touchEvent.touches[0].clientX - rect.left,
-		y: touchEvent.touches[0].clientY - rect.top
-	};
-}
-*/
 
 export {
     DrawService
