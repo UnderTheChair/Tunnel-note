@@ -24,4 +24,5 @@ function setup() {
 
   drawService.registerDrawToolButton(penBtn,"pen");
   drawService.registerDrawToolButton(eraserBtn,"eraser");
+
 }

@@ -8,7 +8,10 @@ let lastPos = mousePos;
 let mode;
 let ctx = [];
 
-let mousePenEvent = {
+let inMemCanvases = [];
+let inMemCtx = [];
+
+let mousePenEvent = { 
   mousedown(e) {
     lastPos = getMousePos(e);
     drawing = true;
@@ -21,15 +24,20 @@ let mousePenEvent = {
       }
     )
   }, mouseup(e) {
+    let pageNum = e.target.getAttribute('data-page-number');
     drawing = false;
     drawSocket.emit('MOUSEUP')
+    console.log(inMemCanvases);
+    inMemCanvases[pageNum-1].width = e.target.width;
+    inMemCanvases[pageNum-1].height = e.target.height;
+    inMemCtx[pageNum-1].drawImage(e.target, 0, 0);
+    console.log(inMemCanvases[pageNum-1].toDataURL());
   }, mousemove(e) {
 	if(drawing == false) return;
-
     mousePos = getMousePos(e)
     drawSocket.emit('MOUSEMOVE', {
-	  mousePos: mousePos,
-	  pageNum: e.target.getAttribute('data-page-number')
+      mousePos: mousePos,
+      pageNum: e.target.getAttribute('data-page-number')-1
     })
     renderCanvas(ctx[e.target.getAttribute('data-page-number')-1]);
   }
@@ -40,7 +48,19 @@ class DrawService {
     this.canvases = canvasDOMs;
     for(let cvs of this.canvases) {
       ctx.push(cvs.getContext('2d'));
+      var inMem = document.createElement('canvas');
+      inMemCtx.push(inMem.getContext('2d'));
+      inMemCanvases.push(inMem);
     }
+
+    window.addEventListener('wheel', (evt) => {
+      if (evt.ctrlKey || evt.metaKey) {
+        for(let i = 0; i < this.canvases.length; i++) {
+          ctx[i].drawImage(inMemCanvases[i], 0, 0);
+        }
+        console.log(this.canvases[0].toDataURL());
+      }
+    }, true);
   }
   enableMouseEventListener() {
     for(let cvs of this.canvases) {

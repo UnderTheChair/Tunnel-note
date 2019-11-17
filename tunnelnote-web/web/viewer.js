@@ -10630,6 +10630,8 @@ function () {
           cvs.className = 'penCanvas';
           cvs.setAttribute('width',  Math.floor(viewport.width) + 'px');
           cvs.setAttribute('height',  Math.floor(viewport.height) + 'px');
+          cvs.style.width = Math.floor(viewport.width) + 'px';
+          cvs.style.height = Math.floor(viewport.height) + 'px';
           cvs.setAttribute('data-page-number', pageNum);
           canvasContainer.appendChild(cvs);
 
@@ -11018,6 +11020,9 @@ function () {
         for(let cvs of canvases) {
           cvs.setAttribute('height', firstPage.view.div.style.height);
           cvs.setAttribute('width', firstPage.view.div.style.width);
+          
+	  cvs.style.height = firstPage.view.div.style.height;
+	  cvs.style.width = firstPage.view.div.style.width;
         }
       }
       var pageNumber = firstPage.id;
