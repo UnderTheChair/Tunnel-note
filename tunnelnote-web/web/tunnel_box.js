@@ -71,6 +71,8 @@ class TunnelBox {
   deactivate() {
     this.on = false;
     this.DOM.style.border = '';
+    this.DOM.style.height = '0px';
+    this.DOM.style.width = '0px';
     this.DOM.onmousedown = null;
     this.DOM.onscroll = null;
 
