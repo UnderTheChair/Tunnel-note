@@ -64,6 +64,10 @@ class TunnelBox {
     tunnelBoxSocket.emit('BOX_INIT', position);
   }
 
+  rcvActivate() {
+    this.on = true;
+  }
+
   deactivate() {
     this.on = false;
     this.DOM.style.border = '';
@@ -71,6 +75,10 @@ class TunnelBox {
     this.DOM.onscroll = null;
 
     tunnelBoxSocket.emit('BOX_CLEAR');
+  }
+
+  rcvDeactivate() {
+    this.on = false;
   }
 
   getPosition() {
@@ -123,11 +131,6 @@ class TunnelBox {
     newScale = (document.body.clientWidth / (width / currentScale)) * (width / boxWidth);
     pdfViewer.currentScaleValue = newScale;
     
-    this.DOM.style.left = this.left + "px";
-    this.DOM.style.top = this.top + "px";
-
-    this._setHeight(p1.y - p2.y);
-    this._setWidth(p2.x - p1.x);
   }
 
   _setWidth(dist) {
@@ -154,7 +157,7 @@ document.querySelector("#tunnelMode").addEventListener('click', toggle);
 tunnelBoxSocket.on('BOX_INIT', (position) => {
   if (tunnel.on == true) return;
   tunnel.setPosition(position);
-  tunnel.activate();
+  tunnel.rcvActivate();
 })
 
 tunnelBoxSocket.on('BOX_MOVE', (position) => {
@@ -164,7 +167,7 @@ tunnelBoxSocket.on('BOX_MOVE', (position) => {
 
 tunnelBoxSocket.on('BOX_CLEAR', (position) => {
   if (tunnel.on == false) return;
-  tunnel.deactivate();
+  tunnel.rcvDeactivate();
 })
 
 tunnelBoxSocket.on('BOX_DOWN', (position) => {
@@ -172,7 +175,7 @@ tunnelBoxSocket.on('BOX_DOWN', (position) => {
 })
 
 tunnelBoxSocket.on('DISCONNECT', () => {
-  tunnel.deactivate();
+  tunnel.rcvDeactivate();
 })
 
 export { TunnelBox, };
