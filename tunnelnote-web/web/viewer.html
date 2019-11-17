@@ -107,6 +107,9 @@ See https://github.com/adobe-type-tools/cmap-resources
 
         <div id="secondaryToolbar" class="secondaryToolbar hidden doorHangerRight">
           <div id="secondaryToolbarButtonContainer">
+            <button id="secondaryHandMode" class="secondaryToolbarButton handMode visibleMediumView" title="Switch to Hand Mode" tabindex="48" data-l10n-id="hand_mode">
+                <span data-l10n-id="hand_mode_label">Hand Mode</span>
+            </button>
             <button id="secondaryPenMode" class="secondaryToolbarButton penMode visibleMediumView" title="Switch to Pen Mode" tabindex="49" data-l10n-id="pen_mode">
               <span data-l10n-id="pen_mode_label">Pen Mode</span>
             </button>
@@ -243,8 +246,11 @@ See https://github.com/adobe-type-tools/cmap-resources
                   <option value="0.8">80%</option>
                   <option value="1" selected>100%</option>
                 </select>
-                <button id="drawSaveMode" class="toolbarButton drawSaveMode hiddenMediumView" title="Switch to Draw Save Mode" tabindex="27" data-l10n-id="draw_save_mode">
+                <button id="drawSaveMode" class="toolbarButton drawSaveMode hiddenMediumView" title="Switch to Draw Save Mode" tabindex="26" data-l10n-id="draw_save_mode">
                   <span data-l10n-id="draw_save_mode_label">Draw Save Mode</span>
+                </button>
+                <button id="handMode" class="toolbarButton handMode hiddenMediumView" title="Switch to Hand Mode" tabindex="27" data-l10n-id="hand_mode">
+                    <span data-l10n-id="hand_mode_label">Hand Mode</span>
                 </button>
                 <button id="eraserMode" class="toolbarButton eraserMode hiddenMediumView" title="Switch to Eraser Mode" tabindex="28" data-l10n-id="eraser_mode">
                   <span data-l10n-id="eraser_mode_label">Eraser Mode</span>

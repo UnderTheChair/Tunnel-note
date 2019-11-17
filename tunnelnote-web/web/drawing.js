@@ -65,7 +65,7 @@ let touchPenEvent = {
     let canvas = e.target;
     let touch = e.touches[0];
 
-    if (mode !== undefined) e.preventDefault();
+    if (mode !== 'hand') e.preventDefault();
     
     mousePos = await getTouchPos(e);
 
@@ -79,7 +79,7 @@ let touchPenEvent = {
     let canvas = e.target;
     let mouseEvent = new MouseEvent("mouseup", {});
 
-    if (mode !== undefined) e.preventDefault();
+    if (mode !== 'hand') e.preventDefault();
 	  canvas.dispatchEvent(mouseEvent);
   },
   touchMove(e) {
@@ -90,7 +90,7 @@ let touchPenEvent = {
       clientY: touch.clientY
     });
 
-    if (mode !== undefined) e.preventDefault();
+    if (mode !== 'hand') e.preventDefault();
     canvas.dispatchEvent(mouseEvent);
   }
 }
@@ -120,11 +120,9 @@ class DrawService {
 
   registerDrawToolButton(btn, tool) {
     btn.addEventListener("click", (e) => {
-      if (mode === tool) mode = undefined;
-      else {
-        mode = tool;
-        drawSocket.emit("SETUP");
-      }
+      mode = tool;
+      drawSocket.emit("SETUP");
+    
     }, false)
   }
 }

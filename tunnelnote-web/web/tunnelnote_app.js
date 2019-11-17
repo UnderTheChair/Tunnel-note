@@ -27,13 +27,17 @@ function setup() {
 
   let penBtn = document.getElementById('penMode');
   let eraserBtn = document.getElementById('eraserMode');
+  let handBtn = document.getElementById('handMode');
   let secondaryPenBtn = document.getElementById('secondaryPenMode');
   let secondaryEraserBtn = document.getElementById('secondaryEraserMode');
+  let secondaryHadnBtn = document.getElementById('secondaryHandMode');
 
   drawService.registerDrawToolButton(penBtn, 'pen');
   drawService.registerDrawToolButton(eraserBtn, 'eraser');
+  drawService.registerDrawToolButton(handBtn, 'hand');
   drawService.registerDrawToolButton(secondaryPenBtn, 'pen');
   drawService.registerDrawToolButton(secondaryEraserBtn, 'eraser');
+  drawService.registerDrawToolButton(secondaryHadnBtn, 'hand');
 
   return true;
 }
