@@ -16,15 +16,15 @@ let mousePenEvent = {
     drawSocket.emit(
       "MOUSEDOWN", {
         lastPos: lastPos,
-		mode: mode,
-		pageNum: e.target.getAttribute('data-page-number')
+        mode: mode,
+        pageNum: e.target.getAttribute('data-page-number')
       }
     )
   }, mouseup(e) {
     drawing = false;
     drawSocket.emit('MOUSEUP')
   }, mousemove(e) {
-	if(drawing == false) return;
+	  if(drawing == false) return;
 
     mousePos = getMousePos(e)
     drawSocket.emit('MOUSEMOVE', {
