@@ -57,7 +57,6 @@ class DrawService {
       callback: function (e) { 
         if(performance.now() - scaleTimestamp > 50) {
           scaleTimestamp = performance.now();
-          console.log('scaling')
           for(let i = 0; i < ctx.length; i++) {
             let scaleDelta = window.PDFViewerApplication.pdfViewer._location.scale/curScale; 
             ctx[i].scale(scaleDelta, scaleDelta);
