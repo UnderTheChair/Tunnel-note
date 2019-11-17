@@ -17,15 +17,19 @@ let mousePenEvent = {
       "MOUSEDOWN", {
         lastPos: lastPos,
         mode: mode,
+        pageNum: e.target.getAttribute('data-page-number')
       }
     )
   }, mouseup(e) {
     drawing = false;
     drawSocket.emit('MOUSEUP')
   }, mousemove(e) {
+	  if(drawing == false) return;
+
     mousePos = getMousePos(e)
     drawSocket.emit('MOUSEMOVE', {
-      mousePos: mousePos,
+	  mousePos: mousePos,
+	  pageNum: e.target.getAttribute('data-page-number')
     })
     renderCanvas(ctx[e.target.getAttribute('data-page-number')-1]);
   }
@@ -98,7 +102,8 @@ drawSocket.on('MOUSEUP', (data) => {
 
 drawSocket.on('MOUSEMOVE', (data) => {
   mousePos = data.mousePos;
-  renderCanvas(ctx);
+  let pageNum = data.pageNum;
+  renderCanvas(ctx[pageNum - 1]);
 })
 // TODO : Mobile code on below
 
