@@ -116,7 +116,6 @@ class DrawService {
     $('.penCanvas').attrchange({
       trackValues: true,
       callback: function (e) {
-        console.log('caught');
         if(performance.now() - scaleTimestamp > 50) {
           scaleTimestamp = performance.now();
           for(let i = 0; i < ctx.length; i++) {
