@@ -4,8 +4,10 @@ import HelloWorld from '@/components/HelloWorld'
 import Login from '@/components/Login'
 import SignUp from '@/components/SignUp'
 import PdfList from '@/components/PdfList'
+import axios from '@/components/axios'
 
 Vue.use(Router)
+
 
 export default new Router({
   mode : 'history',
@@ -27,8 +29,13 @@ export default new Router({
     },
     {
       path:'/pdflist',
-      naem : 'PdfList',
+      name : 'PdfList',
       component : PdfList
+    },
+    {
+      path:'/axios',
+      name :'axios',
+      component:axios
     }
   ]
 })

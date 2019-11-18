@@ -1,5 +1,6 @@
 <template>
   <div class="sign-up">
+    <img src= "../assets/tunnel.png">
     <h3>회원가입</h3>
     <input type="text" v-model="email" placeholder="Email@domain.com"><br>
     <input type="password" v-model="password" placeholder="Password"><br>

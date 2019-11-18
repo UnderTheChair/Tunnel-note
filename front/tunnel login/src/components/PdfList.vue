@@ -1,6 +1,7 @@
 <template>
   <div class="pdflist">
-    <h3>pdflist</h3>
+    <img src= "../assets/tunnel.png">
+    <h3>파이어베이스</h3>
     <input type="text" v-model="email" placeholder="Email@domain.com"><br>
     <input type="password" v-model="password" placeholder="Password"><br>
     <button v-on:click="signUp">가입하기</button>
@@ -9,19 +10,32 @@
 </template>
  
 <script>
+  import firebase from 'firebase'
   export default {
-    name: 'pdflist',
+    name: 'signUp',
     data() {
       return {
+        email:'',
+        password:''
       }
     },
     methods: {
+      signUp() {
+        firebase.auth().createUserWithEmailAndPassword(this.email, this.password).then(
+          function(user) {
+            alert('회원가입 완료!')
+          },
+          function(err) {
+            alert('에러 : ' + err.message)
+          }
+        );
+      }
     }
   }
 </script>
  
 <style scoped>
-  .pdflist {
+  .signUp {
     margin-top: 40px;
   }
   input {
