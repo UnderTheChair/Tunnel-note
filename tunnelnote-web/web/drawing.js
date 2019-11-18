@@ -11,6 +11,11 @@ let transparency
 let ctx = [];
 let pdfViewer;
 
+let inMemCanvases = [];
+let inMemCtx = [];
+var curScale;
+var scaleTimestamp = 0;
+
 let mousePenEvent = {
   async mouseDown(e) {
     let pdfMousePos;
@@ -20,39 +25,42 @@ let mousePenEvent = {
 
     lastPos = await getMousePos(e);
     drawing = true;
-    
+
     [x,y] = pdfViewer._pages[pageNum].viewport.convertToPdfPoint(lastPos.x, lastPos.y)
     pdfMousePos = {x: x, y: y};
-    
+
     drawSocket.emit("MOUSEDOWN", {
       lastPos: pdfMousePos,
       mode: mode,
       color: color,
       width: width,
       transparency: transparency,
-		  pageNum: e.target.getAttribute('data-page-number')
+      pageNum: e.target.getAttribute('data-page-number')
     })
   }, mouseUp(e) {
     drawing = false;
     drawSocket.emit('MOUSEUP')
+    let pageNum = e.target.getAttribute('data-page-number');
+    inMemCanvases[pageNum-1].width = e.target.width;
+    inMemCanvases[pageNum-1].height = e.target.height;
+    inMemCtx[pageNum-1].drawImage(e.target, 0, 0);
   }, async mouseMove(e) {
-	  if(drawing == false) return;
+    if(drawing == false) return;
     let pdfMousePos;
     let x,y;
     let pageNum = e.target.getAttribute('data-page-number');
-    
+
     mousePos = await getMousePos(e);
-  
+
     [x,y] = pdfViewer._pages[pageNum].viewport.convertToPdfPoint(mousePos.x, mousePos.y)
     pdfMousePos = {x: x, y: y};
-    
 
     drawSocket.emit('MOUSEMOVE', {
     mousePos: pdfMousePos,
     color: color,
     width: width,
     transparency: transparency,
-	  pageNum: e.target.getAttribute('data-page-number')
+    pageNum: e.target.getAttribute('data-page-number')
     })
     renderCanvas(ctx[e.target.getAttribute('data-page-number') - 1]);
   }
@@ -66,7 +74,7 @@ let touchPenEvent = {
     let touch = e.touches[0];
 
     if (mode !== 'hand') e.preventDefault();
-    
+
     mousePos = await getTouchPos(e);
 
     let mouseEvent = new MouseEvent("mousedown", {
@@ -80,7 +88,7 @@ let touchPenEvent = {
     let mouseEvent = new MouseEvent("mouseup", {});
 
     if (mode !== 'hand') e.preventDefault();
-	  canvas.dispatchEvent(mouseEvent);
+      canvas.dispatchEvent(mouseEvent);
   },
   touchMove(e) {
     let touch = e.touches[0];
@@ -100,8 +108,26 @@ class DrawService {
     this.canvases = canvasDOMs;
     for(let cvs of this.canvases) {
       ctx.push(cvs.getContext('2d'));
+      var inMem = document.createElement('canvas');
+      inMemCtx.push(inMem.getContext('2d'));
+      inMemCanvases.push(inMem);
     }
     pdfViewer = window.PDFViewerApplication.pdfViewer;
+    $('.penCanvas').attrchange({
+      trackValues: true,
+      callback: function (e) {
+        console.log('caught');
+        if(performance.now() - scaleTimestamp > 50) {
+          scaleTimestamp = performance.now();
+          for(let i = 0; i < ctx.length; i++) {
+            let scaleDelta = window.PDFViewerApplication.pdfViewer._location.scale/curScale;
+            ctx[i].scale(scaleDelta, scaleDelta);
+            ctx[i].drawImage(inMemCanvases[i], 0, 0);
+          }
+        }
+      }
+    });
+    curScale = window.PDFViewerApplication.pdfViewer._location.scale;
   }
   enableMouseEventListener() {
     for(let cvs of this.canvases) {
@@ -122,7 +148,7 @@ class DrawService {
     btn.addEventListener("click", (e) => {
       mode = tool;
       drawSocket.emit("SETUP");
-    
+
     }, false)
   }
 }
@@ -130,27 +156,24 @@ class DrawService {
 
 // Draw to the canvas
 function renderCanvas(ctx) {
-	
+
 	if (drawing) {
 
 		ctx.beginPath();
-		
+
 		if(mode == "pen"){
 
       ctx.strokeStyle = color;
       ctx.lineWidth = width;
       ctx.globalAlpha = transparency;
-		
-			//ctx.strokeStyle = <line color>;
-      //ctx.lineWidth = <line width>;
-      
+
 			ctx.globalCompositeOperation="source-over";
 			ctx.moveTo(lastPos.x, lastPos.y);
 			ctx.lineTo(mousePos.x, mousePos.y);
 			ctx.stroke();
 		}
 		else if(mode == "eraser"){
-			ctx.globalCompositeOperation = "destination-out";  
+			ctx.globalCompositeOperation = "destination-out";
 			ctx.arc(lastPos.x,lastPos.y,20,0,Math.PI*2,false);
 			ctx.fill();
 		}
@@ -172,7 +195,7 @@ function getMousePos(mouseEvent) {
 // Get the position of a touch relative to the canvas
 function getTouchPos(touchEvent) {
   let rect = touchEvent.target.getBoundingClientRect();
-  
+
 	return {
 		x: touchEvent.touches[0].clientX - rect.left,
 		y: touchEvent.touches[0].clientY - rect.top
@@ -199,7 +222,11 @@ drawSocket.on('MOUSEMOVE', (data) => {
   transparency = data.transparency;
   //mousePos = data.mousePos;
   let pageNum = data.pageNum;
-  
+  let element = document.getElementsByClassName('penCanvas')[pageNum-1];
+  inMemCanvases[pageNum-1].width = element.width;
+  inMemCanvases[pageNum-1].height = element.height;
+  inMemCtx[pageNum-1].drawImage(element, 0, 0);
+
   renderCanvas(ctx[pageNum - 1]);
 })
 
@@ -225,5 +252,5 @@ selTransparency.onchange = function(e) {
 }
 
 export {
-    DrawService
+  DrawService
 }
