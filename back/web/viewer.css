@@ -780,6 +780,49 @@ html[dir='rtl'] #toolbarContainer, .findbar, .secondaryToolbar {
   height: 32px;
 }
 
+.selecter {
+  position: relative;
+}
+
+.selecter select {
+  background-color: #424242;
+  color: white;
+  padding: 5px;
+  width: 65px;
+  height: 30px;
+  border: none;
+  font-size: 12px;
+  box-shadow: 0 7px 25px rgba(0, 0, 0, 0.2);
+  /* /* -webkit-appearance: button; */
+  appearance: button;
+  outline: none;
+}
+
+.selecter::before {
+  content: "\f13a";
+  font-family: FontAwesome;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0%;
+  height: 100%;
+  text-align: center;
+  font-size: 12px;
+  line-height: 45px;
+  color: rgba(255, 255, 255, 0.5);
+  background-color: rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+}
+
+.selecter:hover::before {
+  color: rgba(255, 255, 255, 0.6);
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.selecter select option {
+  padding: 30px;
+}
+
 #loadingBar {
   position: relative;
   width: 100%;
