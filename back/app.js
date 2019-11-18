@@ -3,6 +3,13 @@ const app = express();
 const bodyParser = require('body-parser');
 const multer = require('multer');
 const fs = require('fs')
+require('./db/mongo')
+
+/*
+DB Usage :
+  Model import : const userModel = require('./db/models/user') 
+  DB query : userModel.create(), userModel.find(), ... 
+*/
 
 // Set static file path for rendering html
 app.set('views', __dirname + '/');
@@ -58,3 +65,9 @@ app.get('/',(req,res)=>{
 app.post('/pdf/upload',(req,res)=>{
     res.send({"data":"success"});
 })
+
+app.post('/login', (req, res) => {
+    console.log(req.body);
+    res.send({ "data" : "ok" });
+})
+
