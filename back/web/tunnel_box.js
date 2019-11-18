@@ -4,7 +4,6 @@ import { screenControl } from './screen_control.js'
 class TunnelBox {
   constructor() {
     this.DOM = document.getElementById('tunnel');
-    this.container = document.getElementById('tunnelContainer');
     this.on = false;
     this.color = "#9400D3";
     this.lineWidth = 2;
@@ -15,41 +14,85 @@ class TunnelBox {
     this.top = 0;
   }
   _dragElement(elmnt) {
-    let self = this
-    var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-    elmnt.onmousedown = dragMouseDown;
+    let container = document.getElementById('penContainer');
+    let self = this;
+    var rect;
+    var currentPos = { x:0, y:0 };
+    var changePos = { x:0, y:0 };
+    var lastPos = { x:0, y:0 }
+
+    container.addEventListener("mousemove", currentMouseMove);
+
+    function currentMouseMove(e){
+      currentPos.x = e.clientX;
+      currentPos.y = e.clientY;
+      rect = elmnt.getBoundingClientRect();
+      if(isRectLine(currentPos.x, currentPos.y)){
+        container.style.cursor = "grab";
+        container.addEventListener("mousedown", dragMouseDown);
+      }else{
+        container.style.cursor = "default";
+        container.removeEventListener("mousedown", dragMouseDown);
+      }
+    }
     function dragMouseDown(e) {
+      container.style.cursor = "grabbing";
       e = e || window.event;
       e.preventDefault();
-      pos3 = e.clientX;
-      pos4 = e.clientY;
-      document.onmouseup = closeDragElement;
-      document.onmousemove = elementDrag;
+      lastPos.x = e.clientX;
+      lastPos.y = e.clientY;
+      container.addEventListener("mousemove", elementDrag);
+      container.addEventListener("mouseup", closeDragElement);
     }
     function elementDrag(e) {
-      let position;
-
       e = e || window.event;
       e.preventDefault();
+      currentPos.x = e.clientX;
+      currentPos.y = e.clientY;
       // calculate the new cursor position:
-      pos1 = pos3 - e.clientX;
-      pos2 = pos4 - e.clientY;
-      pos3 = e.clientX;
-      pos4 = e.clientY;
+      changePos.x = lastPos.x - currentPos.x;
+      changePos.y = lastPos.y - currentPos.y;
       // set the element's new position:
-      self.top = (elmnt.offsetTop - pos2);
-      self.left = (elmnt.offsetLeft - pos1);
+      self.top = (elmnt.offsetTop - changePos.y);
+      self.left = (elmnt.offsetLeft - changePos.x);
       elmnt.style.top = self.top + "px";
       elmnt.style.left = self.left + "px";
+      lastPos.x = currentPos.x;
+      lastPos.y = currentPos.y;
 
-      position = self.getPosition();
-
+      let position = self.getPosition();
       tunnelBoxSocket.emit('BOX_MOVE', position);
     }
     function closeDragElement() {
       // stop moving when mouse button is released:
-      document.onmouseup = null;
-      document.onmousemove = null;
+      container.style.cursor = "grab";
+      container.removeEventListener("mouseup", closeDragElement);
+      container.removeEventListener("mousedown", dragMouseDown);
+      container.removeEventListener("mousemove", elementDrag);
+      container.addEventListener("mousemove", currentMouseMove);
+    }
+    function isRectLine(x, y){
+      if(rect.left-5 < x && x < rect.left+5){
+        if(rect.top-5 < y && y < rect.bottom+5){
+          return true;
+        }
+      }
+      if(rect.right-5 < x && x < rect.right+5){
+        if(rect.top-5 < y && y < rect.bottom+5){
+          return true;
+        }
+      }
+      if(rect.top-5 < y && y < rect.top+5){
+        if(rect.left-5 < x && x < rect.right+5){
+          return true;
+        }
+      }
+      if(rect.bottom-5 < y && y < rect.bottom+5){
+        if(rect.left-5 < x && x < rect.right+5){
+          return true;
+        }
+      }
+      return false;
     }
   }
 
@@ -149,6 +192,7 @@ class TunnelBox {
 const tunnel = new TunnelBox();
 
 let toggle = function() {
+  console.log("tunnel toggle");
   if (tunnel.on) tunnel.deactivate();
   else tunnel.activate();
 }
