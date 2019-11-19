@@ -3,6 +3,7 @@ const app = express();
 const bodyParser = require('body-parser');
 const multer = require('multer');
 const fs = require('fs')
+const users = require('./routers/users');
 require('./db/mongo')
 
 /*
@@ -58,6 +59,8 @@ const tunnelBoxIo = require('socket.io')(socketServer, {
 require(__dirname + "/routers/draw_socket.js")(drawIo);
 require(__dirname + "/routers/tunnel_box_socket.js")(tunnelBoxIo);
 
+app.use('/users', users);
+
 app.get('/',(req,res)=>{
     res.render('web/viewer.html');
 })
@@ -66,8 +69,4 @@ app.post('/pdf/upload',(req,res)=>{
     res.send({"data":"success"});
 })
 
-app.post('/login', (req, res) => {
-    console.log(req.body);
-    res.send({ "data" : "ok" });
-})
 
