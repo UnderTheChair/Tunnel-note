@@ -1419,7 +1419,8 @@ html[dir='rtl'] .toolbarButton.pageDown::before {
 .secondaryToolbarButton.penMode::before {
   content: url(images/toolbarButton-pen.png);
 }
-.toolbarButton.tunnelMode::before {
+.toolbarButton.tunnelMode::before, 
+.secondaryToolbarButton.tunnelMode::before {
   content: url(images/toolbarButton-tunnelMode.png);
 }
 
