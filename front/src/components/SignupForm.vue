@@ -47,7 +47,7 @@
                 <button id="join-submit" class="btn btn-primary" v-on:click="reqJoin">
                   회원가입
                 </button>
-                <button id="cancel-submit" class="btn btn-warning" v-on:click="$router.push('/')">
+                <button id="cancel-submit" class="btn btn-warning" v-on:click="$router.go(-1)">
                   취소
                 </button>
               </div>
@@ -83,7 +83,7 @@ export default {
         let data = req.data;
         if (data.data == "ok") {
           this.$store.commit('setPreSignup', true);
-          this.$router.push('/');
+          this.$router.push('/login');
         }else {
           console.log(data);
         }

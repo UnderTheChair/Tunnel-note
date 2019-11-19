@@ -14,4 +14,18 @@ router.post('/signup', (req, res) => {
 
 })
 
+router.post('/login', (req, res) => {
+  let user = req.body;
+  
+  userModel.findOne(user).then((data) => {
+    
+    if (data == null) {
+      res.send({"data": "Not Find"});
+    } else res.send({"data": "ok"});
+
+  }).catch((err) => {
+    res.send(err);
+  })
+})
+
 module.exports = router;
