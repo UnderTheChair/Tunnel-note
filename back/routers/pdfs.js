@@ -13,4 +13,11 @@ router.post('/upload', (req, res) => {
   })
 })
 
+router.get('/', (req,res) => {
+  pdfModel.find().then((data) => {
+    res.send(data);LoginFrom
+  }).catch(err => {LoginFrom
+    res.send(err);
+  })
+})
 module.exports = router;

@@ -54,8 +54,11 @@ export default new Vuex.Store({
     LOGIN ({commit}, loginData) {
       return axios.post(`${resourceHost}/users/login`, loginData)
         .then(({data}) => {
-          commit('LOGIN', data);
-          axios.defaults.headers.common['Authorization'] = `Bearer ${data.accessToken}`;
+          if (data.data === "ok") {
+            commit('LOGIN', data);
+            axios.defaults.headers.common['Authorization'] = `Bearer ${data.accessToken}`;
+          }
+          return data;
         })
     },
     LOGOUT ({commit}) {

@@ -11,7 +11,7 @@ const requireAuth = () => (from, to, next) => {
   const isAuthenticated = store.getters.isAuthenticated;
   console.log(isAuthenticated)
   if (isAuthenticated) return next()
-  next('/login?returnPath=/')
+  next('/login')
 }
 
 const routes = [

@@ -13,22 +13,34 @@
           />
         </div>
       </div>
+
+      <div class="row">
+        <div class="col-sm-4" style v-for="{name} in pdfList" v-bind:key="name">
+          <PDFItem v-bind:pdfName="name" style="margin: 3% 0%;"/>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
+import PDFItem from "@/components/PDFItem";
+
 export default {
   name: "home",
   data() {
     return {
-      baseURL: this.$store.getters.getBaseUrl
+      baseURL: this.$store.getters.getBaseUrl,
+      pdfList: [],
     };
   },
   computed: {
     isAuthenticated() {
       return this.$store.getters.isAuthenticated;
     }
+  },
+  mounted() {
+    this.reqGetPDFs();
   },
   methods: {
     onClickLogout() {
@@ -38,8 +50,8 @@ export default {
     reqUploadPDF(event) {
       const reqURL = `${this.baseURL}/pdfs/upload`;
       let files = event.target.files || event.dataTransfer.files;
-      let {name, size} = files[0];
-      
+      let { name, size } = files[0];
+
       if (!files.length) {
         return;
       }
@@ -51,7 +63,23 @@ export default {
       this.$http.post(reqURL, formData).then(res => {
         console.log(res);
       });
+    },
+    reqGetPDFs() {
+      const reqURL = `${this.baseURL}/pdfs`;
+      
+      this.$http.get(reqURL).then(({data}) => {
+        this.pdfList = data;
+      })
     }
+  },
+  components: {
+    PDFItem
   }
 };
 </script>
+
+<style scoped>
+.row {
+  margin: 3% 0%;
+}
+</style>

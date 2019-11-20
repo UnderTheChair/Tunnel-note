@@ -20,10 +20,11 @@ router.post('/login', (req, res) => {
   userModel.findOne(user).then((data) => {
     console.log(data);
     if (data == null) {
-      res.send({"data": "Not Find"});
+      res.send({"data": "err", msg: "Not found user"});
     } else res.send({
-      "data": "ok",
-      "accessToken": data.email
+      data: "ok",
+      accessToken: data.email,
+      msg: "Success Login" 
     });
 
   }).catch((err) => {

@@ -22,15 +22,6 @@
                   <input class="form-control" placeholder="******" type="password" name="password" />
                 </div>
                 <!-- form-group// -->
-                <div class="form-group">
-                  <div class="checkbox">
-                    <label>
-                      <input type="checkbox" /> Save password
-                    </label>
-                  </div>
-                  <!-- checkbox .// -->
-                </div>
-                <!-- form-group// -->
                 <!-- form-group// -->
               </form>
               <div class="form-group">
@@ -65,8 +56,14 @@ export default {
 
       this.$store
         .dispatch("LOGIN", loginData)
-        .then(() => {
-          this.redirect()
+        .then(data => {
+          if (data.data === "err") {
+            this.noticeToastMsg(data.msg);
+            return;
+          }
+          this.noticeToastMsg(data.msg);
+
+          this.redirect();
         })
         .catch(({ message }) => (this.msg = message));
     },
@@ -81,14 +78,22 @@ export default {
       return indexed_array;
     },
     redirect() {
-      const { search } = window.location;
-      const tokens = search.replace(/^\?/, "").split("&");
-      const { returnPath } = tokens.reduce((qs, tkn) => {
-        const pair = tkn.split("=");
-        qs[pair[0]] = decodeURIComponent(pair[1]);
-        return qs;
-      }, {});
-      this.$router.push(returnPath);
+      // const { search } = window.location;
+      // const tokens = search.replace(/^\?/, "").split("&");
+      // const { returnPath } = tokens.reduce((qs, tkn) => {
+      //   const pair = tkn.split("=");
+      //   qs[pair[0]] = decodeURIComponent(pair[1]);
+      //   return qs;
+      // }, {});
+
+      // this.$router.push(returnPath);
+      this.$router.push("/");
+    },
+    noticeToastMsg(msg) {
+      this.$bvToast.toast(msg, {
+        title: `Notice`,
+        solid: true
+      });
     }
   }
 };

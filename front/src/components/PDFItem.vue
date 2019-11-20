@@ -1,6 +1,7 @@
 <template>
   <div class="PDFItem">
     <div class="card">
+      <h4>{{pdfName}}</h4>
     </div>
   </div>
 </template>
@@ -12,6 +13,7 @@ export default {
     uploadPDF: function() {
       
     }
-  }
+  },
+  props: ['pdfName']
 };
 </script>
