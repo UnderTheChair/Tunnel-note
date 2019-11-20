@@ -4,6 +4,8 @@ const bodyParser = require('body-parser');
 const multer = require('multer');
 const fs = require('fs')
 const users = require('./routers/users');
+const pdfs = require('./routers/pdfs');
+
 require('./db/mongo')
 
 /*
@@ -28,7 +30,7 @@ const storage = multer.diskStorage({
     }
   })
 const upload = multer({storage:storage})
-app.use(upload.single('pdf_file')); //  'pdf_file' is name of file input element in form
+app.use(upload.single('pdfFile')); //  'pdf_file' is name of file input element in form
 
 // Set bodyparser that parse body of request. So we will use req.body
 app.use(bodyParser.json({limit: '50mb'}));
@@ -38,7 +40,7 @@ app.use(bodyParser.urlencoded({ limit: '1gb', extended: false }));
 app.use((req, res, next) =>{
     res.header("Access-Control-Allow-Origin", "*")
     res.header('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE, OPTIONS, UPGRADE');
-    res.header("Access-Control-Allow-Headers", "X-Requested-With, Content-Type, Authorization")
+    res.header("Access-Control-Allow-Headers", "X-Requested-With, Content-Type, Authorization,")
     next()
 })
 
@@ -60,7 +62,7 @@ require(__dirname + "/routers/draw_socket.js")(drawIo);
 require(__dirname + "/routers/tunnel_box_socket.js")(tunnelBoxIo);
 
 app.use('/users', users);
-
+app.use('/pdfs', pdfs);
 app.get('/',(req,res)=>{
     res.render('web/viewer.html');
 })

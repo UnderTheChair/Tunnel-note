@@ -28,8 +28,8 @@ export default new Vuex.Store({
     isPreSignup: state => {
       return state.preSignup;
     },
-    isAuthenticated: state => {
-      return state.accessToken
+    isAuthenticated: () => {
+      return localStorage.accessToken
     }
   },
   mutations: {

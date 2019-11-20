@@ -65,7 +65,9 @@ export default {
 
       this.$store
         .dispatch("LOGIN", loginData)
-        .then(() => this.redirect())
+        .then(() => {
+          this.redirect()
+        })
         .catch(({ message }) => (this.msg = message));
     },
     getFormData: function(form) {
@@ -86,7 +88,6 @@ export default {
         qs[pair[0]] = decodeURIComponent(pair[1]);
         return qs;
       }, {});
-
       this.$router.push(returnPath);
     }
   }

@@ -9,7 +9,7 @@ const PDFSchema = mongoose.Schema({
     thumbnail : {type : String},
     user_list : [{type: mongoose.Schema.Types.ObjectId, ref: userSchema}], 
     size : {type : Number, required : true}, 
-    pdf_file_path : {type : String, required : true },
+    path : {type : String},
 })
 
 PDFSchema.plugin(autoIncrement, {
