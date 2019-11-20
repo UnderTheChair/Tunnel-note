@@ -3,14 +3,22 @@ import VueRouter from 'vue-router'
 import Login from '../views/Login.vue'
 import Signup from '../views/Signup.vue'
 import Home from '../views/Home.vue'
+import store from '../store'
 
 Vue.use(VueRouter)
+
+const requireAuth = () => (from, to, next) => {
+  const isAuthenticated = store.getters.isAuthenticated;
+  if (isAuthenticated) return next()
+  next('/login?returnPath=/')
+}
 
 const routes = [
   {
     path: '/',
     name: 'home',
     component: Home,
+    beforeEnter: requireAuth()
   },
   {
     path: '/login',

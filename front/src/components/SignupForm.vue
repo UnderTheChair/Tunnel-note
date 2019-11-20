@@ -79,8 +79,8 @@ export default {
         return;
       }
 
-      this.$http.post(url, signupData).then((req) => {
-        let data = req.data;
+      this.$http.post(url, signupData).then((res) => {
+        let data = res.data;
         if (data.data == "ok") {
           this.$store.commit('setPreSignup', true);
           this.$router.push('/login');

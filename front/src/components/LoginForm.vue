@@ -13,7 +13,7 @@
               <form id="loginForm">
                 <div class="form-group">
                   <label>Your email</label>
-                  <input class="form-control" placeholder="Email" type="email" name="email"/>
+                  <input class="form-control" placeholder="Email" type="email" name="email" />
                 </div>
                 <!-- form-group// -->
                 <div class="form-group">
@@ -25,7 +25,7 @@
                 <div class="form-group">
                   <div class="checkbox">
                     <label>
-                      <input type="checkbox"/> Save password
+                      <input type="checkbox" /> Save password
                     </label>
                   </div>
                   <!-- checkbox .// -->
@@ -33,7 +33,7 @@
                 <!-- form-group// -->
                 <!-- form-group// -->
               </form>
-              <div class="form-group" >
+              <div class="form-group">
                 <button type="submit" class="btn btn-primary btn-block" v-on:click="reqLogin">Login</button>
               </div>
             </article>
@@ -60,19 +60,13 @@ export default {
   },
   methods: {
     reqLogin: function() {
-      let url = this.baseUrl + '/users/login';
-      let form = $('#loginForm')
+      let form = $("#loginForm");
       let loginData = this.getFormData(form);
-      
-      this.$http.post(url, loginData).then((req) => {
-        let data = req.data;
-        if (data.data == "ok") {
-          console.log(data);
-          
-        }else {
-          console.log(data);
-        }
-      })
+
+      this.$store
+        .dispatch("LOGIN", loginData)
+        .then(() => this.redirect())
+        .catch(({ message }) => (this.msg = message));
     },
     getFormData: function(form) {
       var unindexed_array = form.serializeArray();
@@ -83,6 +77,17 @@ export default {
       });
 
       return indexed_array;
+    },
+    redirect() {
+      const { search } = window.location;
+      const tokens = search.replace(/^\?/, "").split("&");
+      const { returnPath } = tokens.reduce((qs, tkn) => {
+        const pair = tkn.split("=");
+        qs[pair[0]] = decodeURIComponent(pair[1]);
+        return qs;
+      }, {});
+
+      this.$router.push(returnPath);
     }
   }
 };

@@ -18,10 +18,13 @@ router.post('/login', (req, res) => {
   let user = req.body;
   
   userModel.findOne(user).then((data) => {
-    
+    console.log(data);
     if (data == null) {
       res.send({"data": "Not Find"});
-    } else res.send({"data": "ok"});
+    } else res.send({
+      "data": "ok",
+      "accessToken": data.email
+    });
 
   }).catch((err) => {
     res.send(err);
