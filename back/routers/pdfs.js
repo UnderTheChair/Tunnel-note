@@ -36,8 +36,8 @@ router.post('/upload', (req, res) => {
 
     pdfModel.create(pdfData).then((pdf) => {
       user['pdf_list'] = [...user['pdf_list'], { _id: pdf._id }];
-      userModel.updateOne(userData, user).then((pdf) => {
-        res.send({ data: 'ok' });
+      userModel.updateOne(userData, user).then(() => {
+        res.send(pdf);
       })
     })
   }).catch((err) => {
@@ -48,7 +48,7 @@ router.post('/upload', (req, res) => {
 
 router.get('/', (req, res) => {
   let userData = {email: req.decoded};
-  
+
   userModel.findOne(userData).populate('pdf_list').exec((err, data) => {
     res.send(data.pdf_list);
   })
