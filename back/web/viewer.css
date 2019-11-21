@@ -2541,3 +2541,44 @@ html[dir='rtl'] #documentPropertiesOverlay .row > * {
     display: none;
   }
 }
+
+#toolbarViewerRight {
+    background-color: #424242;
+}
+@media screen and (-webkit-min-device-pixel-ratio: 1.1), screen and (min-resolution: 1.1dppx) {
+  .toolbarButton.handMode::before,
+  .secondaryToolbarButton.handMode::before {
+    content: url(images/toolbarButton-handMode.png);
+    background-image: none;
+    height: auto;
+    width: auto;
+  }
+  .toolbarButton.drawSaveMode::before,
+  .secondaryToolbarButton.drawSaveMode::before {
+    content: url(images/toolbarButton-save.png);
+    background-image: none;
+    height: auto;
+    width: auto;
+  }
+  .toolbarButton.eraserMode::before,
+  .secondaryToolbarButton.eraserMode::before { 
+    content: url(images/toolbarButton-eraser.png);
+    background-image: none;
+    height: auto;
+    width: auto;
+  }
+  .toolbarButton.penMode::before,
+  .secondaryToolbarButton.penMode::before {
+    content: url(images/toolbarButton-pen.png);
+    background-image: none;
+    height: auto;
+    width: auto;
+  }
+  .toolbarButton.tunnelMode::before, 
+  .secondaryToolbarButton.tunnelMode::before {
+    content: url(images/toolbarButton-tunnelMode.png);
+    background-image: none;
+    height: auto;
+    width: auto;
+  }
+}
