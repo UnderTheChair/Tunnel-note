@@ -118,11 +118,7 @@ class DrawService {
       callback: function (e) {
         if (performance.now() - scaleTimestamp > 50) {
           scaleTimestamp = performance.now();
-          for (let i = 0; i < ctx.length; i++) {
-            let scaleDelta = window.PDFViewerApplication.pdfViewer._location.scale / curScale;
-            ctx[i].scale(scaleDelta, scaleDelta);
-            ctx[i].drawImage(inMemCanvases[i], 0, 0);
-          }
+          console.log(window.DrawService.updateCanvas);
         }
       }
     });
@@ -149,6 +145,14 @@ class DrawService {
       drawSocket.emit("SETUP");
 
     }, false)
+  }
+
+  updateCanvas() {
+    for (let i = 0; i < ctx.length; i++) {
+    let scaleDelta = window.PDFViewerApplication.pdfViewer._location.scale / curScale;
+    ctx[i].scale(scaleDelta, scaleDelta);
+    ctx[i].drawImage(inMemCanvases[i], 0, 0);
+    }
   }
 }
 
