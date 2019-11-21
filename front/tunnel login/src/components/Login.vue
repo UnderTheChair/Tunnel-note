@@ -1,6 +1,7 @@
 <template>
+
   <div class="login">
-  
+    <img src= "../assets/tunnel.png">
     <h3>로그인</h3>
     <input type="text" v-model="email" placeholder="Email@domain.com"><br>
     <input type="password" v-model="password" placeholder="Password"><br>
@@ -23,17 +24,32 @@
     },
    methods: {
       login() {
-        firebase.auth().signInWithEmailAndPassword(this.email, this.password).then(
-          function(user) {
-            alert('로그인 완료!')
-          },
-          function(err) {
-            alert('에러 : ' + err.message)
-          }
-        );
-      }
+        fetch('http://localhost:8000',{
+          method : 'POST',
+          body : JSON.stringify({
+            email : this.email,
+            password : this.password,
+          })
+        })
+        .then(res => {
+          res.json()
+          })
+        .then(res => {
+            console.log(res);
+          });
+      //   firebase.auth().signInWithEmailAndPassword(this.email, this.password).then(
+      //     function(user) {
+      //       alert('로그인 완료!')
+      //     },
+      //     function(err) {
+      //       alert('에러 : ' + err.message)
+      //     }
+      //   );
+      // }
     }
+   }
   }
+  
 </script>
  
 <style scoped>

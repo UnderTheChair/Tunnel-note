@@ -3,13 +3,9 @@ const app = express();
 const bodyParser = require('body-parser');
 const multer = require('multer');
 const fs = require('fs')
-require('./db/mongo')
+const cors = require('cors')
 
-/*
-DB Usage :
-  Model import : const userModel = require('./db/models/user') 
-  DB query : userModel.create(), userModel.find(), ... 
-*/
+app.use(cors());
 
 // Set static file path for rendering html
 app.set('views', __dirname + '/');
@@ -46,17 +42,38 @@ const server = app.listen(8000, function() {
     console.log('server running on port 8000');
 });
 
-const socketServer = require('http').createServer().listen(9000);
 //Require socket.io about server
-const drawIo = require('socket.io')(socketServer, {
-  path : '/draw',
-});
-const tunnelBoxIo = require('socket.io')(socketServer, {
-  path : '/tunnelBox'
-})
+const io = require('socket.io').listen(9000);
 
-require(__dirname + "/routers/draw_socket.js")(drawIo);
-require(__dirname + "/routers/tunnel_box_socket.js")(tunnelBoxIo);
+// Connection event
+io.sockets.on('connection', (socket) => {
+
+  // sockets.push(socket.id);
+  // console.log(sockets);
+  // let toSocket = sockets.find(id => id !== socket.id);
+  socket.join('draw');
+  
+  socket.on('SEND_MESSAGE', (data) => {
+      io.sockets.emit('SENDED_MESSAGE',data); //broadcast
+  });
+
+  socket.on('MOUSEDOWN',(data)=>{
+    socket.broadcast.to('draw').emit('MOUSEDOWN',data);
+  })
+
+  socket.on('MOUSEUP',()=>{
+    socket.broadcast.to('draw').emit('MOUSEUP');
+  })
+
+  socket.on('MOUSEMOVE',(data)=>{
+    socket.broadcast.to('draw').emit('MOUSEMOVE',data);
+  })
+
+  socket.on('DISCONNECT',()=>{
+    socket.leave('draw');
+    socket.disconnect();
+  })
+});
 
 app.get('/',(req,res)=>{
     res.render('web/viewer.html');
@@ -66,8 +83,7 @@ app.post('/pdf/upload',(req,res)=>{
     res.send({"data":"success"});
 })
 
-app.post('/login', (req, res) => {
+app.post('/', (req, res) => {
     console.log(req.body);
     res.send({ "data" : "ok" });
 })
-
