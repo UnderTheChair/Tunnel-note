@@ -3,16 +3,16 @@ import VueRouter from 'vue-router'
 import Login from '../views/Login.vue'
 import Signup from '../views/Signup.vue'
 import Home from '../views/Home.vue'
-import store from '../store'
+  
+
+Vue.use(VueRouter)
 
 const requireAuth = () => (from, to, next) => {
-  const isAuthenticated = store.getters.isAuthenticated;
-
+  const isAuthenticated = localStorage.accessToken;
+  console.log(isAuthenticated);
   if (isAuthenticated) return next()
   next('/login')
 }
-  
-Vue.use(VueRouter)
 
 const routes = [
   {

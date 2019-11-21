@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const pdfModel = require('../db/models/pdf')
+const authMiddleware = require('../middlewares/auth')
+
+router.use('/', authMiddleware);
 
 router.post('/upload', (req, res) => {
   let {name, size} = req.body
@@ -15,8 +18,8 @@ router.post('/upload', (req, res) => {
 
 router.get('/', (req,res) => {
   pdfModel.find().then((data) => {
-    res.send(data);LoginFrom
-  }).catch(err => {LoginFrom
+    res.send(data);
+  }).catch(err => {
     res.send(err);
   })
 })

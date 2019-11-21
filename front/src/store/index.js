@@ -46,11 +46,16 @@ let store = new Vuex.Store({
   actions: {
     LOGIN ({commit}, loginData) {
       return axios.post(`${resourceHost}/users/login`, loginData)
-        .then(({data}) => {
-          if (data.data === "ok") {
-            commit('LOGIN', data);
-            axios.defaults.headers.common['Authorization'] = `Bearer ${data.accessToken}`;
+        .then((res) => {
+          let data = res.data;
+
+          if (res.status == 200) {
+            if (data.accessToken) {
+              commit('LOGIN', data);
+              axios.defaults.headers.common['Authorization'] = `Bearer ${data.accessToken}`;
+            }
           }
+          
           return data;
         })
     },
@@ -64,11 +69,11 @@ let store = new Vuex.Store({
 
 const enhanceAccessToeken = () => {
   const {accessToken} = localStorage
-
-  if (!accessToken) return;
   
+  if (!accessToken) return;
+
   axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-  store.commit('LOGIN', accessToken);
+  store.commit('LOGIN', {accessToken: accessToken});
 }
 
 enhanceAccessToeken()
