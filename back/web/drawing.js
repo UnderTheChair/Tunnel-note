@@ -167,19 +167,21 @@ function renderCanvas(ctx) {
       ctx.lineWidth = width;
       ctx.globalAlpha = transparency;
 
-      ctx.globalCompositeOperation = "source-over";
-      ctx.moveTo(lastPos.x, lastPos.y);
-      ctx.lineTo(mousePos.x, mousePos.y);
-      ctx.stroke();
-    }
-    else if (mode == "eraser") {
-      ctx.globalCompositeOperation = "destination-out";
-      ctx.arc(lastPos.x, lastPos.y, 20, 0, Math.PI * 2, false);
-      ctx.fill();
-    }
+      ctx.lineJoin = ctx.lineCap = 'round';
+			ctx.globalCompositeOperation="source-over";
+			ctx.moveTo(lastPos.x, lastPos.y);
+			ctx.lineTo(mousePos.x, mousePos.y);
+			ctx.stroke();
+		}
+		else if(mode == "eraser"){
+			ctx.globalCompositeOperation = "destination-out";
+			ctx.arc(lastPos.x,lastPos.y,20,0,Math.PI*2,false);
+			ctx.fill();
+		}
 
-    lastPos = mousePos;
-  }
+		lastPos = mousePos;
+	}
+
 }
 
 // Get the position of the mouse relative to the canvas
