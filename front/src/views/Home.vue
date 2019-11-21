@@ -68,6 +68,7 @@ export default {
       const reqURL = `${this.baseURL}/pdfs`;
       
       this.$http.get(reqURL).then(({data}) => {
+        
         this.pdfList = data;
       })
     }
