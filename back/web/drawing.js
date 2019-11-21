@@ -165,7 +165,7 @@ function renderCanvas(ctx) {
       ctx.strokeStyle = color;
       ctx.lineWidth = width;
       ctx.globalAlpha = transparency;
-
+      ctx.lineJoin = ctx.lineCap = 'round';
 			ctx.globalCompositeOperation="source-over";
 			ctx.moveTo(lastPos.x, lastPos.y);
 			ctx.lineTo(mousePos.x, mousePos.y);
