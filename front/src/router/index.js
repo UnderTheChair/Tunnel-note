@@ -5,21 +5,21 @@ import Signup from '../views/Signup.vue'
 import Home from '../views/Home.vue'
 import store from '../store'
 
-Vue.use(VueRouter)
-
 const requireAuth = () => (from, to, next) => {
   const isAuthenticated = store.getters.isAuthenticated;
-  console.log(isAuthenticated)
+
   if (isAuthenticated) return next()
   next('/login')
 }
+  
+Vue.use(VueRouter)
 
 const routes = [
   {
     path: '/',
     name: 'home',
     component: Home,
-    beforeEnter: requireAuth()
+    beforeEnter: requireAuth(),
   },
   {
     path: '/login',

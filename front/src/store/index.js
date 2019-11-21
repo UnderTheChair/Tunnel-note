@@ -6,16 +6,7 @@ Vue.use(Vuex)
 
 const resourceHost = 'http://localhost:8000'
 
-const enhanceAccessToeken = () => {
-  const {accessToken} = localStorage
-
-  if (!accessToken) return 
-  axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-}
-
-enhanceAccessToeken()
-
-export default new Vuex.Store({
+let store = new Vuex.Store({
   state: {
     baseUrl: "http://localhost:8000",
     preSignup: false,
@@ -28,8 +19,9 @@ export default new Vuex.Store({
     isPreSignup: state => {
       return state.preSignup;
     },
-    isAuthenticated: () => {
-      return localStorage.accessToken
+    isAuthenticated: (state) => {
+
+      return state.accessToken;
     }
   },
   mutations: {
@@ -48,7 +40,8 @@ export default new Vuex.Store({
 
       delete localStorage.accessToken
 
-    }
+    },
+
   },
   actions: {
     LOGIN ({commit}, loginData) {
@@ -68,3 +61,16 @@ export default new Vuex.Store({
     },
   }
 })
+
+const enhanceAccessToeken = () => {
+  const {accessToken} = localStorage
+
+  if (!accessToken) return;
+  
+  axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+  store.commit('LOGIN', accessToken);
+}
+
+enhanceAccessToeken()
+
+export default store;
