@@ -56,14 +56,12 @@ export default {
 
       this.$store
         .dispatch("LOGIN", loginData)
-        .then(data => {
-          if (data.data === "err") {
-            this.noticeToastMsg(data.msg);
-            return;
-          }
-          this.noticeToastMsg(data.msg);
-
-          this.redirect();
+        .then(res => {
+          let data = res.data;
+          if (res.status === 200) {
+            this.noticeToastMsg(data.message);
+            this.redirect();
+          } else this.noticeToastMsg(data.message);
         })
         .catch(({ message }) => (this.msg = message));
     },

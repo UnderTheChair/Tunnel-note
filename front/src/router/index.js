@@ -9,7 +9,7 @@ Vue.use(VueRouter)
 
 const requireAuth = () => (from, to, next) => {
   const isAuthenticated = localStorage.accessToken;
-  console.log(isAuthenticated);
+  
   if (isAuthenticated) return next()
   next('/login')
 }

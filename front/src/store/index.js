@@ -28,13 +28,13 @@ let store = new Vuex.Store({
     setPreSignup(state, bool) {
       state.preSignup = bool;
     },
-    LOGIN (state, {accessToken}) {
+    LOGIN(state, { accessToken }) {
       state.accessToken = accessToken
-      
+
       // 토큰을 로컬 스토리지에 저장
       localStorage.accessToken = accessToken
     },
-    LOGOUT (state) {
+    LOGOUT(state) {
 
       state.accessToken = null
 
@@ -44,7 +44,7 @@ let store = new Vuex.Store({
 
   },
   actions: {
-    LOGIN ({commit}, loginData) {
+    LOGIN({ commit }, loginData) {
       return axios.post(`${resourceHost}/users/login`, loginData)
         .then((res) => {
           let data = res.data;
@@ -55,11 +55,13 @@ let store = new Vuex.Store({
               axios.defaults.headers.common['Authorization'] = `Bearer ${data.accessToken}`;
             }
           }
-          
-          return data;
-        })
+
+          return res;
+        }).catch(() => {
+          return { data: { message: "Login Failed" } }
+        });
     },
-    LOGOUT ({commit}) {
+    LOGOUT({ commit }) {
       axios.defaults.headers.common['Authorization'] = undefined
 
       commit('LOGOUT')
@@ -68,12 +70,12 @@ let store = new Vuex.Store({
 })
 
 const enhanceAccessToeken = () => {
-  const {accessToken} = localStorage
-  
+  const { accessToken } = localStorage
+
   if (!accessToken) return;
 
   axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-  store.commit('LOGIN', {accessToken: accessToken});
+  store.commit('LOGIN', { accessToken: accessToken });
 }
 
 enhanceAccessToeken()
