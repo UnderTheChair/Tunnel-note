@@ -116,7 +116,6 @@ class DrawService {
     $('.penCanvas').attrchange({
       trackValues: true,
       callback: function (e) {
-        console.log('caught');
         if (performance.now() - scaleTimestamp > 50) {
           scaleTimestamp = performance.now();
           for (let i = 0; i < ctx.length; i++) {
@@ -209,11 +208,11 @@ drawSocket.on('MOUSEDOWN', (data) => {
   let selColor = document.getElementById("selColor");
   let selWidth = document.getElementById("selWidth");
   let selTransparency = document.getElementById("selTransparency");
-  
+
   selColor.value = data.color;
   selWidth.value = data.width;
   selTransparency.value = data.transparency;
-  
+
   lastPos = { x: x, y: y };
 
   //lastPos = data.lastPos;

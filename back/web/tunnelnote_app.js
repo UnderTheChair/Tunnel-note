@@ -16,7 +16,7 @@ function onPdfLoad(e) {
 
 function setup() {
   if (isSetup == true) return false;
-  console.log('initializing canvas');
+  console.log('Initializing canvas');
   let canvases = document.getElementsByClassName('penCanvas');
   let tunnelBox = new TunnelBox();
   let drawService = new DrawService(canvases);
@@ -30,14 +30,14 @@ function setup() {
   let handBtn = document.getElementById('handMode');
   let secondaryPenBtn = document.getElementById('secondaryPenMode');
   let secondaryEraserBtn = document.getElementById('secondaryEraserMode');
-  let secondaryHadnBtn = document.getElementById('secondaryHandMode');
+  let secondaryHandBtn = document.getElementById('secondaryHandMode');
 
   drawService.registerDrawToolButton(penBtn, 'pen');
   drawService.registerDrawToolButton(eraserBtn, 'eraser');
   drawService.registerDrawToolButton(handBtn, 'hand');
   drawService.registerDrawToolButton(secondaryPenBtn, 'pen');
   drawService.registerDrawToolButton(secondaryEraserBtn, 'eraser');
-  drawService.registerDrawToolButton(secondaryHadnBtn, 'hand');
+  drawService.registerDrawToolButton(secondaryHandBtn, 'hand');
 
   return true;
 }
