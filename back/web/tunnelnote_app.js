@@ -25,7 +25,7 @@ function setup() {
 
   isSetup = true;
   drawService.enableMouseEventListener();
-  // drawService.enableTouchEventListener();
+  drawService.enableTouchEventListener();
 
   let penBtn = document.getElementById('penMode');
   let eraserBtn = document.getElementById('eraserMode');
@@ -42,7 +42,6 @@ function setup() {
   drawService.registerDrawToolButton(secondaryHandBtn, 'hand');
 
   window.drawService = drawService;
-  console.log(window.drawService);
   var container = document.getElementById('penContainer');
   var mc = new Hammer.Manager(container);
   

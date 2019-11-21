@@ -118,7 +118,7 @@ class DrawService {
       callback: function (e) {
         if (performance.now() - scaleTimestamp > 50) {
           scaleTimestamp = performance.now();
-          console.log(window.DrawService.updateCanvas);
+          window.drawService.updateCanvas();
         }
       }
     });
