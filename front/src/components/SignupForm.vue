@@ -75,7 +75,7 @@ export default {
       let signupData = this.getFormData(form);
       
       if (this.evalSignupData(signupData) == false) {
-        alert("Password Check");
+        this.noticeToastMsg("Passwords are different");
         return;
       }
 
@@ -85,7 +85,9 @@ export default {
           this.$store.commit('setPreSignup', true);
           this.$router.push('/login');
         }else {
-          console.log(data);
+          if (data.code === 11000) {
+            this.noticeToastMsg("Email duplication");
+          }
         }
       })
     },
@@ -104,6 +106,12 @@ export default {
         delete data["passwordCheck"];
         return true;
       } else return false;
+    },
+    noticeToastMsg: function(msg) {
+      this.$bvToast.toast(msg, {
+        title: `Notice`,
+        solid: true
+      });
     }
   }
 };
