@@ -23,8 +23,6 @@ const pdf2pic = new PDF2Pic({
  * 
  */
 
-//brew install imagemagick graphicsmagick
-
 // Set file upload storage
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -68,7 +66,7 @@ router.post('/upload', (req, res) => {
     pdfData['user'] = { _id: user._id };
 
     pdfModel.create(pdfData).then((pdf) => {
-      user['pdf_list'] = [...user['pdf_list'], { _id: pdf._id }];
+      user['pdf_list'] = [{ _id: pdf._id }, ...user['pdf_list']];
       return userModel.updateOne(userData, user)
     })
   })

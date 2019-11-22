@@ -66,7 +66,7 @@ export default {
       formData.append("name", name);
       formData.append("size", size);
       this.$http.post(reqURL, formData).then(({data}) => {
-        this.pdfList.push(data);
+        this.pdfList = [data].concat(this.pdfList);
         event.target.value = "";
       });
     },
