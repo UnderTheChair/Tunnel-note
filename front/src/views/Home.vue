@@ -16,7 +16,12 @@
 
       <div class="row">
         <div class="col-sm-4" style v-for="pdf in pdfList" v-bind:key="pdf.modification_time">
-          <PDFItem v-bind:pdfName="pdf.name" style="margin: 3% 0%;"/>
+          <PDFItem 
+          v-bind:pdfName="pdf.name" 
+          v-bind:thumbnail="pdf.thumbnail" 
+          style="margin: 3% 0%;"
+          
+          />
         </div>
       </div>
     </div>
@@ -69,7 +74,6 @@ export default {
       const reqURL = `${this.baseURL}/pdfs`;
       
       this.$http.get(reqURL).then(({data}) => {
-        
         this.pdfList = data;
       })
     }

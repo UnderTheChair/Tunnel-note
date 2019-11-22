@@ -73,7 +73,7 @@ router.post('/upload', (req, res) => {
     })
   })
   .then(() => {
-    res.send({data: "ok", name: name});
+    res.send({data: "ok", name: name, thumbnail: pdfData.thumbnail});
   })
   .catch((err) => {
     console.log(err);
