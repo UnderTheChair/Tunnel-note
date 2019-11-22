@@ -4,6 +4,7 @@ import { screenControl } from './screen_control.js'
 class TunnelBox {
   constructor() {
     this.DOM = document.getElementById('tunnel');
+    this.resizeDOM = document.getElementById('resizer');
     this.on = false;
     this.color = "#9400D3";
     this.lineWidth = 2;
@@ -12,6 +13,8 @@ class TunnelBox {
     this.stuck = false;
     this.left = 0;
     this.top = 0;
+    // width = height * screenRatio
+    this.resolution = 2;
   }
   _dragElement(elmnt) {
     let container = document.getElementById('penContainer');
@@ -19,7 +22,7 @@ class TunnelBox {
     var rect;
     var currentPos = { x:0, y:0 };
     var changePos = { x:0, y:0 };
-    var lastPos = { x:0, y:0 }
+    var lastPos = { x:0, y:0 };
 
     container.addEventListener("mousemove", currentMouseMove);
 
@@ -27,13 +30,27 @@ class TunnelBox {
       currentPos.x = e.clientX;
       currentPos.y = e.clientY;
       rect = elmnt.getBoundingClientRect();
-      if(isRectLine(currentPos.x, currentPos.y)){
+      if(isResizeLine(currentPos.x, currentPos.y)){
+        container.style.cursor = "nwse-resize";
+        container.addEventListener("mousedown", resizeMouseDown);
+      }
+      else if(isRectLine(currentPos.x, currentPos.y)){
         container.style.cursor = "grab";
+        
         container.addEventListener("mousedown", dragMouseDown);
       }else{
         container.style.cursor = "default";
         container.removeEventListener("mousedown", dragMouseDown);
+        container.removeEventListener("mousedown", resizeMouseDown);
       }
+    }
+    function resizeMouseDown(e) {
+      e = e || window.event;
+      e.preventDefault();
+      lastPos.x = e.clientX;
+      lastPos.y = e.clientY;
+      container.addEventListener("mousemove", elementResize);
+      container.addEventListener("mouseup", closeDragElement);
     }
     function dragMouseDown(e) {
       container.style.cursor = "grabbing";
@@ -43,6 +60,22 @@ class TunnelBox {
       lastPos.y = e.clientY;
       container.addEventListener("mousemove", elementDrag);
       container.addEventListener("mouseup", closeDragElement);
+    }
+    function elementResize(e) {
+      e = e || window.event;
+      e.preventDefault();
+      currentPos.y = e.clientY;
+      changePos.y = currentPos.y - lastPos.y;
+
+      self.height = self.height + changePos.y;
+      self.width = self.height * self.resolution;
+      elmnt.style.height = self.height + "px";
+      elmnt.style.width = self.width + "px";
+      
+      lastPos.y = currentPos.y;
+
+      let position = self.getPosition();
+      tunnelBoxSocket.emit('BOX_RESIZE', position);
     }
     function elementDrag(e) {
       e = e || window.event;
@@ -69,6 +102,7 @@ class TunnelBox {
       container.removeEventListener("mouseup", closeDragElement);
       container.removeEventListener("mousedown", dragMouseDown);
       container.removeEventListener("mousemove", elementDrag);
+      container.removeEventListener("mousemove", elementResize);
       container.addEventListener("mousemove", currentMouseMove);
     }
     function isRectLine(x, y){
@@ -94,17 +128,37 @@ class TunnelBox {
       }
       return false;
     }
+    function isResizeLine(x, y){
+      if(rect.right - 5 < x && x < rect.right + 5){
+        if(rect.bottom-5 < y && y < rect.bottom+5){
+          return true;
+        }
+      }
+      return false;
+    }
   }
 
   activate() {
-    this.on = true;
-    this.DOM.style.height = this.height + 'px';
-    this.DOM.style.width = this.width + 'px';
-    this.DOM.style.border = '2px solid #abc';
-    this._dragElement(this.DOM);
+    //var windowWidth = $( window ).width();
+    // if(windowWidth < 500){     //mobile
+    
+    // }else{
+      this.on = true;
+      this.DOM.style.height = this.height + 'px';
+      this.DOM.style.width = this.width + 'px';
+      this.DOM.style.border = '2px solid #abc';
+      this._dragElement(this.DOM);
 
-    let position = this.getPosition();
-    tunnelBoxSocket.emit('BOX_INIT', position);
+      this.resizeDOM.style.borderRadius = '50%';
+      this.resizeDOM.style.border = '2px solid #abc';
+      this.resizeDOM.style.bottom = '-5px';
+      this.resizeDOM.style.right = '-5px';
+      this.resizeDOM.style.height = '7px';
+      this.resizeDOM.style.width = '7px';
+
+      let position = this.getPosition();
+      tunnelBoxSocket.emit('BOX_INIT', position);
+    
   }
 
   rcvActivate() {
@@ -119,6 +173,11 @@ class TunnelBox {
     this.DOM.onmousedown = null;
     this.DOM.onscroll = null;
 
+    this.resizeDOM.style.borderRadius = '0%';
+    this.resizeDOM.style.border = '';
+    this.resizeDOM.style.height = '0px';
+    this.resizeDOM.style.width = '0px';
+    
     tunnelBoxSocket.emit('BOX_CLEAR');
   }
 
@@ -160,7 +219,6 @@ class TunnelBox {
     let x, y, p1, p2;
     let newScale;
     
-    
     [x, y] = pdfViewer._pages[currentPage].viewport.convertToViewportPoint(pagePoint[0].x, pagePoint[0].y);
     p1 = {x : x, y : y}; 
     
@@ -192,7 +250,6 @@ class TunnelBox {
 const tunnel = new TunnelBox();
 
 let toggle = function() {
-  console.log("tunnel toggle");
   if (tunnel.on) tunnel.deactivate();
   else tunnel.activate();
 }
@@ -202,7 +259,8 @@ document.querySelector("#tunnelMode").addEventListener('click', toggle);
 
 tunnelBoxSocket.on('BOX_INIT', (position) => {
   if (tunnel.on == true) return;
-  tunnel.setPosition(position);
+  
+  tunnel.setPosition(position); 
   tunnel.rcvActivate();
 })
 
@@ -223,6 +281,10 @@ tunnelBoxSocket.on('BOX_DOWN', (position) => {
 
 tunnelBoxSocket.on('DISCONNECT', () => {
   tunnel.rcvDeactivate();
+})
+
+tunnelBoxSocket.on('BOX_RESIZE', () => {
+  
 })
 
 export { TunnelBox, };
