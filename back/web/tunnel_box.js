@@ -13,6 +13,7 @@ class TunnelBox {
     this.stuck = false;
     this.left = 0;
     this.top = 0;
+    this.isMobile = true;
     // width = height * screenRatio
     this.resolution = 2;
   }
@@ -139,26 +140,22 @@ class TunnelBox {
   }
 
   activate() {
-    //var windowWidth = $( window ).width();
-    // if(windowWidth < 500){     //mobile
-    
-    // }else{
-      this.on = true;
-      this.DOM.style.height = this.height + 'px';
-      this.DOM.style.width = this.width + 'px';
-      this.DOM.style.border = '2px solid #abc';
-      this._dragElement(this.DOM);
+    this.isMobile = false;
+    this.on = true;
+    this.DOM.style.height = this.height + 'px';
+    this.DOM.style.width = this.width + 'px';
+    this.DOM.style.border = '2px solid #abc';
+    this._dragElement(this.DOM);
 
-      this.resizeDOM.style.borderRadius = '50%';
-      this.resizeDOM.style.border = '2px solid #abc';
-      this.resizeDOM.style.bottom = '-5px';
-      this.resizeDOM.style.right = '-5px';
-      this.resizeDOM.style.height = '7px';
-      this.resizeDOM.style.width = '7px';
+    this.resizeDOM.style.borderRadius = '50%';
+    this.resizeDOM.style.border = '2px solid #abc';
+    this.resizeDOM.style.bottom = '-5px';
+    this.resizeDOM.style.right = '-5px';
+    this.resizeDOM.style.height = '7px';
+    this.resizeDOM.style.width = '7px';
 
-      let position = this.getPosition();
-      tunnelBoxSocket.emit('BOX_INIT', position);
-    
+    let position = this.getPosition();
+    tunnelBoxSocket.emit('BOX_INIT', position);
   }
 
   rcvActivate() {
@@ -185,6 +182,7 @@ class TunnelBox {
     this.on = false;
   }
 
+  //pc
   getPosition() {
     let pdfViewer = window.PDFViewerApplication.pdfViewer;
     let clientX, clientY;
@@ -212,6 +210,7 @@ class TunnelBox {
     }
   }
 
+  //mobile
   setPosition(position) {
     let {pagePoint, currentPage, width, currentScale, boxHeight, boxWidth} = position;
     let pdfViewer = window.PDFViewerApplication.pdfViewer;
@@ -230,61 +229,83 @@ class TunnelBox {
     
     screenControl.setScrollTop(currentPageElment.offsetTop + this.top);
     screenControl.setScrollLeft(currentPageElment.offsetLeft + this.left);
+    screenControl.setScrollWidth(this.width);
+    screenControl.setScrollHeight(this.height);
 
     newScale = (document.body.clientWidth / (width / currentScale)) * (width / boxWidth);
     pdfViewer.currentScaleValue = newScale;
-    
   }
 
-  _setWidth(dist) {
-    this.width = dist;
-    this.DOM.style.width = dist;
+  //pc by mobile control
+  setBoxPosition(pagePoint){
+
   }
 
-  _setHeight(dist) {
-    this.height = dist;
-    this.DOM.style.height = dist;
+  //pc by mobile control
+  setBoxSize(boxWidth, boxHeight) {
+    this.width = boxWidth;
+    this.DOM.style.width = this.width + 'px';
+    this.height = boxHeight;
+    this.DOM.style.height = this.height + 'px';
+    this.resolution = this.width / this.height;
   }
 }
 
 const tunnel = new TunnelBox();
 
 let toggle = function() {
+  var windowWidth = $( window ).width();
+  if(windowWidth < 900){     //mobile
+    console.log("mobile is not support tunnel box");
+    return;
+  }
   if (tunnel.on) tunnel.deactivate();
   else tunnel.activate();
 }
 
-
 document.querySelector("#tunnelMode").addEventListener('click', toggle);
 
+//mobile
 tunnelBoxSocket.on('BOX_INIT', (position) => {
   if (tunnel.on == true) return;
   
+  let mobile_width = $( window ).width();
+  let mobile_height = $( window ).height();
+  console.log("Box init call");
+  tunnelBoxSocket.emit('BOX_SIZE_INIT', { width: mobile_width, height: mobile_height });
   tunnel.setPosition(position); 
   tunnel.rcvActivate();
-})
+});
 
+//pc
+tunnelBoxSocket.on('BOX_SIZE_INIT', (sizeData) => {
+  console.log("box size init");
+  tunnel.setBoxSize(sizeData.width, sizeData.height);
+});
+
+//mobile
 tunnelBoxSocket.on('BOX_MOVE', (position) => {
   // Temporary remove for continue operating when page referch at remote device
   //if (tunnel.on == false ) return;
   tunnel.setPosition(position);
-})
+});
+
+tunnelBoxSocket.on('BOX_RESIZE', (position) => {
+  console.log("resize box call");
+  tunnel.setPosition(position);
+});
 
 tunnelBoxSocket.on('BOX_CLEAR', (position) => {
   if (tunnel.on == false) return;
   tunnel.rcvDeactivate();
-})
+});
 
 tunnelBoxSocket.on('BOX_DOWN', (position) => {
   if (tunnel.on = false) return;
-})
+});
 
 tunnelBoxSocket.on('DISCONNECT', () => {
   tunnel.rcvDeactivate();
-})
-
-tunnelBoxSocket.on('BOX_RESIZE', () => {
-  
-})
+});
 
 export { TunnelBox, };
