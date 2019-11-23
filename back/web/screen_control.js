@@ -1,3 +1,5 @@
+import { tunnelBoxSocket } from './socket.io.js' 
+
 let screenControl = function() {
   return {
     setScrollTop(offsetTop) {
@@ -8,11 +10,11 @@ let screenControl = function() {
       document.querySelector("#viewerContainer").scrollLeft = offsetLeft;
       document.querySelector("#viewerContainer").dispatchEvent(new Event('scroll'))
     },
-    setScrollWidth(offsetWidth) {
+    setOffsetWidth(offsetWidth) {
       document.querySelector("#viewerContainer").style.offsetWidth = offsetWidth;
       document.querySelector("#viewerContainer").dispatchEvent(new Event('scroll'))
     },
-    setScrollHeight(offsetHeight) {
+    setOffsetHeight(offsetHeight) {
       document.querySelector("#viewerContainer").style.offsetHeight = offsetHeight + 64;
       document.querySelector("#viewerContainer").dispatchEvent(new Event('scroll'))
     }
