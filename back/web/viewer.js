@@ -804,6 +804,8 @@ var PDFViewerApplication = {
     } while (--ticks > 0 && newScale < _ui_utils.MAX_SCALE);
 
     this.pdfViewer.currentScaleValue = newScale;
+    // J2
+    window.drawService.updateCanvas();
   },
   zoomOut: function zoomOut(ticks) {
     if (this.pdfViewer.isInPresentationMode) {
@@ -819,6 +821,8 @@ var PDFViewerApplication = {
     } while (--ticks > 0 && newScale > _ui_utils.MIN_SCALE);
 
     this.pdfViewer.currentScaleValue = newScale;
+    // J2
+    window.drawService.updateCanvas();
   },
   zoomReset: function zoomReset() {
     if (this.pdfViewer.isInPresentationMode) {
@@ -826,6 +830,8 @@ var PDFViewerApplication = {
     }
 
     this.pdfViewer.currentScaleValue = _ui_utils.DEFAULT_SCALE_VALUE;
+    // J2
+    window.drawService.updateCanvas();
   },
 
   get pagesCount() {
@@ -2205,6 +2211,8 @@ function webViewerPageNumberChanged(evt) {
 
 function webViewerScaleChanged(evt) {
   PDFViewerApplication.pdfViewer.currentScaleValue = evt.value;
+  // J2
+  window.drawService.updateCanvas();
 }
 
 function webViewerRotateCw() {
@@ -2427,7 +2435,6 @@ function webViewerKeyDown(evt) {
         }
 
         handled = true;
-        window.drawService.updateCanvas();
         break;
 
       case 173:
@@ -2437,7 +2444,6 @@ function webViewerKeyDown(evt) {
           PDFViewerApplication.zoomOut();
         }
 
-        window.drawService.updateCanvas();
         handled = true;
         break;
 
