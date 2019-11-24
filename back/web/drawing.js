@@ -4,7 +4,6 @@ import { drawSocket } from "./socket.io.js";
 let drawing = false;
 let mousePos = { x: 0, y: 0 };
 let lastPos = mousePos;
-let mode;
 let color;
 let width;
 let transparency
@@ -21,6 +20,7 @@ let mousePenEvent = {
     let pdfMousePos;
     let x, y;
     let pageNum = e.target.getAttribute('data-page-number');
+    var mode = window.drawService.mode;
 
 
     lastPos = await getMousePos(e);
@@ -45,7 +45,7 @@ let mousePenEvent = {
     inMemCanvases[pageNum - 1].height = e.target.height;
     inMemCtx[pageNum - 1].drawImage(e.target, 0, 0);
   }, async mouseMove(e) {
-    if (drawing == false) return;
+    if(drawing == false) return;
     let pdfMousePos;
     let x, y;
     let pageNum = e.target.getAttribute('data-page-number');
@@ -72,40 +72,47 @@ let touchPenEvent = {
   async touchStart(e) {
     let canvas = e.target;
     let touch = e.touches[0];
+    var mode = window.drawService.mode;
 
-    if (mode !== 'hand') e.preventDefault();
-
-    mousePos = await getTouchPos(e);
-
-    let mouseEvent = new MouseEvent("mousedown", {
-      clientX: touch.clientX,
-      clientY: touch.clientY
-    });
-    canvas.dispatchEvent(mouseEvent);
+    if(mode !== 'hand') {
+      e.preventDefault();
+      mousePos = await getTouchPos(e);
+      let mouseEvent = new MouseEvent("mousedown", {
+        clientX: touch.clientX,
+        clientY: touch.clientY
+      });
+      canvas.dispatchEvent(mouseEvent);
+    }
   },
   touchEnd(e) {
     let canvas = e.target;
     let mouseEvent = new MouseEvent("mouseup", {});
+    var mode = window.drawService.mode;
 
-    if (mode !== 'hand') e.preventDefault();
-    canvas.dispatchEvent(mouseEvent);
+    if(mode !== 'hand') {
+      e.preventDefault();
+      canvas.dispatchEvent(mouseEvent);
+    }
   },
   touchMove(e) {
-    let touch = e.touches[0];
-    let canvas = e.target;
-    let mouseEvent = new MouseEvent("mousemove", {
-      clientX: touch.clientX,
-      clientY: touch.clientY
-    });
-
-    if (mode !== 'hand') e.preventDefault();
-    canvas.dispatchEvent(mouseEvent);
+    var mode = window.drawService.mode;
+    if(mode !== 'hand') {
+      e.preventDefault();
+      let touch = e.touches[0];
+      let canvas = e.target;
+      let mouseEvent = new MouseEvent("mousemove", {
+        clientX: touch.clientX,
+        clientY: touch.clientY
+      });
+      canvas.dispatchEvent(mouseEvent);
+    }
   }
 }
 
 class DrawService {
   constructor(canvasDOMs) {
     this.canvases = canvasDOMs;
+    this.mode = 'hand';
     for (let cvs of this.canvases) {
       ctx.push(cvs.getContext('2d'));
       var inMem = document.createElement('canvas');
@@ -116,10 +123,7 @@ class DrawService {
     $('.penCanvas').attrchange({
       trackValues: true,
       callback: function (e) {
-        if (performance.now() - scaleTimestamp > 50) {
-          scaleTimestamp = performance.now();
-          window.drawService.updateCanvas();
-        }
+        window.drawService.updateCanvas();
       }
     });
     curScale = window.PDFViewerApplication.pdfViewer._location.scale;
@@ -141,17 +145,20 @@ class DrawService {
 
   registerDrawToolButton(btn, tool) {
     btn.addEventListener("click", (e) => {
-      mode = tool;
+      window.drawService.mode = tool;
       drawSocket.emit("SETUP");
 
     }, false)
   }
 
   updateCanvas() {
-    for (let i = 0; i < ctx.length; i++) {
-    let scaleDelta = window.PDFViewerApplication.pdfViewer._location.scale / curScale;
-    ctx[i].scale(scaleDelta, scaleDelta);
-    ctx[i].drawImage(inMemCanvases[i], 0, 0);
+    if(performance.now() - scaleTimestamp > 50) {
+      scaleTimestamp = performance.now();
+      for (let i = 0; i < ctx.length; i++) {
+        let scaleDelta = window.PDFViewerApplication.pdfViewer._location.scale / curScale;
+        ctx[i].scale(scaleDelta, scaleDelta);
+        ctx[i].drawImage(inMemCanvases[i], 0, 0);
+      }
     }
   }
 }
@@ -159,32 +166,25 @@ class DrawService {
 
 // Draw to the canvas
 function renderCanvas(ctx) {
-
-  if (drawing) {
-
+  if(drawing) {
     ctx.beginPath();
-
-    if (mode == "pen") {
-
+    var mode = window.drawService.mode;
+    if(mode == "pen") {
       ctx.strokeStyle = color;
       ctx.lineWidth = width;
       ctx.globalAlpha = transparency;
-
       ctx.lineJoin = ctx.lineCap = 'round';
 			ctx.globalCompositeOperation="source-over";
 			ctx.moveTo(lastPos.x, lastPos.y);
 			ctx.lineTo(mousePos.x, mousePos.y);
 			ctx.stroke();
-		}
-		else if(mode == "eraser"){
+		} else if(mode == "eraser") {
 			ctx.globalCompositeOperation = "destination-out";
 			ctx.arc(lastPos.x,lastPos.y,20,0,Math.PI*2,false);
 			ctx.fill();
 		}
-
 		lastPos = mousePos;
 	}
-
 }
 
 // Get the position of the mouse relative to the canvas
@@ -220,7 +220,7 @@ drawSocket.on('MOUSEDOWN', (data) => {
   lastPos = { x: x, y: y };
 
   //lastPos = data.lastPos;
-  mode = data.mode;
+  window.drawService.mode = data.mode;
   drawing = true;
 })
 

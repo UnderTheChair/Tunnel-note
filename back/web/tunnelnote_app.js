@@ -50,13 +50,16 @@ function setup() {
   var pinch = new Hammer.Pinch();
   mc.add(pinch);
   mc.on('pinch pinchend', (e)=> {
-    if(e.type == 'pinch') {
-      scale = Math.max(.5, Math.min(curScale * (e.scale), 4));
-    }
-    if(e.type == 'pinchend') {
-      curScale = scale;
-      window.PDFViewerApplication.pdfViewer._setScale(curScale)
-      drawService.updateCanvas();
+      if(window.drawService.mode === 'hand') {
+      if(e.type == 'pinch') {
+        scale = Math.max(.5, Math.min(curScale * (e.scale), 4));
+      }
+      if(e.type == 'pinchend') {
+        console.log('pinchend');
+        curScale = scale;
+        window.PDFViewerApplication.pdfViewer._setScale(curScale)
+        drawService.updateCanvas();
+      }
     }
   });
 
