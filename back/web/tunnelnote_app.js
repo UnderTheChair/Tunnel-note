@@ -47,7 +47,6 @@ function setup() {
   var mc = new Hammer.Manager(container);
   
   var curScale = window.PDFViewerApplication.pdfViewer._location.scale/100;
-  console.log(curScale);
   var pinch = new Hammer.Pinch();
   mc.add(pinch);
   mc.on('pinch pinchend', (e)=> {
@@ -60,7 +59,6 @@ function setup() {
         }
       }
       if(e.type == 'pinchend') {
-        console.log('pinchend');
         curScale = scale;
         window.PDFViewerApplication.pdfViewer._setScale(curScale)
         drawService.updateCanvas();
