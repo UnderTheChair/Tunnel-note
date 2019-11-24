@@ -4,6 +4,7 @@ import { drawSocket } from "./socket.io.js";
 
 let isSetup = false;
 var scale;
+var scaleTimestamp = 0;
 
 window.addEventListener('wheel', onPdfLoad);
 window.addEventListener('click', onPdfLoad);
@@ -45,14 +46,18 @@ function setup() {
   var container = document.getElementById('penContainer');
   var mc = new Hammer.Manager(container);
   
-  var curScale = window.PDFViewerApplication.pdfViewer._location.scale;
-
+  var curScale = window.PDFViewerApplication.pdfViewer._location.scale/100;
+  console.log(curScale);
   var pinch = new Hammer.Pinch();
   mc.add(pinch);
   mc.on('pinch pinchend', (e)=> {
       if(window.drawService.mode === 'hand') {
       if(e.type == 'pinch') {
-        scale = Math.max(.5, Math.min(curScale * (e.scale), 4));
+        if(performance.now() - scaleTimestamp > 80) {
+          scaleTimestamp = performance.now();
+          scale = Math.max(.5, Math.min(curScale * (e.scale), 4));
+          window.PDFViewerApplication.pdfViewer._setScale(scale)
+        }
       }
       if(e.type == 'pinchend') {
         console.log('pinchend');

@@ -2302,6 +2302,8 @@ function webViewerPageChanging(evt) {
       Stats.add(page, pageView.stats);
     }
   }
+  // J2
+  window.drawService.updateCanvas();
 }
 
 function webViewerVisibilityChange(evt) {
@@ -2425,6 +2427,7 @@ function webViewerKeyDown(evt) {
         }
 
         handled = true;
+        window.drawService.updateCanvas();
         break;
 
       case 173:
@@ -2434,6 +2437,7 @@ function webViewerKeyDown(evt) {
           PDFViewerApplication.zoomOut();
         }
 
+        window.drawService.updateCanvas();
         handled = true;
         break;
 
@@ -11020,7 +11024,7 @@ function () {
         for(let cvs of canvases) {
           cvs.setAttribute('height', firstPage.view.div.style.height);
           cvs.setAttribute('width', firstPage.view.div.style.width);
-          
+
 	  cvs.style.height = firstPage.view.div.style.height;
 	  cvs.style.width = firstPage.view.div.style.width;
         }

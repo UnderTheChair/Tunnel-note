@@ -120,12 +120,6 @@ class DrawService {
       inMemCanvases.push(inMem);
     }
     pdfViewer = window.PDFViewerApplication.pdfViewer;
-    $('.penCanvas').attrchange({
-      trackValues: true,
-      callback: function (e) {
-        window.drawService.updateCanvas();
-      }
-    });
     curScale = window.PDFViewerApplication.pdfViewer._location.scale;
   }
   enableMouseEventListener() {
@@ -152,13 +146,10 @@ class DrawService {
   }
 
   updateCanvas() {
-    if(performance.now() - scaleTimestamp > 50) {
-      scaleTimestamp = performance.now();
-      for (let i = 0; i < ctx.length; i++) {
-        let scaleDelta = window.PDFViewerApplication.pdfViewer._location.scale / curScale;
-        ctx[i].scale(scaleDelta, scaleDelta);
-        ctx[i].drawImage(inMemCanvases[i], 0, 0);
-      }
+    for (let i = 0; i < ctx.length; i++) {
+      let scaleDelta = window.PDFViewerApplication.pdfViewer._location.scale / curScale;
+      ctx[i].scale(scaleDelta, scaleDelta);
+      ctx[i].drawImage(inMemCanvases[i], 0, 0);
     }
   }
 }
