@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 const autoIncrement = require('mongoose-auto-increment')
 const DB = 'mongodb://localhost:27017/Tunnel-Note'
 
-mongoose.connect(DB, {useNewUrlParser: true})
+mongoose.connect(DB, {useNewUrlParser: true, useFindAndModify: false})
 mongoose.connection.on('connected', () => {
     console.info(`Running mongoose v${mongoose.version}`)
 })

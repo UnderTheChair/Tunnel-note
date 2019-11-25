@@ -13,6 +13,12 @@ const requireAuth = () => (from, to, next) => {
   if (isAuthenticated) return next()
   next('/login')
 }
+const requiredAuth = () => (from, to, next) => {
+  const isAuthenticated = localStorage.accessToken;
+  
+  if (isAuthenticated) return next(to.fullPath);
+  return next();
+}
 
 const routes = [
   {
@@ -25,6 +31,7 @@ const routes = [
     path: '/login',
     name: 'login',
     component: Login,
+    beforeEnter: requiredAuth(),
   },
   {
     path: '/signup',
