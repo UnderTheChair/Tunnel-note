@@ -1,5 +1,5 @@
-import { tunnelBoxSocket } from './socket.io.js' 
-import { screenControl } from './screen_control.js'
+import { tunnelBoxSocket } from './socket.io.js';
+import { screenControl } from './screen_control.js';
 
 class TunnelBox {
   constructor() {
@@ -142,6 +142,8 @@ class TunnelBox {
   activate() {
     this.isMobile = false;
     this.on = true;
+    this.left = document.querySelector(`#viewer > div:nth-child(${1})`).offsetLeft;
+    this.DOM.style.left = this.left + 'px';
     this.DOM.style.height = this.height + 'px';
     this.DOM.style.width = this.width + 'px';
     this.DOM.style.border = '2px solid #abc';
@@ -182,13 +184,12 @@ class TunnelBox {
     this.on = false;
   }
 
-  //pc
   getPosition() {
     let pdfViewer = window.PDFViewerApplication.pdfViewer;
     let clientX, clientY;
     let currentPage = pdfViewer._location.pageNumber;
     let x, y, p1, p2;
-
+    
     clientX = this.left - document.querySelector(`#viewer > div:nth-child(${currentPage})`).offsetLeft;
     clientY = this.top;
 
@@ -210,7 +211,6 @@ class TunnelBox {
     }
   }
 
-  //mobile
   setPosition(position) {
     let {pagePoint, currentPage, width, currentScale, boxHeight, boxWidth} = position;
     let pdfViewer = window.PDFViewerApplication.pdfViewer;
@@ -229,16 +229,23 @@ class TunnelBox {
     
     screenControl.setScrollTop(currentPageElment.offsetTop + this.top);
     screenControl.setScrollLeft(currentPageElment.offsetLeft + this.left);
-    screenControl.setOffsetWidth(this.width);
-    screenControl.setOffsetHeight(this.height);
+    screenControl.setOffsetWidth(boxWidth);
+    screenControl.setOffsetHeight(boxHeight);
 
     newScale = (document.body.clientWidth / (width / currentScale)) * (width / boxWidth);
     pdfViewer.currentScaleValue = newScale;
   }
 
-  //pc by mobile control
-  setBoxPosition(pagePoint){
+  //mobile
+  setSize(width, height){
+    this.width = width;
+    this.height = height;
+  }
 
+  //pc by mobile control
+  setBoxPosition(position){
+    var pagePoint = position.pagePoint;
+    
   }
 
   //pc by mobile control
@@ -265,23 +272,20 @@ let toggle = function() {
 
 document.querySelector("#tunnelMode").addEventListener('click', toggle);
 
-//mobile
+//pc -> mobile
 tunnelBoxSocket.on('BOX_INIT', (position) => {
   if (tunnel.on == true) return;
   
+  let toolbar_height = document.getElementById('toolbarContainer').offsetHeight;
   let mobile_width = $( window ).width();
-  let mobile_height = $( window ).height();
+  let mobile_height = $( window ).height() - toolbar_height;
+  
   tunnelBoxSocket.emit('BOX_SIZE_INIT', { width: mobile_width, height: mobile_height });
+  tunnel.setSize(mobile_width, mobile_height);
   tunnel.setPosition(position); 
   tunnel.rcvActivate();
 });
 
-//pc
-tunnelBoxSocket.on('BOX_SIZE_INIT', (sizeData) => {
-  tunnel.setBoxSize(sizeData.width, sizeData.height);
-});
-
-//mobile
 tunnelBoxSocket.on('BOX_MOVE', (position) => {
   // Temporary remove for continue operating when page referch at remote device
   //if (tunnel.on == false ) return;
@@ -305,13 +309,31 @@ tunnelBoxSocket.on('DISCONNECT', () => {
   tunnel.rcvDeactivate();
 });
 
+//mobile -> pc
+tunnelBoxSocket.on('BOX_SIZE_INIT', (sizeData) => {
+  tunnel.setBoxSize(sizeData.width, sizeData.height);
+  var position = tunnel.getPosition();
+  console.log("position.pagePoint: ", position.pagePoint);
+  console.log("position: ", position);
+  document.querySelector('#viewerContainer').addEventListener('touchmove', mobile_swipe);
+});
+
 tunnelBoxSocket.on('MOBILE_MOVE', (position) => {
-  tunnel.setBoxPosition(pagePoint);
+  tunnel.setBoxPosition(position);
 });
 
 tunnelBoxSocket.on('MOBILE_RESIZE', (position) => {
-  tunnel.setBoxPosition(position.pagePoint);
+  tunnel.setBoxPosition(position);
   tunnel.setBoxSize(position.boxWidth, position.boxHeight);
 });
+
+
+
+function mobile_swipe(event){
+  console.log("mobile swipe call");
+  var position = getPosition();
+  tunnelBoxSocket.emit('MOBILE_MOVE', position);
+}
+
 
 export { TunnelBox, };
