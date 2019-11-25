@@ -4,6 +4,7 @@ import { screenControl } from './screen_control.js'
 class TunnelBox {
   constructor() {
     this.DOM = document.getElementById('tunnel');
+    this.resizeDOM = document.getElementById('resizer');
     this.on = false;
     this.color = "#9400D3";
     this.lineWidth = 2;
@@ -12,6 +13,9 @@ class TunnelBox {
     this.stuck = false;
     this.left = 0;
     this.top = 0;
+    this.isMobile = true;
+    // width = height * screenRatio
+    this.resolution = 2;
   }
   _dragElement(elmnt) {
     let container = document.getElementById('penContainer');
@@ -19,7 +23,7 @@ class TunnelBox {
     var rect;
     var currentPos = { x:0, y:0 };
     var changePos = { x:0, y:0 };
-    var lastPos = { x:0, y:0 }
+    var lastPos = { x:0, y:0 };
 
     container.addEventListener("mousemove", currentMouseMove);
 
@@ -27,13 +31,27 @@ class TunnelBox {
       currentPos.x = e.clientX;
       currentPos.y = e.clientY;
       rect = elmnt.getBoundingClientRect();
-      if(isRectLine(currentPos.x, currentPos.y)){
+      if(isResizeLine(currentPos.x, currentPos.y)){
+        container.style.cursor = "nwse-resize";
+        container.addEventListener("mousedown", resizeMouseDown);
+      }
+      else if(isRectLine(currentPos.x, currentPos.y)){
         container.style.cursor = "grab";
+        
         container.addEventListener("mousedown", dragMouseDown);
       }else{
         container.style.cursor = "default";
         container.removeEventListener("mousedown", dragMouseDown);
+        container.removeEventListener("mousedown", resizeMouseDown);
       }
+    }
+    function resizeMouseDown(e) {
+      e = e || window.event;
+      e.preventDefault();
+      lastPos.x = e.clientX;
+      lastPos.y = e.clientY;
+      container.addEventListener("mousemove", elementResize);
+      container.addEventListener("mouseup", closeDragElement);
     }
     function dragMouseDown(e) {
       container.style.cursor = "grabbing";
@@ -43,6 +61,22 @@ class TunnelBox {
       lastPos.y = e.clientY;
       container.addEventListener("mousemove", elementDrag);
       container.addEventListener("mouseup", closeDragElement);
+    }
+    function elementResize(e) {
+      e = e || window.event;
+      e.preventDefault();
+      currentPos.y = e.clientY;
+      changePos.y = currentPos.y - lastPos.y;
+
+      self.height = self.height + changePos.y;
+      self.width = self.height * self.resolution;
+      elmnt.style.height = self.height + "px";
+      elmnt.style.width = self.width + "px";
+      
+      lastPos.y = currentPos.y;
+
+      let position = self.getPosition();
+      tunnelBoxSocket.emit('BOX_RESIZE', position);
     }
     function elementDrag(e) {
       e = e || window.event;
@@ -69,6 +103,7 @@ class TunnelBox {
       container.removeEventListener("mouseup", closeDragElement);
       container.removeEventListener("mousedown", dragMouseDown);
       container.removeEventListener("mousemove", elementDrag);
+      container.removeEventListener("mousemove", elementResize);
       container.addEventListener("mousemove", currentMouseMove);
     }
     function isRectLine(x, y){
@@ -94,14 +129,30 @@ class TunnelBox {
       }
       return false;
     }
+    function isResizeLine(x, y){
+      if(rect.right - 5 < x && x < rect.right + 5){
+        if(rect.bottom-5 < y && y < rect.bottom+5){
+          return true;
+        }
+      }
+      return false;
+    }
   }
 
   activate() {
+    this.isMobile = false;
     this.on = true;
     this.DOM.style.height = this.height + 'px';
     this.DOM.style.width = this.width + 'px';
     this.DOM.style.border = '2px solid #abc';
     this._dragElement(this.DOM);
+
+    this.resizeDOM.style.borderRadius = '50%';
+    this.resizeDOM.style.border = '2px solid #abc';
+    this.resizeDOM.style.bottom = '-5px';
+    this.resizeDOM.style.right = '-5px';
+    this.resizeDOM.style.height = '7px';
+    this.resizeDOM.style.width = '7px';
 
     let position = this.getPosition();
     tunnelBoxSocket.emit('BOX_INIT', position);
@@ -119,6 +170,11 @@ class TunnelBox {
     this.DOM.onmousedown = null;
     this.DOM.onscroll = null;
 
+    this.resizeDOM.style.borderRadius = '0%';
+    this.resizeDOM.style.border = '';
+    this.resizeDOM.style.height = '0px';
+    this.resizeDOM.style.width = '0px';
+    
     tunnelBoxSocket.emit('BOX_CLEAR');
   }
 
@@ -126,6 +182,7 @@ class TunnelBox {
     this.on = false;
   }
 
+  //pc
   getPosition() {
     let pdfViewer = window.PDFViewerApplication.pdfViewer;
     let clientX, clientY;
@@ -153,13 +210,13 @@ class TunnelBox {
     }
   }
 
+  //mobile
   setPosition(position) {
     let {pagePoint, currentPage, width, currentScale, boxHeight, boxWidth} = position;
     let pdfViewer = window.PDFViewerApplication.pdfViewer;
     let currentPageElment = document.querySelector(`#viewer > div:nth-child(${currentPage})`);
     let x, y, p1, p2;
     let newScale;
-    
     
     [x, y] = pdfViewer._pages[currentPage].viewport.convertToViewportPoint(pagePoint[0].x, pagePoint[0].y);
     p1 = {x : x, y : y}; 
@@ -172,57 +229,89 @@ class TunnelBox {
     
     screenControl.setScrollTop(currentPageElment.offsetTop + this.top);
     screenControl.setScrollLeft(currentPageElment.offsetLeft + this.left);
+    screenControl.setOffsetWidth(this.width);
+    screenControl.setOffsetHeight(this.height);
 
     newScale = (document.body.clientWidth / (width / currentScale)) * (width / boxWidth);
     pdfViewer.currentScaleValue = newScale;
-    
   }
 
-  _setWidth(dist) {
-    this.width = dist;
-    this.DOM.style.width = dist;
+  //pc by mobile control
+  setBoxPosition(pagePoint){
+
   }
 
-  _setHeight(dist) {
-    this.height = dist;
-    this.DOM.style.height = dist;
+  //pc by mobile control
+  setBoxSize(boxWidth, boxHeight) {
+    this.width = boxWidth;
+    this.DOM.style.width = this.width + 'px';
+    this.height = boxHeight;
+    this.DOM.style.height = this.height + 'px';
+    this.resolution = this.width / this.height;
   }
 }
 
 const tunnel = new TunnelBox();
 
 let toggle = function() {
-  console.log("tunnel toggle");
+  var windowWidth = $( window ).width();
+  if(windowWidth < 900){     //mobile
+    console.log("mobile is not support tunnel box");
+    return;
+  }
   if (tunnel.on) tunnel.deactivate();
   else tunnel.activate();
 }
 
-
 document.querySelector("#tunnelMode").addEventListener('click', toggle);
 
+//mobile
 tunnelBoxSocket.on('BOX_INIT', (position) => {
   if (tunnel.on == true) return;
-  tunnel.setPosition(position);
+  
+  let mobile_width = $( window ).width();
+  let mobile_height = $( window ).height();
+  tunnelBoxSocket.emit('BOX_SIZE_INIT', { width: mobile_width, height: mobile_height });
+  tunnel.setPosition(position); 
   tunnel.rcvActivate();
-})
+});
 
+//pc
+tunnelBoxSocket.on('BOX_SIZE_INIT', (sizeData) => {
+  tunnel.setBoxSize(sizeData.width, sizeData.height);
+});
+
+//mobile
 tunnelBoxSocket.on('BOX_MOVE', (position) => {
   // Temporary remove for continue operating when page referch at remote device
   //if (tunnel.on == false ) return;
   tunnel.setPosition(position);
-})
+});
+
+tunnelBoxSocket.on('BOX_RESIZE', (position) => {
+  tunnel.setPosition(position);
+});
 
 tunnelBoxSocket.on('BOX_CLEAR', (position) => {
   if (tunnel.on == false) return;
   tunnel.rcvDeactivate();
-})
+});
 
 tunnelBoxSocket.on('BOX_DOWN', (position) => {
   if (tunnel.on = false) return;
-})
+});
 
 tunnelBoxSocket.on('DISCONNECT', () => {
   tunnel.rcvDeactivate();
-})
+});
+
+tunnelBoxSocket.on('MOBILE_MOVE', (position) => {
+  tunnel.setBoxPosition(pagePoint);
+});
+
+tunnelBoxSocket.on('MOBILE_RESIZE', (position) => {
+  tunnel.setBoxPosition(position.pagePoint);
+  tunnel.setBoxSize(position.boxWidth, position.boxHeight);
+});
 
 export { TunnelBox, };

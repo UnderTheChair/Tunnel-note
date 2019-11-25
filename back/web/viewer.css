@@ -664,12 +664,18 @@ html[dir='rtl'] #sidebarContent {
 
 #tunnel {
   position: absolute;
-  padding: 10px;
+  padding: 0px;
   background-color: transparent;
   border: '';
   display: inline-block;
   z-index: 5000;
-  padding : 0px;
+}
+#resizer{
+  background-color: white;
+  border: '';
+  z-index: 5001;
+  display: inline-block;
+  position: absolute;
 }
 
 #viewerContainer {
