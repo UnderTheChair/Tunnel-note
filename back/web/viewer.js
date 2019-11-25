@@ -805,7 +805,7 @@ var PDFViewerApplication = {
 
     this.pdfViewer.currentScaleValue = newScale;
     // J2
-    window.drawService.updateCanvas();
+    window.customScaleCallback();
   },
   zoomOut: function zoomOut(ticks) {
     if (this.pdfViewer.isInPresentationMode) {
@@ -822,7 +822,7 @@ var PDFViewerApplication = {
 
     this.pdfViewer.currentScaleValue = newScale;
     // J2
-    window.drawService.updateCanvas();
+    window.customScaleCallback();
   },
   zoomReset: function zoomReset() {
     if (this.pdfViewer.isInPresentationMode) {
@@ -831,7 +831,7 @@ var PDFViewerApplication = {
 
     this.pdfViewer.currentScaleValue = _ui_utils.DEFAULT_SCALE_VALUE;
     // J2
-    window.drawService.updateCanvas();
+    window.customScaleCallback();
   },
 
   get pagesCount() {
@@ -2212,7 +2212,7 @@ function webViewerPageNumberChanged(evt) {
 function webViewerScaleChanged(evt) {
   PDFViewerApplication.pdfViewer.currentScaleValue = evt.value;
   // J2
-  window.drawService.updateCanvas();
+  window.customScaleCallback();
 }
 
 function webViewerRotateCw() {
@@ -2311,7 +2311,7 @@ function webViewerPageChanging(evt) {
     }
   }
   // J2
-  window.drawService.updateCanvas();
+  window.customScaleCallback();
 }
 
 function webViewerVisibilityChange(evt) {
@@ -11031,8 +11031,8 @@ function () {
           cvs.setAttribute('height', firstPage.view.div.style.height);
           cvs.setAttribute('width', firstPage.view.div.style.width);
 
-	  cvs.style.height = firstPage.view.div.style.height;
-	  cvs.style.width = firstPage.view.div.style.width;
+	      cvs.style.height = firstPage.view.div.style.height;
+	      cvs.style.width = firstPage.view.div.style.width;
         }
       }
       var pageNumber = firstPage.id;
@@ -15757,16 +15757,3 @@ _app.PDFPrintServiceFactory.instance = {
 /***/ })
 /******/ ]);
 //# sourceMappingURL=viewer.js.map
-function draw(){
-  var canvas = document.getElementById('pdf-canvas');
-  canvas.width = 700;
-  canvas.height = 700;
-  if(canvas.getContext){
-    var ctx = canvas.getContext("2d");
-
-    ctx.fillStyle - "rgb(200,0,0)";
-    ctx.fillRect (10, 10, 50, 50);
-    ctx.fillStyle = "rgba(0, 0, 200, 0.5)";
-    ctx.fillRect (30, 30, 50, 50);
-      }
-    }
