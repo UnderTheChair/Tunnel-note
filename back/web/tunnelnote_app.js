@@ -45,7 +45,7 @@ function setup() {
   window.drawService = drawService;
   var container = document.getElementById('penContainer');
   var mc = new Hammer.Manager(container);
-  
+
   var curScale = window.PDFViewerApplication.pdfViewer._location.scale;
   var pinch = new Hammer.Pinch();
   mc.add(pinch);
@@ -65,6 +65,13 @@ function setup() {
       }
     }
   });
+  window.customScaleCallback = () => {
+    drawService.updateCanvas();
+  };
+  let customScrollCallback = () => {
+    // callback
+  };
+  $('#viewerContainer').scroll(customScrollCallback);
 
   return true;
 }
