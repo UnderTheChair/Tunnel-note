@@ -3,6 +3,7 @@ const app = express();
 const bodyParser = require('body-parser');
 const users = require('./routers/users');
 const pdfs = require('./routers/pdfs');
+const pdfsCo = require('./routers/pdfs-co');
 const config = require('./config')
 
 require('./db/mongo')
@@ -30,7 +31,7 @@ app.use(bodyParser.urlencoded({ limit: '1gb', extended: false }));
 app.use((req, res, next) =>{
     res.header("Access-Control-Allow-Origin", "*")
     res.header('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE, OPTIONS, UPGRADE');
-    res.header("Access-Control-Allow-Headers", "X-Requested-With, Content-Type, Authorization,")
+    res.header("Access-Control-Allow-Headers", "X-Requested-With, Content-Type, Authorization, application/pdf")
     next()
 })
 
@@ -53,6 +54,7 @@ require(__dirname + "/routers/tunnel_box_socket.js")(tunnelBoxIo);
 
 app.use('/users', users);
 app.use('/pdfs', pdfs);
+app.use('/pdfs-co', pdfsCo)
 app.get('/',(req,res)=>{
     res.render('web/viewer.html');
 })

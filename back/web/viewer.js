@@ -1806,7 +1806,6 @@ var validateFileURL;
       var _ref8 = new URL(file, window.location.href),
           origin = _ref8.origin,
           protocol = _ref8.protocol;
-
       if (origin !== viewerOrigin && protocol !== 'blob:') {
         throw new Error('file origin does not match viewer\'s');
       }
@@ -1847,6 +1846,7 @@ function webViewerInitialized() {
   var queryString = document.location.search.substring(1);
   var params = (0, _ui_utils.parseQueryString)(queryString);
   file = 'file' in params ? params.file : _app_options.AppOptions.get('defaultUrl');
+  
   validateFileURL(file);
   var fileInput = document.createElement('input');
   fileInput.id = appConfig.openFileInputName;
@@ -2114,7 +2114,7 @@ var webViewerFileInputChange;
     if (PDFViewerApplication.pdfViewer && PDFViewerApplication.pdfViewer.isInPresentationMode) {
       return;
     }
-
+    ;
     var file = evt.fileInput.files[0];
 
     if (URL.createObjectURL && !_app_options.AppOptions.get('disableCreateObjectURL')) {

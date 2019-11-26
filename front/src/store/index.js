@@ -4,11 +4,11 @@ import axios from 'axios'
 
 Vue.use(Vuex)
 
-const resourceHost = 'http://localhost:8000'
+const resourceHost = 'http://13.125.136.140:8000'// = 'http://localhost:8000'
 
 let store = new Vuex.Store({
   state: {
-    baseUrl: "http://localhost:8000",
+    baseUrl: resourceHost,
     preSignup: false,
     accessToken: null
   },

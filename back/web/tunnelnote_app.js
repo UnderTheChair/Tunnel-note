@@ -10,7 +10,7 @@ window.addEventListener('wheel', onPdfLoad);
 window.addEventListener('click', onPdfLoad);
 
 function onPdfLoad(e) {
-  if(window.PDFViewerApplication.pdfDocument) {
+  if (window.PDFViewerApplication.pdfDocument) {
     setup();
     window.removeEventListener('wheel', onPdfLoad);
     window.removeEventListener('click', onPdfLoad);
@@ -49,18 +49,18 @@ function setup() {
   var curScale = window.PDFViewerApplication.pdfViewer._location.scale;
   var pinch = new Hammer.Pinch();
   mc.add(pinch);
-  mc.on('pinch pinchend', (e)=> {
-      if(window.drawService.mode === 'hand') {
-      if(e.type == 'pinch') {
-        if(performance.now() - scaleTimestamp > 80) {
+  mc.on('pinch pinchend', (e) => {
+    if (window.drawService.mode === 'hand') {
+      if (e.type == 'pinch') {
+        if (performance.now() - scaleTimestamp > 80) {
           scaleTimestamp = performance.now();
           scale = parseInt(Math.max(50, Math.min(curScale * (e.scale), 400)));
-          window.PDFViewerApplication.pdfViewer._setScale(scale/100)
+          window.PDFViewerApplication.pdfViewer._setScale(scale / 100)
         }
       }
-      if(e.type == 'pinchend') {
+      if (e.type == 'pinchend') {
         curScale = scale;
-        window.PDFViewerApplication.pdfViewer._setScale(curScale/100);
+        window.PDFViewerApplication.pdfViewer._setScale(curScale / 100);
         drawService.updateCanvas();
       }
     }
@@ -76,6 +76,13 @@ function setup() {
   return true;
 }
 
-drawSocket.on('SETUP',() => {
+drawSocket.on('SETUP', () => {
   window.dispatchEvent(new Event('click'));
 })
+
+
+$(document).ready(function () {
+  let fileURL = localStorage.getItem('fileURL')
+  
+  PDFViewerApplicationOptions.set('defaultUrl', fileURL);
+});
