@@ -47,6 +47,7 @@ function setup() {
   var container = document.getElementById('penContainer');
   var viewer = document.getElementById('viewerContainer');
   var hammer = new Hammer(container, {
+    touchAction: 'pan-x pan-y'
   });
 
   hammer.get('pinch').set({ enable: true });
@@ -55,7 +56,8 @@ function setup() {
   });
 
   var curScale = window.PDFViewerApplication.pdfViewer._location.scale;
-  hammer.on('pinch pinchend pan', (e)=> {
+  // hammer.on('pinch pinchend pan', (e)=> {
+  hammer.on('pinch pinchend', (e)=> {
     if(window.drawService.mode === 'hand') {
       if(e.type == 'pinch') {
         if(performance.now() - scaleTimestamp > 80) {
@@ -67,13 +69,14 @@ function setup() {
         curScale = scale;
         window.PDFViewerApplication.pdfViewer._setScale(curScale/100);
         drawService.updateCanvas();
-      } else if(e.type == 'pan') {
-        viewer.scrollTo(
-          viewer.scrollLeft - e.deltaX * 0.1,
-          viewer.scrollTop - e.deltaY * 0.1
-        );
-        console.log(e);
       }
+      // else if(e.type == 'pan') {
+      //   viewer.scrollTo(
+      //     viewer.scrollLeft - e.deltaX * 0.1,
+      //     viewer.scrollTop - e.deltaY * 0.1
+      //   );
+      //   console.log(e);
+      // }
     }
   });
   window.customScaleCallback = () => {
