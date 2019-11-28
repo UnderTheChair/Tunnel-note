@@ -12,7 +12,9 @@ let pdfViewer;
 
 let inMemCanvases = [];
 let inMemCtx = [];
+let INMEMSIZE = 3000;
 var curScale;
+var inMemScale = {width: 1, height: 1};
 
 let mousePenEvent = {
   async mouseDown(e) {
@@ -40,10 +42,6 @@ let mousePenEvent = {
   }, mouseUp(e) {
     isDrawing = false;
     drawSocket.emit('MOUSEUP')
-    let pageNum = e.target.getAttribute('data-page-number');
-    inMemCanvases[pageNum - 1].width = e.target.width;
-    inMemCanvases[pageNum - 1].height = e.target.height;
-    inMemCtx[pageNum - 1].drawImage(e.target, 0, 0);
   }, async mouseMove(e) {
     if(isDrawing == false) return;
     let pdfMousePos;
@@ -62,7 +60,9 @@ let mousePenEvent = {
       transparency: transparency,
       pageNum: e.target.getAttribute('data-page-number')
     })
+    renderCanvas(inMemCtx[e.target.getAttribute('data-page-number') - 1]);
     renderCanvas(ctx[e.target.getAttribute('data-page-number') - 1]);
+    lastPos = mousePos;
   }
 }
 
@@ -113,10 +113,16 @@ class DrawService {
   constructor(canvasDOMs) {
     this.canvases = canvasDOMs;
     this.mode = 'hand';
+    inMemScale.width = INMEMSIZE/canvasDOMs[0].width;
+    inMemScale.height = INMEMSIZE/canvasDOMs[0].height;
     for (let cvs of this.canvases) {
       ctx.push(cvs.getContext('2d'));
       var inMem = document.createElement('canvas');
-      inMemCtx.push(inMem.getContext('2d'));
+      inMem.width = INMEMSIZE;
+      inMem.height = INMEMSIZE;
+      var context = inMem.getContext('2d');
+      context.scale(inMemScale.width, inMemScale.height);
+      inMemCtx.push(context);
       inMemCanvases.push(inMem);
     }
     pdfViewer = window.PDFViewerApplication.pdfViewer;
@@ -146,10 +152,14 @@ class DrawService {
   }
 
   updateCanvas() {
+    let height = this.canvases[0].height;
+    let width = this.canvases[0].width;
+    let scaleDelta = window.PDFViewerApplication.pdfViewer._location.scale / curScale;
+    curScale = window.PDFViewerApplication.pdfViewer._location.scale;
     for (let i = 0; i < ctx.length; i++) {
-      let scaleDelta = window.PDFViewerApplication.pdfViewer._location.scale / curScale;
-      ctx[i].scale(scaleDelta, scaleDelta);
-      ctx[i].drawImage(inMemCanvases[i], 0, 0);
+      ctx[i].drawImage(inMemCanvases[i], 0, 0, INMEMSIZE, INMEMSIZE, 0, 0, width, height);
+      // inMemCtx[i].scale(scaleDelta/inMemScale.width, scaleDelta/inMemScale.height);
+      inMemCtx[i].scale(1/scaleDelta, 1/scaleDelta);
     }
   }
 }
@@ -173,8 +183,7 @@ function renderCanvas(ctx) {
 			ctx.globalCompositeOperation = "destination-out";
 			ctx.arc(lastPos.x,lastPos.y,20,0,Math.PI*2,false);
 			ctx.fill();
-		}
-		lastPos = mousePos;
+    }
 	}
 }
 
@@ -227,12 +236,14 @@ drawSocket.on('MOUSEMOVE', (data) => {
   transparency = data.transparency;
   //mousePos = data.mousePos;
   let pageNum = data.pageNum;
-  let element = document.getElementsByClassName('penCanvas')[pageNum - 1];
-  inMemCanvases[pageNum - 1].width = element.width;
-  inMemCanvases[pageNum - 1].height = element.height;
-  inMemCtx[pageNum - 1].drawImage(element, 0, 0);
+  let element = document.getElementsByClassName('penCanvas')[pageNum-1];
+  inMemCanvases[pageNum-1].width = element.width;
+  inMemCanvases[pageNum-1].height = element.height;
+  inMemCtx[pageNum-1].drawImage(element, 0, 0);
 
-  renderCanvas(ctx[pageNum - 1]);
+  renderCanvas(ctx[pageNum-1]);
+  renderCanvas(inMemCtx[pageNum-1]);
+  lastPos = mousePos;
 })
 
 var selColor = document.getElementById("selColor");
