@@ -70,15 +70,13 @@ let touchPenEvent = {
     let touch = e.touches[0];
     var mode = window.drawService.mode;
 
-    if(mode !== 'hand') {
-      e.preventDefault();
+    if(mode !== 'hand') { e.preventDefault(); }
       mousePos = await getTouchPos(e);
       let mouseEvent = new MouseEvent("mousedown", {
         clientX: touch.clientX,
         clientY: touch.clientY
       });
-      canvas.dispatchEvent(mouseEvent);
-    }
+    canvas.dispatchEvent(mouseEvent);
   },
   touchEnd(e) {
     let canvas = e.target;
@@ -87,13 +85,12 @@ let touchPenEvent = {
 
     if(mode !== 'hand') {
       e.preventDefault();
-      canvas.dispatchEvent(mouseEvent);
     }
+    canvas.dispatchEvent(mouseEvent);
   },
   touchMove(e) {
     var mode = window.drawService.mode;
-    if(mode !== 'hand') {
-      e.preventDefault();
+    if(mode !== 'hand') { e.preventDefault(); }
       let touch = e.touches[0];
       let canvas = e.target;
       let mouseEvent = new MouseEvent("mousemove", {
@@ -101,7 +98,6 @@ let touchPenEvent = {
         clientY: touch.clientY
       });
       canvas.dispatchEvent(mouseEvent);
-    }
   }
 }
 
