@@ -60,14 +60,11 @@ let mousePenEvent = {
       transparency: transparency,
       pageNum: e.target.getAttribute('data-page-number')
     })
-    renderCanvas(inMemCtx[e.target.getAttribute('data-page-number') - 1]);
-    renderCanvas(ctx[e.target.getAttribute('data-page-number') - 1]);
-    lastPos = mousePos;
+    drawLine(e.target.getAttribute('data-page-number') - 1);
   }
 }
 
 // Set up touch events for mobile, etc
-
 let touchPenEvent = {
   async touchStart(e) {
     let canvas = e.target;
@@ -158,7 +155,6 @@ class DrawService {
     curScale = window.PDFViewerApplication.pdfViewer._location.scale;
     for (let i = 0; i < ctx.length; i++) {
       ctx[i].drawImage(inMemCanvases[i], 0, 0, INMEMSIZE, INMEMSIZE, 0, 0, width, height);
-      // inMemCtx[i].scale(scaleDelta/inMemScale.width, scaleDelta/inMemScale.height);
       inMemCtx[i].scale(1/scaleDelta, 1/scaleDelta);
     }
   }
@@ -166,25 +162,31 @@ class DrawService {
 
 
 // Draw to the canvas
-function renderCanvas(ctx) {
+function drawLine(pageNum) {
   if(isDrawing) {
-    ctx.beginPath();
-    var mode = window.drawService.mode;
-    if(mode == "pen") {
-      ctx.strokeStyle = color;
-      ctx.lineWidth = width;
-      ctx.globalAlpha = transparency;
-      ctx.lineJoin = ctx.lineCap = 'round';
-			ctx.globalCompositeOperation="source-over";
-			ctx.moveTo(lastPos.x, lastPos.y);
-			ctx.lineTo(mousePos.x, mousePos.y);
-			ctx.stroke();
-		} else if(mode == "eraser") {
-			ctx.globalCompositeOperation = "destination-out";
-			ctx.arc(lastPos.x,lastPos.y,20,0,Math.PI*2,false);
-			ctx.fill();
-    }
+    drawLineHelper(ctx[pageNum]);
+    drawLineHelper(inMemCtx[pageNum]);
+    lastPos = mousePos;
 	}
+}
+
+function drawLineHelper(ctx) {
+  ctx.beginPath();
+  var mode = window.drawService.mode;
+  if(mode == "pen") {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.globalAlpha = transparency;
+    ctx.lineJoin = ctx.lineCap = 'round';
+    ctx.globalCompositeOperation="source-over";
+    ctx.moveTo(lastPos.x, lastPos.y);
+    ctx.lineTo(mousePos.x, mousePos.y);
+    ctx.stroke();
+  } else if(mode == "eraser") {
+    ctx.globalCompositeOperation = "destination-out";
+    ctx.arc(lastPos.x,lastPos.y,20,0,Math.PI*2,false);
+    ctx.fill();
+  }
 }
 
 // Get the position of the mouse relative to the canvas
@@ -241,8 +243,8 @@ drawSocket.on('MOUSEMOVE', (data) => {
   inMemCanvases[pageNum-1].height = element.height;
   inMemCtx[pageNum-1].drawImage(element, 0, 0);
 
-  renderCanvas(ctx[pageNum-1]);
-  renderCanvas(inMemCtx[pageNum-1]);
+  drawLine(pageNum-1);
+  drawLine(pageNum-1);
   lastPos = mousePos;
 })
 
