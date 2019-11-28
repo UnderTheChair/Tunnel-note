@@ -1,6 +1,7 @@
 import { TunnelBox } from './tunnel_box.js';
 import { DrawService } from './drawing.js';
-import { drawSocket } from "./socket.io.js";
+import { drawSocket } from './socket.io.js';
+import { tunnelBoxSocket } from './socket.io.js';
 
 let isSetup = false;
 var scale;
@@ -68,10 +69,6 @@ function setup() {
   window.customScaleCallback = () => {
     drawService.updateCanvas();
   };
-  let customScrollCallback = () => {
-    // callback
-  };
-  $('#viewerContainer').scroll(customScrollCallback);
 
   return true;
 }
