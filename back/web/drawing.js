@@ -1,7 +1,7 @@
 import { drawSocket } from "./socket.io.js";
 
 // Set up mouse events for drawing
-let drawing = false;
+let isDrawing = false;
 let mousePos = { x: 0, y: 0 };
 let lastPos = mousePos;
 let color;
@@ -13,7 +13,6 @@ let pdfViewer;
 let inMemCanvases = [];
 let inMemCtx = [];
 var curScale;
-var scaleTimestamp = 0;
 
 let mousePenEvent = {
   async mouseDown(e) {
@@ -22,12 +21,13 @@ let mousePenEvent = {
     let pageNum = e.target.getAttribute('data-page-number');
     var mode = window.drawService.mode;
 
-
     lastPos = await getMousePos(e);
-    drawing = true;
-
+    isDrawing = true;
     [x, y] = pdfViewer._pages[pageNum].viewport.convertToPdfPoint(lastPos.x, lastPos.y)
-    pdfMousePos = { x: x, y: y };
+    pdfMousePos = {
+      x: x,
+      y: y
+    };
 
     drawSocket.emit("MOUSEDOWN", {
       lastPos: pdfMousePos,
@@ -38,14 +38,14 @@ let mousePenEvent = {
       pageNum: e.target.getAttribute('data-page-number')
     })
   }, mouseUp(e) {
-    drawing = false;
+    isDrawing = false;
     drawSocket.emit('MOUSEUP')
     let pageNum = e.target.getAttribute('data-page-number');
     inMemCanvases[pageNum - 1].width = e.target.width;
     inMemCanvases[pageNum - 1].height = e.target.height;
     inMemCtx[pageNum - 1].drawImage(e.target, 0, 0);
   }, async mouseMove(e) {
-    if(drawing == false) return;
+    if(isDrawing == false) return;
     let pdfMousePos;
     let x, y;
     let pageNum = e.target.getAttribute('data-page-number');
@@ -157,7 +157,7 @@ class DrawService {
 
 // Draw to the canvas
 function renderCanvas(ctx) {
-  if(drawing) {
+  if(isDrawing) {
     ctx.beginPath();
     var mode = window.drawService.mode;
     if(mode == "pen") {
@@ -212,11 +212,11 @@ drawSocket.on('MOUSEDOWN', (data) => {
 
   //lastPos = data.lastPos;
   window.drawService.mode = data.mode;
-  drawing = true;
+  isDrawing = true;
 })
 
 drawSocket.on('MOUSEUP', (data) => {
-  drawing = false;
+  isDrawing = false;
 })
 
 drawSocket.on('MOUSEMOVE', (data) => {
