@@ -1,6 +1,5 @@
-// localhost로 연결한다.
+const serverURL = 'localhost:9000';
 
-const serverURL = 'http://13.125.136.140:9000'
 
 let drawSocket = io.connect(serverURL, {
   path : '/draw',

@@ -1,6 +1,7 @@
 import { TunnelBox } from './tunnel_box.js';
 import { DrawService } from './drawing.js';
-import { drawSocket } from "./socket.io.js";
+import { drawSocket } from './socket.io.js';
+import { tunnelBoxSocket } from './socket.io.js';
 
 let isSetup = false;
 var scale;
@@ -44,34 +45,44 @@ function setup() {
 
   window.drawService = drawService;
   var container = document.getElementById('penContainer');
-  var mc = new Hammer.Manager(container);
+  var viewer = document.getElementById('viewerContainer');
+  var hammer = new Hammer(container, {
+    touchAction: 'pan-x pan-y'
+  });
+
+  hammer.get('pinch').set({ enable: true });
+  hammer.get('pan').set({
+    direction: Hammer.DIRECTION_ALL
+  });
 
   var curScale = window.PDFViewerApplication.pdfViewer._location.scale;
-  var pinch = new Hammer.Pinch();
-  mc.add(pinch);
-  mc.on('pinch pinchend', (e) => {
-    if (window.drawService.mode === 'hand') {
-      if (e.type == 'pinch') {
-        if (performance.now() - scaleTimestamp > 80) {
+
+  // hammer.on('pinch pinchend pan', (e)=> {
+  hammer.on('pinch pinchend', (e)=> {
+    if(window.drawService.mode === 'hand') {
+      if(e.type == 'pinch') {
+        if(performance.now() - scaleTimestamp > 80) {
           scaleTimestamp = performance.now();
           scale = parseInt(Math.max(50, Math.min(curScale * (e.scale), 400)));
           window.PDFViewerApplication.pdfViewer._setScale(scale / 100)
         }
-      }
-      if (e.type == 'pinchend') {
+      } else if(e.type == 'pinchend') {
         curScale = scale;
         window.PDFViewerApplication.pdfViewer._setScale(curScale / 100);
         drawService.updateCanvas();
       }
+      // else if(e.type == 'pan') {
+      //   viewer.scrollTo(
+      //     viewer.scrollLeft - e.deltaX * 0.1,
+      //     viewer.scrollTop - e.deltaY * 0.1
+      //   );
+      //   console.log(e);
+      // }
     }
   });
   window.customScaleCallback = () => {
     drawService.updateCanvas();
   };
-  let customScrollCallback = () => {
-    // callback
-  };
-  $('#viewerContainer').scroll(customScrollCallback);
 
   return true;
 }

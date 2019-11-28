@@ -19,25 +19,27 @@ class TunnelBox {
   }
   _dragElement(elmnt) {
     let container = document.getElementById('penContainer');
+    let resizer = document.getElementById('resizer');
     let self = this;
     var rect;
     var currentPos = { x:0, y:0 };
     var changePos = { x:0, y:0 };
     var lastPos = { x:0, y:0 };
 
+    resizer.addEventListener('mousedown', resizeMouseDown);
     container.addEventListener("mousemove", currentMouseMove);
 
     function currentMouseMove(e){
       currentPos.x = e.clientX;
       currentPos.y = e.clientY;
       rect = elmnt.getBoundingClientRect();
-      if(isResizeLine(currentPos.x, currentPos.y)){
-        container.style.cursor = "nwse-resize";
-        container.addEventListener("mousedown", resizeMouseDown);
-      }
-      else if(isRectLine(currentPos.x, currentPos.y)){
+      // if(isResizeLine(currentPos.x, currentPos.y)){
+      //   container.style.cursor = "nwse-resize";
+      //   container.addEventListener("mousedown", resizeMouseDown);
+      //   e.stopPropagation();
+      // }
+      if(isRectLine(currentPos.x, currentPos.y)){
         container.style.cursor = "grab";
-        
         container.addEventListener("mousedown", dragMouseDown);
       }else{
         container.style.cursor = "default";
@@ -48,8 +50,10 @@ class TunnelBox {
     function resizeMouseDown(e) {
       e = e || window.event;
       e.preventDefault();
+      e.stopPropagation();
       lastPos.x = e.clientX;
       lastPos.y = e.clientY;
+      container.removeEventListener("mousemove", currentMouseMove);
       container.addEventListener("mousemove", elementResize);
       container.addEventListener("mouseup", closeDragElement);
     }
@@ -59,10 +63,12 @@ class TunnelBox {
       e.preventDefault();
       lastPos.x = e.clientX;
       lastPos.y = e.clientY;
+      container.removeEventListener("mousemove", currentMouseMove);
       container.addEventListener("mousemove", elementDrag);
       container.addEventListener("mouseup", closeDragElement);
     }
     function elementResize(e) {
+      container.style.cursor = "nwse-resize";
       e = e || window.event;
       e.preventDefault();
       currentPos.y = e.clientY;
@@ -102,6 +108,7 @@ class TunnelBox {
       container.style.cursor = "grab";
       container.removeEventListener("mouseup", closeDragElement);
       container.removeEventListener("mousedown", dragMouseDown);
+      container.removeEventListener("mousedown", resizeMouseDown);
       container.removeEventListener("mousemove", elementDrag);
       container.removeEventListener("mousemove", elementResize);
       container.addEventListener("mousemove", currentMouseMove);
@@ -113,7 +120,7 @@ class TunnelBox {
         }
       }
       if(rect.right-5 < x && x < rect.right+5){
-        if(rect.top-5 < y && y < rect.bottom+5){
+        if(rect.top-5 < y && y < rect.bottom-10){
           return true;
         }
       }
@@ -123,15 +130,15 @@ class TunnelBox {
         }
       }
       if(rect.bottom-5 < y && y < rect.bottom+5){
-        if(rect.left-5 < x && x < rect.right+5){
+        if(rect.left-5 < x && x < rect.right-10){
           return true;
         }
       }
       return false;
     }
     function isResizeLine(x, y){
-      if(rect.right - 5 < x && x < rect.right + 5){
-        if(rect.bottom-5 < y && y < rect.bottom+5){
+      if(rect.right - 10 < x && x < rect.right + 10){
+        if(rect.bottom-10 < y && y < rect.bottom+10){
           return true;
         }
       }
@@ -149,12 +156,13 @@ class TunnelBox {
     this.DOM.style.border = '2px solid #abc';
     this._dragElement(this.DOM);
 
+    
     this.resizeDOM.style.borderRadius = '50%';
     this.resizeDOM.style.border = '2px solid #abc';
-    this.resizeDOM.style.bottom = '-5px';
-    this.resizeDOM.style.right = '-5px';
-    this.resizeDOM.style.height = '7px';
-    this.resizeDOM.style.width = '7px';
+    this.resizeDOM.style.bottom = '-6px';
+    this.resizeDOM.style.right = '-6px';
+    this.resizeDOM.style.height = '12px';
+    this.resizeDOM.style.width = '12px';
 
     let position = this.getPosition();
     tunnelBoxSocket.emit('BOX_INIT', position);
@@ -211,7 +219,8 @@ class TunnelBox {
     }
   }
 
-  setPosition(position) {
+  //mobile
+  setMobilePosition(position) {
     let {pagePoint, currentPage, width, currentScale, boxHeight, boxWidth} = position;
     let pdfViewer = window.PDFViewerApplication.pdfViewer;
     let currentPageElment = document.querySelector(`#viewer > div:nth-child(${currentPage})`);
@@ -241,13 +250,26 @@ class TunnelBox {
     this.width = width;
     this.height = height;
   }
+  setPos(){
+    this.top = document.querySelector('#viewerContainer').Top;
+    this.left = document.querySelector('#viewerContainer').scrollLeft;
+  }
 
   //pc by mobile control
   setBoxPosition(position){
-    var pagePoint = position.pagePoint;
-    
-  }
+    let {pagePoint, currentPage, width, currentScale, boxHeight, boxWidth} = position;
+    let pdfViewer = window.PDFViewerApplication.pdfViewer;
+    let currentPageElment = document.querySelector(`#viewer > div:nth-child(${currentPage})`);
+    let tmpX, tmpY;
 
+    [tmpX, tmpY] = pdfViewer._pages[currentPage].viewport.convertToViewportPoint(pagePoint[0].x, pagePoint[0].y);
+    let p1 = { x: tmpX, y: tmpY };
+
+    this.left = p1.x + currentPageElment.offsetLeft;
+    this.top = p1.y;
+    
+    //this.width = currentScale * this.width;
+  }
   //pc by mobile control
   setBoxSize(boxWidth, boxHeight) {
     this.width = boxWidth;
@@ -274,29 +296,38 @@ document.querySelector("#tunnelMode").addEventListener('click', toggle);
 
 //pc -> mobile
 tunnelBoxSocket.on('BOX_INIT', (position) => {
+  console.log("socket box init call");
   if (tunnel.on == true) return;
-  
+
+  //detect mobile window control
+  $('#viewerContainer').scroll(mobileScrollCallback);
+  window.customScaleCallback = () => {
+    var position = tunnel.getPosition();
+    tunnelBoxSocket.emit('MOBILE_RESIZE', position);
+  };
+
   let toolbar_height = document.getElementById('toolbarContainer').offsetHeight;
   let mobile_width = $( window ).width();
   let mobile_height = $( window ).height() - toolbar_height;
-  
+
   tunnelBoxSocket.emit('BOX_SIZE_INIT', { 
     width: mobile_width, 
     height: mobile_height
   });
   tunnel.setSize(mobile_width, mobile_height);
-  tunnel.setPosition(position); 
+  tunnel.setMobilePosition(position);
   tunnel.rcvActivate();
 });
 
 tunnelBoxSocket.on('BOX_MOVE', (position) => {
   // Temporary remove for continue operating when page referch at remote device
   //if (tunnel.on == false ) return;
-  tunnel.setPosition(position);
+  tunnel.setMobilePosition(position);
 });
 
 tunnelBoxSocket.on('BOX_RESIZE', (position) => {
-  tunnel.setPosition(position);
+  tunnel.setMobilePosition(position);
+  window.customScaleCallback();
 });
 
 tunnelBoxSocket.on('BOX_CLEAR', (position) => {
@@ -316,9 +347,7 @@ tunnelBoxSocket.on('DISCONNECT', () => {
 tunnelBoxSocket.on('BOX_SIZE_INIT', (sizeData) => {
   tunnel.setBoxSize(sizeData.width, sizeData.height);
   var position = tunnel.getPosition();
-  console.log("position.pagePoint: ", position.pagePoint);
-  console.log("position: ", position);
-  document.querySelector('#viewerContainer').addEventListener('touchmove', mobile_swipe);
+  tunnelBoxSocket.emit('BOX_MOVE', position);
 });
 
 tunnelBoxSocket.on('MOBILE_MOVE', (position) => {
@@ -326,17 +355,18 @@ tunnelBoxSocket.on('MOBILE_MOVE', (position) => {
 });
 
 tunnelBoxSocket.on('MOBILE_RESIZE', (position) => {
-  tunnel.setBoxPosition(position);
-  tunnel.setBoxSize(position.boxWidth, position.boxHeight);
+  console.log("mobile resize call");
+  console.log(position);
+  //tunnel.setBoxPosition(position);
+  //tunnel.setBoxSize(position.boxWidth, position.boxHeight);
 });
 
-
-
-function mobile_swipe(event){
-  console.log("mobile swipe call");
-  var position = getPosition();
+let mobileScrollCallback = () => {
+  // callback
+  tunnel.setPos();
+  var position = tunnel.getPosition();
+  console.log(position);
   tunnelBoxSocket.emit('MOBILE_MOVE', position);
-}
-
+};
 
 export { TunnelBox, };

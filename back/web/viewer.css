@@ -676,6 +676,7 @@ html[dir='rtl'] #sidebarContent {
   z-index: 5001;
   display: inline-block;
   position: absolute;
+  cursor: nwse-resize;
 }
 
 #viewerContainer {
