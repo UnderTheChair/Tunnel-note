@@ -150,9 +150,28 @@ class DrawService {
   }
 
   saveCanvas() {
-    for (let cvs of inMemCanvases) {
+    let pdfName = localStorage.getItem('pdfName')
+    let token = localStorage.getItem('accessToken')
+    
+    for (let [i, cvs] of inMemCanvases.entries()) {
       cvs.toBlob((blob)=>{
-        console.log(blob);
+        console.log(blob)
+        let page_num = i +1;
+        let cvsName = `${page_num}-cvs.png`
+        let formData = new FormData();
+
+        formData.append('csvFile', blob, cvsName)
+        formData.append('pdfName', pdfName)
+
+        fetch(`http://13.125.136.140:8000/pdfs/blob/csv/upload/`, {
+          method : 'POST',
+          headers: new Headers({
+            'Authorization': `Bearer ${token}`,
+          }),
+          body: formData,
+        })
+        .then(res => res.json())
+        .then(res => console.log(res))
       });
     }
   }

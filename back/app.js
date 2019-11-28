@@ -5,6 +5,7 @@ const users = require('./routers/users');
 const pdfs = require('./routers/pdfs');
 const pdfsCo = require('./routers/pdfs-co');
 const config = require('./config')
+const multer = require('multer')
 
 require('./db/mongo')
 
@@ -25,13 +26,14 @@ app.set('jwt-secret', config.secret)
 
 // Set bodyparser that parse body of request. So we will use req.body
 app.use(bodyParser.json({limit: '50mb'}));
-app.use(bodyParser.urlencoded({ limit: '1gb', extended: false }));
+app.use(bodyParser.urlencoded({ limit: '1gb', extended: true }));
+app.use(bodyParser.json({type: 'application/json'}));
 
 // For CORS policy
 app.use((req, res, next) =>{
     res.header("Access-Control-Allow-Origin", "*")
     res.header('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE, OPTIONS, UPGRADE');
-    res.header("Access-Control-Allow-Headers", "X-Requested-With, Content-Type, Authorization, application/pdf")
+    res.header("Access-Control-Allow-Headers", "X-Requested-With, Content-Type, Authorization, application/pdf, text/plain, application/json")
     next()
 })
 
