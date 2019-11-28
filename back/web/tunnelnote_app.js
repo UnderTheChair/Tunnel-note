@@ -80,9 +80,10 @@ drawSocket.on('SETUP', () => {
   window.dispatchEvent(new Event('click'));
 })
 
-
+// Upload previous stored fileURL when user click pdf-card in Front
 $(document).ready(function () {
   let fileURL = localStorage.getItem('fileURL')
   
   PDFViewerApplicationOptions.set('defaultUrl', fileURL);
 });
+
