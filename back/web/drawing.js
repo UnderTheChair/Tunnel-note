@@ -12,9 +12,8 @@ let pdfViewer;
 
 let inMemCanvases = [];
 let inMemCtx = [];
-let INMEMSIZE = 3000;
+const INMEMSIZE = 3000;
 var curScale;
-var inMemScale = {width: 1, height: 1};
 
 let mousePenEvent = {
   async mouseDown(e) {
@@ -110,15 +109,13 @@ class DrawService {
   constructor(canvasDOMs) {
     this.canvases = canvasDOMs;
     this.mode = 'hand';
-    inMemScale.width = INMEMSIZE/canvasDOMs[0].width;
-    inMemScale.height = INMEMSIZE/canvasDOMs[0].height;
     for (let cvs of this.canvases) {
       ctx.push(cvs.getContext('2d'));
       var inMem = document.createElement('canvas');
       inMem.width = INMEMSIZE;
       inMem.height = INMEMSIZE;
       var context = inMem.getContext('2d');
-      context.scale(inMemScale.width, inMemScale.height);
+      context.scale(INMEMSIZE/canvasDOMs[0].width, INMEMSIZE/canvasDOMs[0].height);
       inMemCtx.push(context);
       inMemCanvases.push(inMem);
     }
