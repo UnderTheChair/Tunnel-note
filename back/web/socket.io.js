@@ -1,6 +1,6 @@
 // localhost로 연결한다.
 
-const serverURL = 'ec2-15-164-213-126.ap-northeast-2.compute.amazonaws.com:9000'
+const serverURL = 'http://13.125.136.140:9000'
 
 let drawSocket = io.connect(serverURL, {
   path : '/draw',

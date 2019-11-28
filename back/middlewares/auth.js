@@ -3,8 +3,9 @@ const config = require('../config');
 
 const authMiddleware = (req, res, next) => {
     
-    if ( req.headers['access-control-request-headers'] === 'authorization')
-        return next();
+    if (req.headers['access-control-request-headers'])
+        if (req.headers['access-control-request-headers'].includes('authorization'))
+            return next();
 
     const token = req.headers.authorization.split('Bearer ')[1];
     

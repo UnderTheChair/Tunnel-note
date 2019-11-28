@@ -38,7 +38,7 @@ export default {
         
         const fileURL = URL.createObjectURL(blob)
         localStorage.setItem('fileURL', fileURL)
-        window.open("http://15.164.213.126/web")
+        window.open("http://13.125.136.140/web/")
 
       })
       .catch(error => {
