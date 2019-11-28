@@ -87,4 +87,11 @@ router.get('/', (req, res) => {
     res.send(data.pdf_list);
   })
 })
+
+router.post('/blob', (req, res) => {
+  let userData = { email: req.decoded, pdfName: req.body.pdfName };
+  
+  var file = fs.createReadStream(__dirname + `/../temp/${userData.email}/${userData.pdfName}`);
+  file.pipe(res);
+})
 module.exports = router;

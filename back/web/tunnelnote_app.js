@@ -11,7 +11,7 @@ window.addEventListener('wheel', onPdfLoad);
 window.addEventListener('click', onPdfLoad);
 
 function onPdfLoad(e) {
-  if(window.PDFViewerApplication.pdfDocument) {
+  if (window.PDFViewerApplication.pdfDocument) {
     setup();
     window.removeEventListener('wheel', onPdfLoad);
     window.removeEventListener('click', onPdfLoad);
@@ -56,6 +56,7 @@ function setup() {
   });
 
   var curScale = window.PDFViewerApplication.pdfViewer._location.scale;
+
   // hammer.on('pinch pinchend pan', (e)=> {
   hammer.on('pinch pinchend', (e)=> {
     if(window.drawService.mode === 'hand') {
@@ -63,11 +64,11 @@ function setup() {
         if(performance.now() - scaleTimestamp > 80) {
           scaleTimestamp = performance.now();
           scale = parseInt(Math.max(50, Math.min(curScale * (e.scale), 400)));
-          window.PDFViewerApplication.pdfViewer._setScale(scale/100)
+          window.PDFViewerApplication.pdfViewer._setScale(scale / 100)
         }
       } else if(e.type == 'pinchend') {
         curScale = scale;
-        window.PDFViewerApplication.pdfViewer._setScale(curScale/100);
+        window.PDFViewerApplication.pdfViewer._setScale(curScale / 100);
         drawService.updateCanvas();
       }
       // else if(e.type == 'pan') {
@@ -86,6 +87,14 @@ function setup() {
   return true;
 }
 
-drawSocket.on('SETUP',() => {
+drawSocket.on('SETUP', () => {
   window.dispatchEvent(new Event('click'));
 })
+
+// Upload previous stored fileURL when user click pdf-card in Front
+$(document).ready(function () {
+  let fileURL = localStorage.getItem('fileURL')
+  
+  PDFViewerApplicationOptions.set('defaultUrl', fileURL);
+});
+

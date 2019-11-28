@@ -25,10 +25,7 @@ let mousePenEvent = {
     lastPos = await getMousePos(e);
     isDrawing = true;
     [x, y] = pdfViewer._pages[pageNum].viewport.convertToPdfPoint(lastPos.x, lastPos.y)
-    pdfMousePos = {
-      x: x,
-      y: y
-    };
+    pdfMousePos = { x: x, y: y };
 
     drawSocket.emit("MOUSEDOWN", {
       lastPos: pdfMousePos,
@@ -36,7 +33,7 @@ let mousePenEvent = {
       color: color,
       width: width,
       transparency: transparency,
-      pageNum: e.target.getAttribute('data-page-number')
+      pageNum: e.target.getAttribute('data-page-number'),
     })
   }, mouseUp(e) {
     isDrawing = false;

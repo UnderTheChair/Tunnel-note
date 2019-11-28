@@ -215,7 +215,7 @@ class TunnelBox {
       width: document.body.clientWidth,
       currentScale : pdfViewer.currentScale,
       boxHeight : this.height,
-      boxWidth : this.width,
+      boxWidth : this.width
     }
   }
 
@@ -310,7 +310,10 @@ tunnelBoxSocket.on('BOX_INIT', (position) => {
   let mobile_width = $( window ).width();
   let mobile_height = $( window ).height() - toolbar_height;
 
-  tunnelBoxSocket.emit('BOX_SIZE_INIT', { width: mobile_width, height: mobile_height });
+  tunnelBoxSocket.emit('BOX_SIZE_INIT', { 
+    width: mobile_width, 
+    height: mobile_height
+  });
   tunnel.setSize(mobile_width, mobile_height);
   tunnel.setMobilePosition(position);
   tunnel.rcvActivate();
