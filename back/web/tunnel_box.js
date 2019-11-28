@@ -324,6 +324,7 @@ tunnelBoxSocket.on('BOX_MOVE', (position) => {
 
 tunnelBoxSocket.on('BOX_RESIZE', (position) => {
   tunnel.setMobilePosition(position);
+  window.customScaleCallback();
 });
 
 tunnelBoxSocket.on('BOX_CLEAR', (position) => {
