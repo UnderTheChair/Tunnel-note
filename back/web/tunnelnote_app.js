@@ -69,7 +69,7 @@ function setup() {
       } else if(e.type == 'pinchend') {
         curScale = scale;
         window.PDFViewerApplication.pdfViewer._setScale(curScale / 100);
-        drawService.updateCanvas();
+        drawService.resizeCanvas();
       }
       // else if(e.type == 'pan') {
       //   viewer.scrollTo(
@@ -81,7 +81,7 @@ function setup() {
     }
   });
   window.customScaleCallback = () => {
-    drawService.updateCanvas();
+    drawService.resizeCanvas();
   };
 
   return true;
@@ -98,3 +98,6 @@ $(document).ready(function () {
     PDFViewerApplicationOptions.set('defaultUrl', fileURL);
 });
 
+document.getElementById('drawSaveMode').addEventListener('click', (e)=>{
+  window.drawService.saveCanvas();
+});

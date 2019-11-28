@@ -148,6 +148,40 @@ class DrawService {
       inMemCtx[i].scale(1/scaleDelta, 1/scaleDelta);
     }
   }
+
+  saveCanvas() {
+    for (let cvs of inMemCanvases) {
+      cvs.toBlob((blob)=>{
+        console.log(blob);
+      });
+    }
+  }
+// function blobCallback(iconName) {
+//   return function(b) {
+//     var r = new FileReader();
+//     r.onloadend = function () {
+//     // r.result contains the ArrayBuffer.
+//     Cu.import('resource://gre/modules/osfile.jsm');
+//     var writePath = OS.Path.join(OS.Constants.Path.desktopDir, 
+//                                  iconName + '.ico');
+//     var promise = OS.File.writeAtomic(writePath, new Uint8Array(r.result), 
+//                                       {tmpPath:writePath + '.tmp'});
+//     promise.then(
+//       function() {
+//         console.log('successfully wrote file');
+//       },
+//       function() {
+//         console.log('failure writing file')
+//       }
+//     );
+//   };
+//   r.readAsArrayBuffer(b);
+//   }
+// }
+
+  loadCanvas() {
+
+  }
 }
 
 
