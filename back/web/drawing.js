@@ -160,10 +160,10 @@ class DrawService {
         let cvsName = `${page_num}-cvs.png`
         let formData = new FormData();
 
-        formData.append('csvFile', blob, cvsName)
+        formData.append('cvsFile', blob, cvsName)
         formData.append('pdfName', pdfName)
 
-        fetch(`http://13.125.136.140:8000/pdfs/blob/csv/upload/`, {
+        fetch(`http://13.125.136.140:8000/pdfs/blob/cvs/save/`, {
           method : 'POST',
           headers: new Headers({
             'Authorization': `Bearer ${token}`,
@@ -174,6 +174,27 @@ class DrawService {
         .then(res => console.log(res))
       });
     }
+  }
+
+  loadCanvas() {
+    let pdfName = localStorage.getItem('pdfName')
+    let token = localStorage.getItem('accessToken')
+    let pdfPageNum = this.canvases.length
+
+    fetch(`http://13.125.136.140:8000/pdfs/blob/cvs/load/`, {
+      method : 'POST',
+      headers: new Headers({
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      }),
+      body: {
+        pdfName: pdfName,
+        pdfPageNum: pdfPageNum
+      },
+    })
+    .then(res => res.json())
+    .then(res => console.log(res))
+    
   }
 // function blobCallback(iconName) {
 //   return function(b) {
