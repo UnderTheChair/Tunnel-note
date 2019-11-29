@@ -131,10 +131,10 @@ router.post('/blob/cvs/load', (req, res) => {
   let userData = { email: req.decoded, pdfName: req.body.pdfName, pdfPageNum: req.body.pdfPageNum };
   let path = __dirname + `/../temp/${userData.email}/${userData.pdfName}/cvs/`
   let cvsList = []
-  for(let i = 0; i < userData.pdfPageNum; i++) {
+  for(let i = 1; i <= userData.pdfPageNum; i++) {
     let bitmap = fs.readFileSync(path+`${i}-cvs.png`);
     let bitBuffer = new Buffer(bitmap)
-    cvsList.append(bitBuffer.toString('base64'))
+    cvsList.push(bitBuffer.toString('base64'))
   }
   return res.send({cvsList: cvsList})
 

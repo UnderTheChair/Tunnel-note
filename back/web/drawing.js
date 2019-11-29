@@ -180,20 +180,33 @@ class DrawService {
     let pdfName = localStorage.getItem('pdfName')
     let token = localStorage.getItem('accessToken')
     let pdfPageNum = this.canvases.length
-
+    
     fetch(`http://13.125.136.140:8000/pdfs/blob/cvs/load/`, {
       method : 'POST',
       headers: new Headers({
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       }),
-      body: {
+      body: JSON.stringify({
         pdfName: pdfName,
         pdfPageNum: pdfPageNum
-      },
+      }),
     })
     .then(res => res.json())
-    .then(res => console.log(res))
+    .then(res => {
+      let self = this
+      for(let [i, cvs] of ctx.entries()) {
+        
+        let image = new Image();
+        image.src = `data:image/png;base64,${res.cvsList[i]}`
+        image.onload = function() {
+          
+          cvs.drawImage(image, 0, 0, self.canvases[0].width, self.canvases[0].height)
+        }
+      }
+      
+    })
+    
     
   }
 // function blobCallback(iconName) {
@@ -219,9 +232,6 @@ class DrawService {
 //   }
 // }
 
-  loadCanvas() {
-
-  }
 }
 
 

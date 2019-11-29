@@ -103,3 +103,5 @@ $(document).ready(function () {
 document.getElementById('drawSaveMode').addEventListener('click', (e)=>{
   window.drawService.saveCanvas();
 });
+
+
