@@ -1,5 +1,6 @@
 import { tunnelBoxSocket } from './socket.io.js';
 import { screenControl } from './screen_control.js';
+import { tunnelBox_app } from './tunnelnote_app.js';
 
 class TunnelBox {
   constructor() {
@@ -7,17 +8,15 @@ class TunnelBox {
     this.resizeDOM = document.getElementById('resizer');
     this.on = false;
     this.isInit = false;
-    this.color = "#9400D3";
-    this.lineWidth = 2;
+    // width = height * screenRatio
+    this.resolution = 2;
     this.width = 300;
     this.height = 150;
-    this.stuck = false;
     this.left = 0;
     this.top = 0;
     this.mobileDrag = true;
     this.isMobile = true;
-    // width = height * screenRatio
-    this.resolution = 2;
+    this.isHandMode = true;
   }
   _dragElement(elmnt) {
     let container = document.getElementById('penContainer');
@@ -35,11 +34,10 @@ class TunnelBox {
       currentPos.x = e.clientX;
       currentPos.y = e.clientY;
       rect = elmnt.getBoundingClientRect();
-      // if(isResizeLine(currentPos.x, currentPos.y)){
-      //   container.style.cursor = "nwse-resize";
-      //   container.addEventListener("mousedown", resizeMouseDown);
-      //   e.stopPropagation();
-      // }
+      if(!self.isHandMode){
+        closeDragElement();
+        return;
+      }
       if(isRectLine(currentPos.x, currentPos.y)){
         container.style.cursor = "grab";
         container.addEventListener("mousedown", dragMouseDown);
@@ -280,22 +278,11 @@ class TunnelBox {
   }
 }
 
-const tunnel = new TunnelBox();
-
-let toggle = function() {
-  var windowWidth = $( window ).width();
-  if(windowWidth < 900){     //mobile
-    console.log("mobile is not support tunnel box");
-    return;
-  }
-  if (tunnel.on) tunnel.deactivate();
-  else tunnel.activate();
-}
-
-document.querySelector("#tunnelMode").addEventListener('click', toggle);
+let tunnel;
 
 //pc -> mobile
 tunnelBoxSocket.on('BOX_INIT', (position) => {
+  tunnel = tunnelBox_app;
   if (tunnel.on == true) return;
 
   //detect mobile window control
@@ -349,6 +336,7 @@ tunnelBoxSocket.on('DISCONNECT', () => {
 
 //mobile -> pc
 tunnelBoxSocket.on('BOX_SIZE_INIT', (sizeData) => {
+  tunnel = tunnelBox_app;
   tunnel.setBoxSize(sizeData.width, sizeData.height, 1.5);
   var position = tunnel.getPosition();
   tunnelBoxSocket.emit('BOX_MOVE', position);

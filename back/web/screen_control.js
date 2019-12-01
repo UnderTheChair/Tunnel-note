@@ -1,11 +1,5 @@
 let screenControl = function() {
   return {
-    getScrollTop() {
-      document.querySelector('#viewerContainer').scrollTop;
-    },
-    getScrollLeft() {
-      document.querySelector('#viewerContainer').scrollLeft;
-    },
     setScrollTop(offsetTop) {
       document.querySelector('#viewerContainer').scrollTop = offsetTop;
       document.querySelector('#viewerContainer').dispatchEvent(new Event('scroll'))
