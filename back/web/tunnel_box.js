@@ -252,7 +252,7 @@ class TunnelBox {
 
   //pc by mobile control
   setBoxPosition(position){
-    let {pagePoint, currentPage, width, currentScale, boxHeight, boxWidth} = position;
+    let {pagePoint, currentPage} = position;
     let pdfViewer = window.PDFViewerApplication.pdfViewer;
     let currentPageElment = document.querySelector(`#viewer > div:nth-child(${currentPage})`);
     let tmpX, tmpY;
@@ -268,10 +268,10 @@ class TunnelBox {
     //this.width = currentScale * this.width;
   }
   //pc by mobile control
-  setBoxSize(boxWidth, boxHeight) {
-    this.width = boxWidth;
+  setBoxSize(mobileWidth, mobileHeight, mobileScale) {
+    this.width = mobileWidth / mobileScale;
     this.DOM.style.width = this.width + 'px';
-    this.height = boxHeight;
+    this.height = mobileHeight / mobileScale;
     this.DOM.style.height = this.height + 'px';
     this.resolution = this.width / this.height;
   }
@@ -347,7 +347,7 @@ tunnelBoxSocket.on('DISCONNECT', () => {
 
 //mobile -> pc
 tunnelBoxSocket.on('BOX_SIZE_INIT', (sizeData) => {
-  tunnel.setBoxSize(sizeData.width, sizeData.height);
+  tunnel.setBoxSize(sizeData.width, sizeData.height, 1);
   var position = tunnel.getPosition();
   tunnelBoxSocket.emit('BOX_MOVE', position);
   tunnelBoxSocket.emit('PC_MOVE_END', null);
@@ -359,7 +359,7 @@ tunnelBoxSocket.on('MOBILE_MOVE', (position) => {
 
 tunnelBoxSocket.on('MOBILE_RESIZE', (position) => {
   tunnel.setBoxPosition(position);
-  tunnel.setBoxSize(position.boxWidth, position.boxHeight);
+  tunnel.setBoxSize(position.boxWidth, position.boxHeight, position.currentScale);
 });
 
 //in mobile call

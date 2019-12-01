@@ -82,6 +82,7 @@ function setup() {
   });
   window.customScaleCallback = () => {
     drawService.updateCanvas();
+    console.log("window scale callback");
   };
 
   return true;
