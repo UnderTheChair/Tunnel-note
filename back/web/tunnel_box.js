@@ -13,6 +13,7 @@ class TunnelBox {
     this.stuck = false;
     this.left = 0;
     this.top = 0;
+    this.mobileDrag = true;
     this.isMobile = true;
     // width = height * screenRatio
     this.resolution = 2;
@@ -112,6 +113,8 @@ class TunnelBox {
       container.removeEventListener("mousemove", elementDrag);
       container.removeEventListener("mousemove", elementResize);
       container.addEventListener("mousemove", currentMouseMove);
+
+      tunnelBoxSocket.emit('PC_MOVE_END', null);
     }
     function isRectLine(x, y){
       if(rect.left-5 < x && x < rect.left+5){
@@ -131,14 +134,6 @@ class TunnelBox {
       }
       if(rect.bottom-5 < y && y < rect.bottom+5){
         if(rect.left-5 < x && x < rect.right-10){
-          return true;
-        }
-      }
-      return false;
-    }
-    function isResizeLine(x, y){
-      if(rect.right - 10 < x && x < rect.right + 10){
-        if(rect.bottom-10 < y && y < rect.bottom+10){
           return true;
         }
       }
@@ -323,13 +318,18 @@ tunnelBoxSocket.on('BOX_INIT', (position) => {
 
 tunnelBoxSocket.on('BOX_MOVE', (position) => {
   // Temporary remove for continue operating when page referch at remote device
-  //if (tunnel.on == false ) return;
+  if (tunnel.on == false ) return;
+  tunnel.mobileDrag = false;
   tunnel.setMobilePosition(position);
 });
 
 tunnelBoxSocket.on('BOX_RESIZE', (position) => {
   tunnel.setMobilePosition(position);
-  window.customScaleCallback();
+  tunnel.mobileDrag = false;
+});
+
+tunnelBoxSocket.on('PC_MOVE_END', () => {
+  tunnel.mobileDrag = true;
 });
 
 tunnelBoxSocket.on('BOX_CLEAR', (position) => {
@@ -350,6 +350,7 @@ tunnelBoxSocket.on('BOX_SIZE_INIT', (sizeData) => {
   tunnel.setBoxSize(sizeData.width, sizeData.height);
   var position = tunnel.getPosition();
   tunnelBoxSocket.emit('BOX_MOVE', position);
+  tunnelBoxSocket.emit('PC_MOVE_END', null);
 });
 
 tunnelBoxSocket.on('MOBILE_MOVE', (position) => {
@@ -357,17 +358,18 @@ tunnelBoxSocket.on('MOBILE_MOVE', (position) => {
 });
 
 tunnelBoxSocket.on('MOBILE_RESIZE', (position) => {
-  console.log("mobile resize call");
-  console.log(position);
-  //tunnel.setBoxPosition(position);
-  //tunnel.setBoxSize(position.boxWidth, position.boxHeight);
+  tunnel.setBoxPosition(position);
+  tunnel.setBoxSize(position.boxWidth, position.boxHeight);
 });
 
+//in mobile call
 let mobileScrollCallback = () => {
   // callback
-  tunnel.setPos();
-  var position = tunnel.getPosition();
-  tunnelBoxSocket.emit('MOBILE_MOVE', position);
+  if(tunnel.mobileDrag){
+    tunnel.setPos();
+    var position = tunnel.getPosition();
+    tunnelBoxSocket.emit('MOBILE_MOVE', position);
+  }
 };
 
 export { TunnelBox, };
