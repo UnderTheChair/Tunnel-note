@@ -6,6 +6,7 @@ class TunnelBox {
     this.DOM = document.getElementById('tunnel');
     this.resizeDOM = document.getElementById('resizer');
     this.on = false;
+    this.isInit = false;
     this.color = "#9400D3";
     this.lineWidth = 2;
     this.width = 300;
@@ -149,8 +150,10 @@ class TunnelBox {
     this.DOM.style.height = this.height + 'px';
     this.DOM.style.width = this.width + 'px';
     this.DOM.style.border = '2px solid #abc';
-    this._dragElement(this.DOM);
-
+    if(!this.isInit){
+      this._dragElement(this.DOM);
+      this.isInit = true;
+    }
     
     this.resizeDOM.style.borderRadius = '50%';
     this.resizeDOM.style.border = '2px solid #abc';
@@ -293,7 +296,6 @@ document.querySelector("#tunnelMode").addEventListener('click', toggle);
 
 //pc -> mobile
 tunnelBoxSocket.on('BOX_INIT', (position) => {
-  console.log("socket box init call");
   if (tunnel.on == true) return;
 
   //detect mobile window control
@@ -347,7 +349,7 @@ tunnelBoxSocket.on('DISCONNECT', () => {
 
 //mobile -> pc
 tunnelBoxSocket.on('BOX_SIZE_INIT', (sizeData) => {
-  tunnel.setBoxSize(sizeData.width, sizeData.height, 1);
+  tunnel.setBoxSize(sizeData.width, sizeData.height, 1.5);
   var position = tunnel.getPosition();
   tunnelBoxSocket.emit('BOX_MOVE', position);
   tunnelBoxSocket.emit('PC_MOVE_END', null);
