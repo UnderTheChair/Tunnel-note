@@ -251,7 +251,7 @@ class TunnelBox {
     this.height = height;
   }
   setPos(){
-    this.top = document.querySelector('#viewerContainer').Top;
+    this.top = document.querySelector('#viewerContainer').scrollTop;
     this.left = document.querySelector('#viewerContainer').scrollLeft;
   }
 
@@ -268,6 +268,8 @@ class TunnelBox {
     this.left = p1.x + currentPageElment.offsetLeft;
     this.top = p1.y;
     
+    tunnel.DOM.style.top = this.top + 'px';
+    tunnel.DOM.style.left = this.left + 'px';
     //this.width = currentScale * this.width;
   }
   //pc by mobile control
@@ -365,7 +367,6 @@ let mobileScrollCallback = () => {
   // callback
   tunnel.setPos();
   var position = tunnel.getPosition();
-  console.log(position);
   tunnelBoxSocket.emit('MOBILE_MOVE', position);
 };
 

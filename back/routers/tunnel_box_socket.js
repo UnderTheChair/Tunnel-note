@@ -33,15 +33,15 @@ module.exports = (io) => {
 
     //mobile -> pc
     socket.on('BOX_SIZE_INIT', (sizeData) => {
-      socket.broadcast.to('tunnel_box').emit('BOX_SIZE_INIT', sizeData);
+      socket.broadcast.to(socket.accessToken).emit('BOX_SIZE_INIT', sizeData);
     });
 
     socket.on('MOBILE_MOVE', (position) => {
-      socket.broadcast.to('tunnel_box').emit('MOBILE_MOVE', position);
+      socket.broadcast.to(socket.accessToken).emit('MOBILE_MOVE', position);
     });
       
     socket.on('MOBILE_RESIZE', (position) => {
-      socket.broadcast.to('tunnel_box').emit('MOBILE_RESIZE', position);
+      socket.broadcast.to(socket.accessToken).emit('MOBILE_RESIZE', position);
     });
       
     
