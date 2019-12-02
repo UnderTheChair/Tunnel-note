@@ -31,13 +31,15 @@ class TunnelBox {
     container.addEventListener("mousemove", currentMouseMove);
 
     function currentMouseMove(e){
+      if(!self.isHandMode){
+        console.log("is not hand mode");
+        closeDragElement();
+        container.style.cursor = "default";
+        return;
+      }
       currentPos.x = e.clientX;
       currentPos.y = e.clientY;
       rect = elmnt.getBoundingClientRect();
-      if(!self.isHandMode){
-        closeDragElement();
-        return;
-      }
       if(isRectLine(currentPos.x, currentPos.y)){
         container.style.cursor = "grab";
         container.addEventListener("mousedown", dragMouseDown);
