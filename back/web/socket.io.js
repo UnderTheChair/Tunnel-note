@@ -1,4 +1,4 @@
-const serverURL = 'http://13.125.136.140:9000';
+const serverURL = 'http://localhost:9000';
 
 
 let drawSocket = io.connect(serverURL, {
@@ -19,7 +19,7 @@ window.onbeforeunload = function(){
 
 function socket_init(){
   let accessToken = localStorage.accessToken
-  
+
   drawSocket.emit('CONNECT', {
     accessToken: accessToken
   })
