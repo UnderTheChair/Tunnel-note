@@ -112,6 +112,46 @@ See https://github.com/adobe-type-tools/cmap-resources
             <button id="secondaryPenMode" class="secondaryToolbarButton penMode visibleMediumView" title="Switch to Pen Mode" tabindex="49" data-l10n-id="pen_mode">
               <span data-l10n-id="pen_mode_label">Pen Mode</span>
             </button>
+            <div class="selecter">
+              <div class="color_selecter">
+                <select id="selColor">
+                  <option value="black">black</option>
+                  <option value="red">red</option>
+                  <option value="green">green</option>
+                  <option value="yellow">yellow</option>
+                  <option value="blue">blue</option>
+                </select>
+                <span data-l10n-id="color_label">Color</span>
+              </div>
+              <div class="width_selecter">
+                
+                <select id="selWidth">
+                  <option value="1">1</option>
+                  <option value="3">3</option>
+                  <option value="5">5</option>
+                  <option value="7">7</option>
+                  <option value="9">9</option>
+                  <option value="11">11</option>
+                  <option value="13">13</option>
+                  <option value="15">15</option>
+                  <option value="17">17</option>
+                  <option value="19">19</option>
+                </select>
+                <span data-l10n-id="width_label">Width</span>
+              </div>
+              <div class="transparency_selecter">
+                
+                <select id="selTransparency">
+                  <option value="0">0%</option>
+                  <option value="0.2">20%</option>
+                  <option value="0.4">40%</option>
+                  <option value="0.6">60%</option>
+                  <option value="0.8">80%</option>
+                  <option value="1" selected>100%</option>
+                </select>
+                <span data-l10n-id="transparency_label">Transparency</span>
+              </div>
+            </div> 
             <button id="secondaryEraserMode" class="secondaryToolbarButton eraserMode visibleMediumView" title="Switch to Eraser Mode" tabindex="50" data-l10n-id="eraser_mode">
                 <span data-l10n-id="eraser_mode_label">Eraser Mode</span>
             </button>
@@ -221,35 +261,6 @@ See https://github.com/adobe-type-tools/cmap-resources
                 <span id="numPages" class="toolbarLabel"></span>
               </div>
               <div id="toolbarViewerRight">
-                <div class="selecter">
-                  <select id="selColor">
-                    <option value="black">black</option>
-                    <option value="red">red</option>
-                    <option value="green">green</option>
-                    <option value="yellow">yellow</option>
-                    <option value="blue">blue</option>
-                  </select>
-                  <select id="selWidth">
-                    <option value="1">1</option>
-                    <option value="3">3</option>
-                    <option value="5">5</option>
-                    <option value="7">7</option>
-                    <option value="9">9</option>
-                    <option value="11">11</option>
-                    <option value="13">13</option>
-                    <option value="15">15</option>
-                    <option value="17">17</option>
-                    <option value="19">19</option>
-                  </select>
-                  <select id="selTransparency">
-                    <option value="0">0%</option>
-                    <option value="0.2">20%</option>
-                    <option value="0.4">40%</option>
-                    <option value="0.6">60%</option>
-                    <option value="0.8">80%</option>
-                    <option value="1" selected>100%</option>
-                  </select>
-                </div> 
                 <button id="drawSaveMode" class="toolbarButton drawSaveMode hiddenMediumView" title="Switch to Draw Save Mode" tabindex="26" data-l10n-id="draw_save_mode">
                   <span data-l10n-id="draw_save_mode_label">Draw Save Mode</span>
                 </button>
