@@ -1,21 +1,22 @@
 import { tunnelBoxSocket } from './socket.io.js';
 import { screenControl } from './screen_control.js';
+import { tunnelBox_app } from './tunnelnote_app.js';
 
 class TunnelBox {
   constructor() {
     this.DOM = document.getElementById('tunnel');
     this.resizeDOM = document.getElementById('resizer');
     this.on = false;
-    this.color = "#9400D3";
-    this.lineWidth = 2;
-    this.width = 300;
-    this.height = 150;
-    this.stuck = false;
-    this.left = 0;
-    this.top = 0;
-    this.isMobile = true;
+    this.isInit = false;
     // width = height * screenRatio
     this.resolution = 2;
+    this.width = 300;
+    this.height = 150;
+    this.left = 0;
+    this.top = 0;
+    this.mobileDrag = true;
+    this.isMobile = true;
+    this.isHandMode = true;
   }
   _dragElement(elmnt) {
     let container = document.getElementById('penContainer');
@@ -30,14 +31,15 @@ class TunnelBox {
     container.addEventListener("mousemove", currentMouseMove);
 
     function currentMouseMove(e){
+      if(!self.isHandMode){
+        console.log("is not hand mode");
+        closeDragElement();
+        container.style.cursor = "default";
+        return;
+      }
       currentPos.x = e.clientX;
       currentPos.y = e.clientY;
       rect = elmnt.getBoundingClientRect();
-      // if(isResizeLine(currentPos.x, currentPos.y)){
-      //   container.style.cursor = "nwse-resize";
-      //   container.addEventListener("mousedown", resizeMouseDown);
-      //   e.stopPropagation();
-      // }
       if(isRectLine(currentPos.x, currentPos.y)){
         container.style.cursor = "grab";
         container.addEventListener("mousedown", dragMouseDown);
@@ -112,6 +114,8 @@ class TunnelBox {
       container.removeEventListener("mousemove", elementDrag);
       container.removeEventListener("mousemove", elementResize);
       container.addEventListener("mousemove", currentMouseMove);
+
+      tunnelBoxSocket.emit('PC_MOVE_END', null);
     }
     function isRectLine(x, y){
       if(rect.left-5 < x && x < rect.left+5){
@@ -136,14 +140,6 @@ class TunnelBox {
       }
       return false;
     }
-    function isResizeLine(x, y){
-      if(rect.right - 10 < x && x < rect.right + 10){
-        if(rect.bottom-10 < y && y < rect.bottom+10){
-          return true;
-        }
-      }
-      return false;
-    }
   }
 
   activate() {
@@ -154,8 +150,10 @@ class TunnelBox {
     this.DOM.style.height = this.height + 'px';
     this.DOM.style.width = this.width + 'px';
     this.DOM.style.border = '2px solid #abc';
-    this._dragElement(this.DOM);
-
+    if(!this.isInit){
+      this._dragElement(this.DOM);
+      this.isInit = true;
+    }
     
     this.resizeDOM.style.borderRadius = '50%';
     this.resizeDOM.style.border = '2px solid #abc';
@@ -257,7 +255,7 @@ class TunnelBox {
 
   //pc by mobile control
   setBoxPosition(position){
-    let {pagePoint, currentPage, width, currentScale, boxHeight, boxWidth} = position;
+    let {pagePoint, currentPage} = position;
     let pdfViewer = window.PDFViewerApplication.pdfViewer;
     let currentPageElment = document.querySelector(`#viewer > div:nth-child(${currentPage})`);
     let tmpX, tmpY;
@@ -273,32 +271,20 @@ class TunnelBox {
     //this.width = currentScale * this.width;
   }
   //pc by mobile control
-  setBoxSize(boxWidth, boxHeight) {
-    this.width = boxWidth;
+  setBoxSize(mobileWidth, mobileHeight, mobileScale) {
+    this.width = mobileWidth / mobileScale;
     this.DOM.style.width = this.width + 'px';
-    this.height = boxHeight;
+    this.height = mobileHeight / mobileScale;
     this.DOM.style.height = this.height + 'px';
     this.resolution = this.width / this.height;
   }
 }
 
-const tunnel = new TunnelBox();
-
-let toggle = function() {
-  var windowWidth = $( window ).width();
-  if(windowWidth < 900){     //mobile
-    console.log("mobile is not support tunnel box");
-    return;
-  }
-  if (tunnel.on) tunnel.deactivate();
-  else tunnel.activate();
-}
-
-document.querySelector("#tunnelMode").addEventListener('click', toggle);
+let tunnel;
 
 //pc -> mobile
 tunnelBoxSocket.on('BOX_INIT', (position) => {
-  console.log("socket box init call");
+  tunnel = tunnelBox_app;
   if (tunnel.on == true) return;
 
   //detect mobile window control
@@ -323,13 +309,18 @@ tunnelBoxSocket.on('BOX_INIT', (position) => {
 
 tunnelBoxSocket.on('BOX_MOVE', (position) => {
   // Temporary remove for continue operating when page referch at remote device
-  //if (tunnel.on == false ) return;
+  if (tunnel.on == false ) return;
+  tunnel.mobileDrag = false;
   tunnel.setMobilePosition(position);
 });
 
 tunnelBoxSocket.on('BOX_RESIZE', (position) => {
   tunnel.setMobilePosition(position);
-  window.customScaleCallback();
+  tunnel.mobileDrag = false;
+});
+
+tunnelBoxSocket.on('PC_MOVE_END', () => {
+  tunnel.mobileDrag = true;
 });
 
 tunnelBoxSocket.on('BOX_CLEAR', (position) => {
@@ -347,9 +338,11 @@ tunnelBoxSocket.on('DISCONNECT', () => {
 
 //mobile -> pc
 tunnelBoxSocket.on('BOX_SIZE_INIT', (sizeData) => {
-  tunnel.setBoxSize(sizeData.width, sizeData.height);
+  tunnel = tunnelBox_app;
+  tunnel.setBoxSize(sizeData.width, sizeData.height, 1.5);
   var position = tunnel.getPosition();
   tunnelBoxSocket.emit('BOX_MOVE', position);
+  tunnelBoxSocket.emit('PC_MOVE_END', null);
 });
 
 tunnelBoxSocket.on('MOBILE_MOVE', (position) => {
@@ -357,17 +350,18 @@ tunnelBoxSocket.on('MOBILE_MOVE', (position) => {
 });
 
 tunnelBoxSocket.on('MOBILE_RESIZE', (position) => {
-  console.log("mobile resize call");
-  console.log(position);
-  //tunnel.setBoxPosition(position);
-  //tunnel.setBoxSize(position.boxWidth, position.boxHeight);
+  tunnel.setBoxPosition(position);
+  tunnel.setBoxSize(position.boxWidth, position.boxHeight, position.currentScale);
 });
 
+//in mobile call
 let mobileScrollCallback = () => {
   // callback
-  tunnel.setPos();
-  var position = tunnel.getPosition();
-  tunnelBoxSocket.emit('MOBILE_MOVE', position);
+  if(tunnel.mobileDrag){
+    tunnel.setPos();
+    var position = tunnel.getPosition();
+    tunnelBoxSocket.emit('MOBILE_MOVE', position);
+  }
 };
 
 export { TunnelBox, };

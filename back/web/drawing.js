@@ -1,4 +1,5 @@
 import { drawSocket } from "./socket.io.js";
+import { tunnelBox_app } from './tunnelnote_app.js';
 
 // Set up mouse events for drawing
 let isDrawing = false;
@@ -133,6 +134,11 @@ class DrawService {
   registerDrawToolButton(btn, tool) {
     btn.addEventListener("click", (e) => {
       window.drawService.mode = tool;
+      if(tool !== 'hand'){
+        tunnelBox_app.isHandMode = false;
+      }else{
+        tunnelBox_app.isHandMode = true;
+      }      
       drawSocket.emit("SETUP");
 
     }, false)

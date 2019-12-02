@@ -6,6 +6,7 @@ import { tunnelBoxSocket } from './socket.io.js';
 let isSetup = false;
 var scale;
 var scaleTimestamp = 0;
+const tunnelBox_app = new TunnelBox(); 
 
 window.addEventListener('wheel', onPdfLoad);
 window.addEventListener('click', onPdfLoad);
@@ -21,27 +22,11 @@ function onPdfLoad(e) {
 function setup() {
   if (isSetup == true) return false;
   console.log('Initializing canvas');
+  isSetup = true;
   let canvases = document.getElementsByClassName('penCanvas');
-  let tunnelBox = new TunnelBox();
   let drawService = new DrawService(canvases);
 
-  isSetup = true;
-  drawService.enableMouseEventListener();
-  drawService.enableTouchEventListener();
-
-  let penBtn = document.getElementById('penMode');
-  let eraserBtn = document.getElementById('eraserMode');
-  let handBtn = document.getElementById('handMode');
-  let secondaryPenBtn = document.getElementById('secondaryPenMode');
-  let secondaryEraserBtn = document.getElementById('secondaryEraserMode');
-  let secondaryHandBtn = document.getElementById('secondaryHandMode');
-
-  drawService.registerDrawToolButton(penBtn, 'pen');
-  drawService.registerDrawToolButton(eraserBtn, 'eraser');
-  drawService.registerDrawToolButton(handBtn, 'hand');
-  drawService.registerDrawToolButton(secondaryPenBtn, 'pen');
-  drawService.registerDrawToolButton(secondaryEraserBtn, 'eraser');
-  drawService.registerDrawToolButton(secondaryHandBtn, 'hand');
+  initDraw(drawService);
 
   window.drawService = drawService;
   var container = document.getElementById('penContainer');
@@ -84,8 +69,43 @@ function setup() {
     drawService.updateCanvas();
   };
 
+  //drag TunnelBox only in handmode
+  if(drawService.mode != 'hand'){
+
+  }
+
   return true;
 }
+
+function initDraw(drawService){
+  drawService.enableMouseEventListener();
+  drawService.enableTouchEventListener();
+
+  let penBtn = document.getElementById('penMode');
+  let eraserBtn = document.getElementById('eraserMode');
+  let handBtn = document.getElementById('handMode');
+  let secondaryPenBtn = document.getElementById('secondaryPenMode');
+  let secondaryEraserBtn = document.getElementById('secondaryEraserMode');
+  let secondaryHandBtn = document.getElementById('secondaryHandMode');
+
+  drawService.registerDrawToolButton(penBtn, 'pen');
+  drawService.registerDrawToolButton(eraserBtn, 'eraser');
+  drawService.registerDrawToolButton(handBtn, 'hand');
+  drawService.registerDrawToolButton(secondaryPenBtn, 'pen');
+  drawService.registerDrawToolButton(secondaryEraserBtn, 'eraser');
+  drawService.registerDrawToolButton(secondaryHandBtn, 'hand');
+}
+
+let tunnelToggle = function() {
+  var windowWidth = $( window ).width();
+  if(windowWidth < 900){     //mobile
+    console.log("mobile is not support tunnel box");
+    return;
+  }
+  if (tunnelBox_app.on) tunnelBox_app.deactivate();
+  else tunnelBox_app.activate();
+}
+document.querySelector("#tunnelMode").addEventListener('click', tunnelToggle);
 
 drawSocket.on('SETUP', () => {
   window.dispatchEvent(new Event('click'));
@@ -103,5 +123,9 @@ $(document).ready(function () {
 document.getElementById('drawSaveMode').addEventListener('click', (e)=>{
   window.drawService.saveCanvas();
 });
+
+export{
+  tunnelBox_app
+}
 
 

@@ -23,6 +23,10 @@ module.exports = (io) => {
       socket.broadcast.to(socket.accessToken).emit('BOX_RESIZE', position);
     });
     
+    socket.on('PC_MOVE_END', () => {
+      socket.broadcast.to(socket.accessToken).emit('PC_MOVE_END', null);
+    });
+
     socket.on('BOX_CLEAR', (position) => {
       socket.broadcast.to(socket.accessToken).emit('BOX_CLEAR');
     });
