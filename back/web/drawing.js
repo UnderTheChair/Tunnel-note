@@ -194,7 +194,7 @@ class DrawService {
       formData.append('cvsFile', blob, cvsName)
       formData.append('pdfName', pdfName)
 
-      fetch(`http://localhost:8000/pdfs/blob/cvs/save/`, {
+      fetch(`http://13.125.136.140:8000/pdfs/blob/cvs/save/`, {
         method : 'POST',
         headers: new Headers({
           'Authorization': `Bearer ${token}`,
@@ -212,7 +212,7 @@ class DrawService {
     let token = localStorage.getItem('accessToken')
     let pdfPageNum = this.canvases.length
 
-    fetch(`http://localhost:8000/pdfs/blob/cvs/load`, {
+    fetch(`http://13.125.136.140:8000/pdfs/blob/cvs/load`, {
       method : 'POST',
       headers: new Headers({
         'Authorization': `Bearer ${token}`,
