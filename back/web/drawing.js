@@ -16,6 +16,27 @@ let inMemCtx = [];
 const INMEMSIZE = 3000;
 var curScale;
 let currentPageNum;
+var loadingCanvas = false;
+
+Image.prototype.load = function(url){
+  var thisImg = this;
+  var xmlHTTP = new XMLHttpRequest();
+  xmlHTTP.open('GET', url,true);
+  xmlHTTP.responseType = 'arraybuffer';
+  xmlHTTP.onload = function(e) {
+    var blob = new Blob([this.response]);
+    thisImg.src = window.URL.createObjectURL(blob);
+    window.PDFViewerApplication.loadingBar.hide();
+  };
+  xmlHTTP.onprogress = function(e) {
+    window.PDFViewerApplication.loadingBar.percent = parseInt((e.loaded / e.total) * 100);
+  };
+  xmlHTTP.onloadstart = function() {
+    window.PDFViewerApplication.loadingBar.percent = 10;
+    window.PDFViewerApplication.loadingBar.show();
+  };
+  xmlHTTP.send();
+};
 
 let mousePenEvent = {
   async mouseDown(e) {
@@ -145,7 +166,7 @@ class DrawService {
         tunnelBox_app.isHandMode = false;
       }else{
         tunnelBox_app.isHandMode = true;
-      }      
+      }
       drawSocket.emit("SETUP");
 
     }, false)
@@ -173,7 +194,7 @@ class DrawService {
       formData.append('cvsFile', blob, cvsName)
       formData.append('pdfName', pdfName)
 
-      fetch(`http://13.125.136.140:8000/pdfs/blob/cvs/save/`, {
+      fetch(`http://localhost:8000/pdfs/blob/cvs/save/`, {
         method : 'POST',
         headers: new Headers({
           'Authorization': `Bearer ${token}`,
@@ -191,7 +212,7 @@ class DrawService {
     let token = localStorage.getItem('accessToken')
     let pdfPageNum = this.canvases.length
 
-    fetch(`http://13.125.136.140:8000/pdfs/blob/cvs/load/`, {
+    fetch(`http://localhost:8000/pdfs/blob/cvs/load`, {
       method : 'POST',
       headers: new Headers({
         'Authorization': `Bearer ${token}`,
@@ -209,11 +230,16 @@ class DrawService {
 
         let resCvs = res.cvsList[i];
         if(resCvs === null) continue;
-        
+
         let image = new Image();
-        image.src = `data:image/png;base64,${resCvs}`
+        if(!loadingCanvas) {
+          // Will manipulate loadingbar
+          image.load(`data:image/png;base64,${resCvs}`);
+          loadingCanvas = true;
+        }
+        else image.src = `data:image/png;base64,${resCvs}`
+
         image.onload = function() {
-          console.log(image.width);
           context.drawImage(image, 0, 0, self.canvases[0].width, self.canvases[0].height);
           let tf = inMemCtx[i].getTransform()
           inMemCtx[i].setTransform(1, 0, 0, 1, 0, 0);
