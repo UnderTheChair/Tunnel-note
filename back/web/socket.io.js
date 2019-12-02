@@ -2,24 +2,24 @@ const serverURL = 'http://13.125.136.140:9000';
 
 
 let drawSocket = io.connect(serverURL, {
-  path : '/draw',
+  path: '/draw',
 });
 
 let tunnelBoxSocket = io.connect(serverURL, {
-  path : '/tunnelBox',
+  path: '/tunnelBox',
 })
 
 socket_init()
 
 // Disconnect socket before close window.
-window.onbeforeunload = function(){
+window.onbeforeunload = function () {
   drawsocket.emit('DISCONNECT');
   tunnelBoxSocket.emit('DISCONNECT');
 }
 
-function socket_init(){
+function socket_init() {
   let accessToken = localStorage.accessToken
-  
+
   drawSocket.emit('CONNECT', {
     accessToken: accessToken
   })
@@ -28,6 +28,10 @@ function socket_init(){
     accessToken: accessToken
   })
 }
+
+drawSocket.on('DISCONNECT', () => {
+  alert("DISCONNECT")
+})
 
 export {
   drawSocket, tunnelBoxSocket

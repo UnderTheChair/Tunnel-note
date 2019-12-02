@@ -105,6 +105,9 @@ drawSocket.on('SETUP', () => {
 $(document).ready(function () {
   let fileURL = localStorage.getItem('fileURL')
   let pdfName = localStorage.getItem('pdfName')
+  localStorage.removeItem('pdfjs.history')
+  
+
   if (fileURL)
     PDFViewerApplicationOptions.set('defaultUrl', fileURL);
 

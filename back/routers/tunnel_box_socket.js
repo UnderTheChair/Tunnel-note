@@ -2,8 +2,24 @@ module.exports = (io) => {
    // Connection event
   io.sockets.on('connection', (socket)=>{
     socket.on('CONNECT', ({accessToken}) => {
-      socket.accessToken = accessToken
-      socket.join(accessToken);
+      io.in(accessToken).clients((err, clients) => {
+        if (clients.length >= 2) {
+          let clients = io.sockets.adapter.rooms[accessToken].sockets
+          let numClients = Object.keys(clients).length
+
+          if (numClients >= 2) {
+            for (let clientId in clients) {
+
+              let clientSocket = io.sockets.connected[clientId];
+
+              clientSocket.leave(accessToken);
+              clientSocket.disconnect();
+            }
+          }
+        }
+        socket.accessToken = accessToken;
+        socket.join(accessToken);
+      });
     })
     
     //pc -> mobile
