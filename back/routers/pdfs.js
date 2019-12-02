@@ -124,14 +124,20 @@ router.post('/blob/cvs/save', uploadCvs.single('cvsFile'), (req, res) => {
   
   fs.copyFileSync(oldPath, newPath)
 
-  res.send({data: "ok"})
+  res.send({data: "ok", page: originalname})
 })
 
 router.post('/blob/cvs/load', (req, res) => {
   let userData = { email: req.decoded, pdfName: req.body.pdfName, pdfPageNum: req.body.pdfPageNum };
   let path = __dirname + `/../temp/${userData.email}/${userData.pdfName}/cvs/`
   let cvsList = []
+
   for(let i = 1; i <= userData.pdfPageNum; i++) {
+    if(fs.existsSync(path+`${i}-cvs.png`) === false) {
+      cvsList.push(null);
+      continue;
+    }
+    
     let bitmap = fs.readFileSync(path+`${i}-cvs.png`);
     let bitBuffer = new Buffer(bitmap)
     cvsList.push(bitBuffer.toString('base64'))
