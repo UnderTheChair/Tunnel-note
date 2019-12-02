@@ -55,6 +55,7 @@ export default {
       })
       .catch(error => {
         console.log(error);
+        this.isLoading = false
       });
       //localStorage.setItem("pdf-file",  )
     },
