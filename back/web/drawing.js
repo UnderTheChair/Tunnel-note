@@ -152,7 +152,7 @@ class DrawService {
   saveCanvas() {
     let pdfName = localStorage.getItem('pdfName')
     let token = localStorage.getItem('accessToken')
-    
+
     for (let [i, cvs] of inMemCanvases.entries()) {
       cvs.toBlob((blob)=>{
         console.log(blob)
@@ -180,7 +180,7 @@ class DrawService {
     let pdfName = localStorage.getItem('pdfName')
     let token = localStorage.getItem('accessToken')
     let pdfPageNum = this.canvases.length
-    
+
     fetch(`http://13.125.136.140:8000/pdfs/blob/cvs/load/`, {
       method : 'POST',
       headers: new Headers({
@@ -195,43 +195,21 @@ class DrawService {
     .then(res => res.json())
     .then(res => {
       let self = this
-      for(let [i, cvs] of ctx.entries()) {
-        
+      for(let [i, context] of ctx.entries()) {
+
         let image = new Image();
         image.src = `data:image/png;base64,${res.cvsList[i]}`
         image.onload = function() {
-          
-          cvs.drawImage(image, 0, 0, self.canvases[0].width, self.canvases[0].height)
+          console.log(image.width);
+          context.drawImage(image, 0, 0, self.canvases[0].width, self.canvases[0].height);
+          let tf = inMemCtx[i].getTransform()
+          inMemCtx[i].setTransform(1, 0, 0, 1, 0, 0);
+          inMemCtx[i].drawImage(image, 0, 0);
+          inMemCtx[i].setTransform(tf);
         }
       }
-      
-    })
-    
-    
+    });
   }
-// function blobCallback(iconName) {
-//   return function(b) {
-//     var r = new FileReader();
-//     r.onloadend = function () {
-//     // r.result contains the ArrayBuffer.
-//     Cu.import('resource://gre/modules/osfile.jsm');
-//     var writePath = OS.Path.join(OS.Constants.Path.desktopDir, 
-//                                  iconName + '.ico');
-//     var promise = OS.File.writeAtomic(writePath, new Uint8Array(r.result), 
-//                                       {tmpPath:writePath + '.tmp'});
-//     promise.then(
-//       function() {
-//         console.log('successfully wrote file');
-//       },
-//       function() {
-//         console.log('failure writing file')
-//       }
-//     );
-//   };
-//   r.readAsArrayBuffer(b);
-//   }
-// }
-
 }
 
 
