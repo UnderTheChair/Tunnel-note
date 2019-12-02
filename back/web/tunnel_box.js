@@ -240,7 +240,8 @@ class TunnelBox {
     screenControl.setOffsetHeight(boxHeight);
 
     newScale = (document.body.clientWidth / (width / currentScale)) * (width / boxWidth);
-    pdfViewer.currentScaleValue = newScale;
+    pdfViewer._setScale(newScale);
+    window.drawService.updateCanvas()
   }
 
   //mobile
