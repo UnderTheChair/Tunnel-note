@@ -3,15 +3,19 @@
     <a href v-if="isAuthenticated" @click.prevent="onClickLogout">Logout</a>
     <div class="container">
       <div class="row">
-        <div class="col-sm-4" style>
-          <input
-            type="file"
-            id="pdfFile"
-            class="btn btn-primary btn-block"
-            name="pdf"
-            v-on:change="reqUploadPDF"
-          />
+        <div class="col-sm-4">
+          <div class="custom-file">
+            <input
+              type="file"
+              id="pdfFile"
+              class="custom-file-input"
+              name="pdf"
+              v-on:change="reqUploadPDF"
+            />
+            <label class="custom-file-label" for="customFile">Choose file</label>
+          </div>
         </div>
+    
       </div>
 
       <div class="row">
@@ -26,11 +30,17 @@
         </div>
       </div>
     </div>
+    <loading :active.sync="isLoading" 
+        :can-cancel="true" 
+        :on-cancel="onCancel"
+        :is-full-page="fullPage"/>
   </div>
 </template>
 
 <script>
 import PDFItem from "@/components/PDFItem";
+import Loading from 'vue-loading-overlay';
+import 'vue-loading-overlay/dist/vue-loading.css';
 
 export default {
   name: "home",
@@ -38,6 +48,8 @@ export default {
     return {
       baseURL: this.$store.getters.getBaseUrl,
       pdfList: [],
+      isLoading: false,
+      fullPage: true,
     };
   },
   computed: {
@@ -54,6 +66,7 @@ export default {
       this.$store.dispatch("LOGOUT").then(() => this.$router.push("/login"));
     },
     reqUploadPDF(event) {
+      
       const reqURL = `${this.baseURL}/pdfs/upload`;
       let files = event.target.files || event.dataTransfer.files;
       let { name, size } = files[0];
@@ -66,9 +79,12 @@ export default {
       formData.append("pdfFile", files[0]);
       formData.append("name", name);
       formData.append("size", size);
+
+      this.isLoading = true;
       this.$http.post(reqURL, formData).then(({data}) => {
         this.pdfList = [data].concat(this.pdfList);
         event.target.value = "";
+        this.isLoading = false
       });
     },
     reqGetPDFs() {
@@ -77,10 +93,14 @@ export default {
       this.$http.get(reqURL).then(({data}) => {
         this.pdfList = data;
       })
+    },
+    onCancel() {
+      console.log('User cancelled the loader.')
     }
   },
   components: {
-    PDFItem
+    PDFItem,
+    Loading
   }
 };
 </script>
