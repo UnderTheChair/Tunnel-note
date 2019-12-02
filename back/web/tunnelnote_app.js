@@ -5,20 +5,9 @@ import { drawSocket } from './socket.io.js';
 let isSetup = false;
 var scale;
 var scaleTimestamp = 0;
-const tunnelBox_app = new TunnelBox(); 
+const tunnelBox_app = new TunnelBox();
 
-window.addEventListener('wheel', onPdfLoad);
-window.addEventListener('click', onPdfLoad);
-
-function onPdfLoad(e) {
-  if (window.PDFViewerApplication.pdfDocument) {
-    setup();
-    window.removeEventListener('wheel', onPdfLoad);
-    window.removeEventListener('click', onPdfLoad);
-  }
-}
-
-function setup() {
+window.customSetup = ()=> {
   if (isSetup == true) return false;
   console.log('Initializing canvas');
   isSetup = true;
