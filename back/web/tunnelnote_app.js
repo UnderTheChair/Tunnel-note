@@ -1,7 +1,6 @@
 import { TunnelBox } from './tunnel_box.js';
 import { DrawService } from './drawing.js';
 import { drawSocket } from './socket.io.js';
-import { tunnelBoxSocket } from './socket.io.js';
 
 let isSetup = false;
 var scale;
@@ -73,6 +72,8 @@ function setup() {
   if(drawService.mode != 'hand'){
 
   }
+
+  window.drawService.loadCanvas();
 
   return true;
 }

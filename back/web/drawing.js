@@ -38,6 +38,8 @@ let mousePenEvent = {
     })
   }, mouseUp(e) {
     isDrawing = false;
+    let pageNum = e.target.getAttribute('data-page-number');
+    window.drawService.saveCanvas(pageNum);
     drawSocket.emit('MOUSEUP')
   }, async mouseMove(e) {
     if(isDrawing == false) return;
@@ -155,31 +157,26 @@ class DrawService {
     }
   }
 
-  saveCanvas() {
+  saveCanvas(pageNum) {
     let pdfName = localStorage.getItem('pdfName')
     let token = localStorage.getItem('accessToken')
-    
-    for (let [i, cvs] of inMemCanvases.entries()) {
-      cvs.toBlob((blob)=>{
-        console.log(blob)
-        let page_num = i +1;
-        let cvsName = `${page_num}-cvs.png`
-        let formData = new FormData();
+    inMemCanvases[pageNum-1].toBlob((blob) => {
+      let cvsName = `${pageNum}-cvs.png`
+      let formData = new FormData();
 
-        formData.append('cvsFile', blob, cvsName)
-        formData.append('pdfName', pdfName)
+      formData.append('cvsFile', blob, cvsName)
+      formData.append('pdfName', pdfName)
 
-        fetch(`http://13.125.136.140:8000/pdfs/blob/cvs/save/`, {
-          method : 'POST',
-          headers: new Headers({
-            'Authorization': `Bearer ${token}`,
-          }),
-          body: formData,
-        })
-        .then(res => res.json())
-        .then(res => console.log(res))
-      });
-    }
+      fetch(`http://13.125.136.140:8000/pdfs/blob/cvs/save/`, {
+        method : 'POST',
+        headers: new Headers({
+          'Authorization': `Bearer ${token}`,
+        }),
+        body: formData,
+      })
+      .then(res => res.json())
+      .then(res => console.log(res))
+    });
   }
 
   loadCanvas() {
@@ -202,9 +199,11 @@ class DrawService {
     .then(res => {
       let self = this
       for(let [i, cvs] of ctx.entries()) {
-        
+        let resCvs = res.cvsList[i];
+        if(resCvs === null) continue;
+        console.log("ready")
         let image = new Image();
-        image.src = `data:image/png;base64,${res.cvsList[i]}`
+        image.src = `data:image/png;base64,${resCvs}`
         image.onload = function() {
           
           cvs.drawImage(image, 0, 0, self.canvases[0].width, self.canvases[0].height)
