@@ -15,17 +15,18 @@ let inMemCanvases = [];
 let inMemCtx = [];
 const INMEMSIZE = 3000;
 var curScale;
+let currentPageNum;
 
 let mousePenEvent = {
   async mouseDown(e) {
     let pdfMousePos;
     let x, y;
-    let pageNum = e.target.getAttribute('data-page-number');
+    currentPageNum = e.target.getAttribute('data-page-number');
     var mode = window.drawService.mode;
 
     lastPos = await getMousePos(e);
     isDrawing = true;
-    [x, y] = pdfViewer._pages[pageNum].viewport.convertToPdfPoint(lastPos.x, lastPos.y)
+    [x, y] = pdfViewer._pages[currentPageNum].viewport.convertToPdfPoint(lastPos.x, lastPos.y)
     pdfMousePos = { x: x, y: y };
 
     drawSocket.emit("MOUSEDOWN", {
@@ -34,7 +35,7 @@ let mousePenEvent = {
       color: color,
       width: width,
       transparency: transparency,
-      pageNum: e.target.getAttribute('data-page-number'),
+      pageNum: currentPageNum,
     })
   }, mouseUp(e) {
     isDrawing = false;
@@ -44,6 +45,10 @@ let mousePenEvent = {
     let pdfMousePos;
     let x, y;
     let pageNum = e.target.getAttribute('data-page-number');
+
+    if(pageNum !== currentPageNum){
+      return;
+    }
 
     mousePos = await getMousePos(e);
 
