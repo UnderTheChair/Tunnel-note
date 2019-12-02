@@ -95,7 +95,12 @@ drawSocket.on('SETUP', () => {
 $(document).ready(function () {
   let fileURL = localStorage.getItem('fileURL')
   let pdfName = localStorage.getItem('pdfName')
-  if (fileURL)
+  // USING DEVELOPMENT
+  if(pdfName === null) {
+    localStorage.setItem('pdfName', 'pdf')
+  }
+  //
+  if(fileURL)
     PDFViewerApplicationOptions.set('defaultUrl', fileURL);
 
 });
