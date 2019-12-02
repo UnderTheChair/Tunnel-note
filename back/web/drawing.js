@@ -15,17 +15,18 @@ let inMemCanvases = [];
 let inMemCtx = [];
 const INMEMSIZE = 3000;
 var curScale;
+let currentPageNum;
 
 let mousePenEvent = {
   async mouseDown(e) {
     let pdfMousePos;
     let x, y;
-    let pageNum = e.target.getAttribute('data-page-number');
+    currentPageNum = e.target.getAttribute('data-page-number');
     var mode = window.drawService.mode;
 
     lastPos = await getMousePos(e);
     isDrawing = true;
-    [x, y] = pdfViewer._pages[pageNum].viewport.convertToPdfPoint(lastPos.x, lastPos.y)
+    [x, y] = pdfViewer._pages[currentPageNum].viewport.convertToPdfPoint(lastPos.x, lastPos.y)
     pdfMousePos = { x: x, y: y };
 
     drawSocket.emit("MOUSEDOWN", {
@@ -34,7 +35,7 @@ let mousePenEvent = {
       color: color,
       width: width,
       transparency: transparency,
-      pageNum: e.target.getAttribute('data-page-number'),
+      pageNum: currentPageNum,
     })
   }, mouseUp(e) {
     isDrawing = false;
@@ -46,6 +47,10 @@ let mousePenEvent = {
     let pdfMousePos;
     let x, y;
     let pageNum = e.target.getAttribute('data-page-number');
+
+    if(pageNum !== currentPageNum){
+      return;
+    }
 
     mousePos = await getMousePos(e);
 
@@ -160,6 +165,7 @@ class DrawService {
   saveCanvas(pageNum) {
     let pdfName = localStorage.getItem('pdfName')
     let token = localStorage.getItem('accessToken')
+
     inMemCanvases[pageNum-1].toBlob((blob) => {
       let cvsName = `${pageNum}-cvs.png`
       let formData = new FormData();
@@ -177,13 +183,14 @@ class DrawService {
       .then(res => res.json())
       .then(res => console.log(res))
     });
+
   }
 
   loadCanvas() {
     let pdfName = localStorage.getItem('pdfName')
     let token = localStorage.getItem('accessToken')
     let pdfPageNum = this.canvases.length
-    
+
     fetch(`http://13.125.136.140:8000/pdfs/blob/cvs/load/`, {
       method : 'POST',
       headers: new Headers({
@@ -198,45 +205,24 @@ class DrawService {
     .then(res => res.json())
     .then(res => {
       let self = this
-      for(let [i, cvs] of ctx.entries()) {
+      for(let [i, context] of ctx.entries()) {
+
         let resCvs = res.cvsList[i];
         if(resCvs === null) continue;
-        console.log("ready")
+        
         let image = new Image();
         image.src = `data:image/png;base64,${resCvs}`
         image.onload = function() {
-          
-          cvs.drawImage(image, 0, 0, self.canvases[0].width, self.canvases[0].height)
+          console.log(image.width);
+          context.drawImage(image, 0, 0, self.canvases[0].width, self.canvases[0].height);
+          let tf = inMemCtx[i].getTransform()
+          inMemCtx[i].setTransform(1, 0, 0, 1, 0, 0);
+          inMemCtx[i].drawImage(image, 0, 0);
+          inMemCtx[i].setTransform(tf);
         }
       }
-      
-    })
-    
-    
+    });
   }
-// function blobCallback(iconName) {
-//   return function(b) {
-//     var r = new FileReader();
-//     r.onloadend = function () {
-//     // r.result contains the ArrayBuffer.
-//     Cu.import('resource://gre/modules/osfile.jsm');
-//     var writePath = OS.Path.join(OS.Constants.Path.desktopDir, 
-//                                  iconName + '.ico');
-//     var promise = OS.File.writeAtomic(writePath, new Uint8Array(r.result), 
-//                                       {tmpPath:writePath + '.tmp'});
-//     promise.then(
-//       function() {
-//         console.log('successfully wrote file');
-//       },
-//       function() {
-//         console.log('failure writing file')
-//       }
-//     );
-//   };
-//   r.readAsArrayBuffer(b);
-//   }
-// }
-
 }
 
 
