@@ -26,11 +26,29 @@ const pdf2pic = new PDF2Pic({
 // Set file upload storage
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    let path = __dirname + '/../temp/' + req.decoded;
+    let userPath = __dirname + '/../temp/' + req.decoded;
+    let pdfPath = userPath + `/${file.originalname}`
+    let cvsPath = pdfPath + '/cvs'
+    console.log(file)
 
-    if (!fs.existsSync(path)) fs.mkdirSync(path);
+    if (!fs.existsSync(userPath)) fs.mkdirSync(userPath);
+    if (!fs.existsSync(pdfPath)) {
+      fs.mkdirSync(pdfPath);
+      fs.mkdirSync(cvsPath)
+    }
 
-    cb(null, 'temp/' + req.decoded) // cb 콜백함수를 통해 전송된 파일 저장 디렉토리 설정
+    cb(null, pdfPath) // cb 콜백함수를 통해 전송된 파일 저장 디렉토리 설정
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname) // cb 콜백함수를 통해 전송된 파일 이름 설정
+  }
+})
+
+const storageCvs = multer.diskStorage({
+  destination: function (req, file, cb) {
+    let userPath = __dirname + '/../temp/' + req.decoded;
+
+    cb(null, userPath) // cb 콜백함수를 통해 전송된 파일 저장 디렉토리 설정
   },
   filename: function (req, file, cb) {
     cb(null, file.originalname) // cb 콜백함수를 통해 전송된 파일 이름 설정
@@ -38,16 +56,17 @@ const storage = multer.diskStorage({
 })
 
 const upload = multer({ storage: storage })
+const uploadCvs = multer({ storage: storageCvs})
 
 router.use('/', authMiddleware);
-router.use(upload.single('pdfFile')); //  'pdf_file' is name of file input element in form
 
-router.post('/upload', (req, res) => {
+
+router.post('/upload', upload.single('pdfFile'), (req, res) => {
   let { name, size } = req.body
-  let path = '/temp/' + req.decoded;
+  let path = '/temp/' + req.decoded + `/${name}`;
   let userData = { email: req.decoded };
   let pdfData = { name: name, size: size, path: path };
-  let pdfPath = __dirname + '/..' + path + '/' + name;
+  let pdfPath = __dirname + '/..' + path + `/${name}`;
   
   console.log(pdfPath);
   pdf2pic.convertToBase64(pdfPath, 1).then((resolve) => {
@@ -91,7 +110,33 @@ router.get('/', (req, res) => {
 router.post('/blob', (req, res) => {
   let userData = { email: req.decoded, pdfName: req.body.pdfName };
   
-  var file = fs.createReadStream(__dirname + `/../temp/${userData.email}/${userData.pdfName}`);
+  var file = fs.createReadStream(__dirname + `/../temp/${userData.email}/${userData.pdfName}/${userData.pdfName}`);
   file.pipe(res);
+})
+
+router.post('/blob/cvs/save', uploadCvs.single('cvsFile'), (req, res) => {
+  let email = req.decoded;
+  let {pdfName} = req.body
+  let {originalname} = req.file
+  
+  let oldPath =  __dirname + `/../temp/${email}/${originalname}`
+  let newPath = __dirname + `/../temp/${email}/${pdfName}/cvs/${originalname}`
+  
+  fs.copyFileSync(oldPath, newPath)
+
+  res.send({data: "ok"})
+})
+
+router.post('/blob/cvs/load', (req, res) => {
+  let userData = { email: req.decoded, pdfName: req.body.pdfName, pdfPageNum: req.body.pdfPageNum };
+  let path = __dirname + `/../temp/${userData.email}/${userData.pdfName}/cvs/`
+  let cvsList = []
+  for(let i = 1; i <= userData.pdfPageNum; i++) {
+    let bitmap = fs.readFileSync(path+`${i}-cvs.png`);
+    let bitBuffer = new Buffer(bitmap)
+    cvsList.push(bitBuffer.toString('base64'))
+  }
+  return res.send({cvsList: cvsList})
+
 })
 module.exports = router;
