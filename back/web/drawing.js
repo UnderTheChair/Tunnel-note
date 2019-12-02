@@ -154,6 +154,90 @@ class DrawService {
       inMemCtx[i].scale(1/scaleDelta, 1/scaleDelta);
     }
   }
+
+  saveCanvas() {
+    let pdfName = localStorage.getItem('pdfName')
+    let token = localStorage.getItem('accessToken')
+    
+    for (let [i, cvs] of inMemCanvases.entries()) {
+      cvs.toBlob((blob)=>{
+        console.log(blob)
+        let page_num = i +1;
+        let cvsName = `${page_num}-cvs.png`
+        let formData = new FormData();
+
+        formData.append('cvsFile', blob, cvsName)
+        formData.append('pdfName', pdfName)
+
+        fetch(`http://13.125.136.140:8000/pdfs/blob/cvs/save/`, {
+          method : 'POST',
+          headers: new Headers({
+            'Authorization': `Bearer ${token}`,
+          }),
+          body: formData,
+        })
+        .then(res => res.json())
+        .then(res => console.log(res))
+      });
+    }
+  }
+
+  loadCanvas() {
+    let pdfName = localStorage.getItem('pdfName')
+    let token = localStorage.getItem('accessToken')
+    let pdfPageNum = this.canvases.length
+    
+    fetch(`http://13.125.136.140:8000/pdfs/blob/cvs/load/`, {
+      method : 'POST',
+      headers: new Headers({
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      }),
+      body: JSON.stringify({
+        pdfName: pdfName,
+        pdfPageNum: pdfPageNum
+      }),
+    })
+    .then(res => res.json())
+    .then(res => {
+      let self = this
+      for(let [i, cvs] of ctx.entries()) {
+        
+        let image = new Image();
+        image.src = `data:image/png;base64,${res.cvsList[i]}`
+        image.onload = function() {
+          
+          cvs.drawImage(image, 0, 0, self.canvases[0].width, self.canvases[0].height)
+        }
+      }
+      
+    })
+    
+    
+  }
+// function blobCallback(iconName) {
+//   return function(b) {
+//     var r = new FileReader();
+//     r.onloadend = function () {
+//     // r.result contains the ArrayBuffer.
+//     Cu.import('resource://gre/modules/osfile.jsm');
+//     var writePath = OS.Path.join(OS.Constants.Path.desktopDir, 
+//                                  iconName + '.ico');
+//     var promise = OS.File.writeAtomic(writePath, new Uint8Array(r.result), 
+//                                       {tmpPath:writePath + '.tmp'});
+//     promise.then(
+//       function() {
+//         console.log('successfully wrote file');
+//       },
+//       function() {
+//         console.log('failure writing file')
+//       }
+//     );
+//   };
+//   r.readAsArrayBuffer(b);
+//   }
+// }
+
 }
 
 

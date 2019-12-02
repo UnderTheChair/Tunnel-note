@@ -114,11 +114,18 @@ drawSocket.on('SETUP', () => {
 // Upload previous stored fileURL when user click pdf-card in Front
 $(document).ready(function () {
   let fileURL = localStorage.getItem('fileURL')
+  let pdfName = localStorage.getItem('pdfName')
   if (fileURL)
     PDFViewerApplicationOptions.set('defaultUrl', fileURL);
+
+});
+
+document.getElementById('drawSaveMode').addEventListener('click', (e)=>{
+  window.drawService.saveCanvas();
 });
 
 export{
   tunnelBox_app
 }
+
 

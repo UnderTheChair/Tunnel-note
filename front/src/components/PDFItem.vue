@@ -38,6 +38,7 @@ export default {
         
         const fileURL = URL.createObjectURL(blob)
         localStorage.setItem('fileURL', fileURL)
+        localStorage.setItem('pdfName', this.pdfName)
         window.open("http://13.125.136.140/web/")
 
       })
