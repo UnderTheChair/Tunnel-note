@@ -3,6 +3,13 @@ import { DrawService } from './drawing.js';
 import { drawSocket } from './socket.io.js';
 import { tunnelBoxSocket } from './socket.io.js';
 
+$('div[data-toolbar="penMode"]').toolbar({
+  content: '#penMode-options',
+	position: 'bottom',
+	style: 'primary',
+	event: 'click'
+});
+
 let isSetup = false;
 var scale;
 var scaleTimestamp = 0;

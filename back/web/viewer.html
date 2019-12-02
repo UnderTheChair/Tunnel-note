@@ -33,6 +33,7 @@ See https://github.com/adobe-type-tools/cmap-resources
 
 
     <link rel="stylesheet" href="viewer.css">
+    <link href="jquery.toolbar.css" rel="stylesheet">
 
 
 <!-- This snippet is used in production (included from viewer.html) -->
@@ -41,6 +42,7 @@ See https://github.com/adobe-type-tools/cmap-resources
 
     <script src="viewer.js"></script>
     <script src="socket.io/socket.io.js"></script>
+    <script src="toolbar_src/jquery.toolbar.js"></script>
 
   </head>
 
@@ -259,9 +261,19 @@ See https://github.com/adobe-type-tools/cmap-resources
                 <button id="eraserMode" class="toolbarButton eraserMode hiddenMediumView" title="Switch to Eraser Mode" tabindex="28" data-l10n-id="eraser_mode">
                   <span data-l10n-id="eraser_mode_label">Eraser Mode</span>
                 </button>
-                <button id="penMode" class="toolbarButton penMode hiddenMediumView" title="Switch to Pen Mode" tabindex="29" data-l10n-id="pen_mode">
+                <!-- <button id="penMode" class="toolbarButton penMode hiddenMediumView" title="Switch to Pen Mode" tabindex="29" data-l10n-id="pen_mode">
                   <span data-l10n-id="pen_mode_label">Pen Mode</span>
-                </button>
+                </button> -->
+                <div data-toolbar="penMode"
+                  data-toolbar-event="click"
+                  data-toolbar-animation="standard" class="btn-toolbar feature-toolbar btn-toolbar-dark pull-left" data-toolbar-style="info" id="penMode_button">
+                  
+                </div>
+                <div id="penMode-options" class="toolbar-icons hidden">
+                  <a href="#"></a>
+                </div>
+
+
                 <button id="tunnelMode" class="toolbarButton tunnelMode hiddenMediumView" title="Switch to Tunnel Mode" tabindex="30" data-l10n-id="tunnel_mode">
                   <span data-l10n-id="tunnel_mode_label">Tunnel Mode</span>
                 </button>
