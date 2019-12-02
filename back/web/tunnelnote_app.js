@@ -69,7 +69,7 @@ function setup() {
       } else if(e.type == 'pinchend') {
         curScale = scale;
         window.PDFViewerApplication.pdfViewer._setScale(curScale / 100);
-        drawService.resizeCanvas();
+        drawService.updateCanvas();
       }
       // else if(e.type == 'pan') {
       //   viewer.scrollTo(
@@ -81,7 +81,7 @@ function setup() {
     }
   });
   window.customScaleCallback = () => {
-    drawService.resizeCanvas();
+    drawService.updateCanvas();
   };
 
   return true;
