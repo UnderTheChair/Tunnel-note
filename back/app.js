@@ -46,9 +46,11 @@ const socketServer = require('http').createServer().listen(9000);
 //Require socket.io about server
 const drawIo = require('socket.io')(socketServer, {
   path : '/draw',
+  pingTimeout: 600000,
 });
 const tunnelBoxIo = require('socket.io')(socketServer, {
-  path : '/tunnelBox'
+  path : '/tunnelBox',
+  pingTimeout: 600000,
 })
 
 require(__dirname + "/routers/draw_socket.js")(drawIo);
