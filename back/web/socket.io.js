@@ -12,9 +12,9 @@ let tunnelBoxSocket = io.connect(serverURL, {
 socket_init()
 
 // Disconnect socket before close window.
-window.onbeforeunload = function () {
-  drawsocket.emit('DISCONNECT');
-  tunnelBoxSocket.emit('DISCONNECT');
+window.onbeforeunload = async function () {
+  await tunnelBoxSocket.emit('DISCONNECT');
+  await drawsocket.emit('DISCONNECT');
 }
 
 function socket_init() {

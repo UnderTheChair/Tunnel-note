@@ -1,6 +1,7 @@
 module.exports = (io) => {
    // Connection event
   io.sockets.on('connection', (socket)=>{
+
     socket.on('CONNECT', ({accessToken}) => {
       io.in(accessToken).clients((err, clients) => {
         if (clients.length >= 2) {
@@ -66,7 +67,6 @@ module.exports = (io) => {
       
     
     socket.on('DISCONNECT', ()=>{
-      
       socket.broadcast.to(socket.accessToken).emit('DISCONNECT');
       socket.leave(socket.accessToken);
       socket.disconnect();

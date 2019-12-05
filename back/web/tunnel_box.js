@@ -199,6 +199,7 @@ class TunnelBox {
 
   rcvDeactivate() {
     this.on = false;
+    this.deactivate();
   }
 
   getPosition() {
@@ -347,6 +348,7 @@ tunnelBoxSocket.on('BOX_DOWN', (position) => {
 });
 
 tunnelBoxSocket.on('DISCONNECT', () => {
+  if (tunnel === undefined) return;
   tunnel.rcvDeactivate();
 });
 
@@ -360,10 +362,12 @@ tunnelBoxSocket.on('BOX_SIZE_INIT', (sizeData) => {
 });
 
 tunnelBoxSocket.on('MOBILE_MOVE', (position) => {
+  if(tunnel === undefined) return;
   tunnel.setBoxPosition(position);
 });
 
 tunnelBoxSocket.on('MOBILE_RESIZE', (position) => {
+  if(tunnel === undefined) return;
   tunnel.setBoxPosition(position);
   tunnel.setBoxSize(position.boxWidth, position.boxHeight, position.currentScale);
 });
