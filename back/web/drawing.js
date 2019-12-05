@@ -18,20 +18,20 @@ var curScale;
 let currentPageNum;
 var loadingCanvas = false;
 
-Image.prototype.load = function(url){
+Image.prototype.load = function (url) {
   var thisImg = this;
   var xmlHTTP = new XMLHttpRequest();
-  xmlHTTP.open('GET', url,true);
+  xmlHTTP.open('GET', url, true);
   xmlHTTP.responseType = 'arraybuffer';
-  xmlHTTP.onload = function(e) {
+  xmlHTTP.onload = function (e) {
     var blob = new Blob([this.response]);
     thisImg.src = window.URL.createObjectURL(blob);
     window.PDFViewerApplication.loadingBar.hide();
   };
-  xmlHTTP.onprogress = function(e) {
+  xmlHTTP.onprogress = function (e) {
     window.PDFViewerApplication.loadingBar.percent = parseInt((e.loaded / e.total) * 100);
   };
-  xmlHTTP.onloadstart = function() {
+  xmlHTTP.onloadstart = function () {
     window.PDFViewerApplication.loadingBar.percent = 10;
     window.PDFViewerApplication.loadingBar.show();
   };
@@ -50,6 +50,8 @@ let mousePenEvent = {
     [x, y] = pdfViewer._pages[currentPageNum].viewport.convertToPdfPoint(lastPos.x, lastPos.y)
     pdfMousePos = { x: x, y: y };
 
+    width = document.getElementById("selWidth").value;
+
     drawSocket.emit("MOUSEDOWN", {
       lastPos: pdfMousePos,
       mode: mode,
@@ -61,15 +63,19 @@ let mousePenEvent = {
   }, mouseUp(e) {
     isDrawing = false;
     let pageNum = e.target.getAttribute('data-page-number');
-    window.drawService.saveCanvas(pageNum);
+    let mode = window.drawService.mode;
+
+    if (mode === 'pen' || mode === 'eraser')
+      window.drawService.saveCanvas(pageNum);
+    
     drawSocket.emit('MOUSEUP')
   }, async mouseMove(e) {
-    if(isDrawing == false) return;
+    if (isDrawing == false) return;
     let pdfMousePos;
     let x, y;
     let pageNum = e.target.getAttribute('data-page-number');
 
-    if(pageNum !== currentPageNum){
+    if (pageNum !== currentPageNum) {
       return;
     }
 
@@ -96,12 +102,12 @@ let touchPenEvent = {
     let touch = e.touches[0];
     var mode = window.drawService.mode;
 
-    if(mode !== 'hand') { e.preventDefault(); }
-      mousePos = await getTouchPos(e);
-      let mouseEvent = new MouseEvent("mousedown", {
-        clientX: touch.clientX,
-        clientY: touch.clientY
-      });
+    if (mode !== 'hand') { e.preventDefault(); }
+    mousePos = await getTouchPos(e);
+    let mouseEvent = new MouseEvent("mousedown", {
+      clientX: touch.clientX,
+      clientY: touch.clientY
+    });
     canvas.dispatchEvent(mouseEvent);
   },
   touchEnd(e) {
@@ -109,21 +115,21 @@ let touchPenEvent = {
     let mouseEvent = new MouseEvent("mouseup", {});
     var mode = window.drawService.mode;
 
-    if(mode !== 'hand') {
+    if (mode !== 'hand') {
       e.preventDefault();
     }
     canvas.dispatchEvent(mouseEvent);
   },
   touchMove(e) {
     var mode = window.drawService.mode;
-    if(mode !== 'hand') { e.preventDefault(); }
-      let touch = e.touches[0];
-      let canvas = e.target;
-      let mouseEvent = new MouseEvent("mousemove", {
-        clientX: touch.clientX,
-        clientY: touch.clientY
-      });
-      canvas.dispatchEvent(mouseEvent);
+    if (mode !== 'hand') { e.preventDefault(); }
+    let touch = e.touches[0];
+    let canvas = e.target;
+    let mouseEvent = new MouseEvent("mousemove", {
+      clientX: touch.clientX,
+      clientY: touch.clientY
+    });
+    canvas.dispatchEvent(mouseEvent);
   }
 }
 
@@ -137,7 +143,7 @@ class DrawService {
       inMem.width = INMEMSIZE;
       inMem.height = INMEMSIZE;
       var context = inMem.getContext('2d');
-      context.scale(INMEMSIZE/canvasDOMs[0].width, INMEMSIZE/canvasDOMs[0].height);
+      context.scale(INMEMSIZE / canvasDOMs[0].width, INMEMSIZE / canvasDOMs[0].height);
       inMemCtx.push(context);
       inMemCanvases.push(inMem);
     }
@@ -162,9 +168,9 @@ class DrawService {
   registerDrawToolButton(btn, tool) {
     btn.addEventListener("click", (e) => {
       window.drawService.mode = tool;
-      if(tool !== 'hand'){
+      if (tool !== 'hand') {
         tunnelBox_app.isHandMode = false;
-      }else{
+      } else {
         tunnelBox_app.isHandMode = true;
       }
       drawSocket.emit("SETUP");
@@ -179,7 +185,7 @@ class DrawService {
     curScale = window.PDFViewerApplication.pdfViewer._location.scale;
     for (let i = 0; i < ctx.length; i++) {
       ctx[i].drawImage(inMemCanvases[i], 0, 0, INMEMSIZE, INMEMSIZE, 0, 0, width, height);
-      inMemCtx[i].scale(1/scaleDelta, 1/scaleDelta);
+      inMemCtx[i].scale(1 / scaleDelta, 1 / scaleDelta);
     }
   }
 
@@ -187,7 +193,7 @@ class DrawService {
     let pdfName = localStorage.getItem('pdfName')
     let token = localStorage.getItem('accessToken')
 
-    inMemCanvases[pageNum-1].toBlob((blob) => {
+    inMemCanvases[pageNum - 1].toBlob((blob) => {
       let cvsName = `${pageNum}-cvs.png`
       let formData = new FormData();
 
@@ -195,14 +201,14 @@ class DrawService {
       formData.append('pdfName', pdfName)
 
       fetch(`http://localhost:8000/pdfs/blob/cvs/save/`, {
-        method : 'POST',
+        method: 'POST',
         headers: new Headers({
           'Authorization': `Bearer ${token}`,
         }),
         body: formData,
       })
-      .then(res => res.json())
-      .then(res => console.log(res))
+        .then(res => res.json())
+        .then(res => console.log(res))
     });
 
   }
@@ -213,7 +219,7 @@ class DrawService {
     let pdfPageNum = this.canvases.length
 
     fetch(`http://localhost:8000/pdfs/blob/cvs/load/`, {
-      method : 'POST',
+      method: 'POST',
       headers: new Headers({
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -223,59 +229,60 @@ class DrawService {
         pdfPageNum: pdfPageNum
       }),
     })
-    .then(res => res.json())
-    .then(res => {
-      let self = this
-      for(let [i, context] of ctx.entries()) {
+      .then(res => res.json())
+      .then(res => {
+        let self = this
+        for (let [i, context] of ctx.entries()) {
 
-        let resCvs = res.cvsList[i];
-        if(resCvs === null) continue;
+          let resCvs = res.cvsList[i];
+          if (resCvs === null) continue;
 
-        let image = new Image();
-        if(!loadingCanvas) {
-          // Will manipulate loadingbar
-          image.load(`data:image/png;base64,${resCvs}`);
-          loadingCanvas = true;
+          let image = new Image();
+          if (!loadingCanvas) {
+            // Will manipulate loadingbar
+            image.load(`data:image/png;base64,${resCvs}`);
+            loadingCanvas = true;
+          }
+          else image.src = `data:image/png;base64,${resCvs}`
+
+          image.onload = function () {
+            context.drawImage(image, 0, 0, self.canvases[0].width, self.canvases[0].height);
+            let tf = inMemCtx[i].getTransform()
+            inMemCtx[i].setTransform(1, 0, 0, 1, 0, 0);
+            inMemCtx[i].drawImage(image, 0, 0);
+            inMemCtx[i].setTransform(tf);
+          }
         }
-        else image.src = `data:image/png;base64,${resCvs}`
-
-        image.onload = function() {
-          context.drawImage(image, 0, 0, self.canvases[0].width, self.canvases[0].height);
-          let tf = inMemCtx[i].getTransform()
-          inMemCtx[i].setTransform(1, 0, 0, 1, 0, 0);
-          inMemCtx[i].drawImage(image, 0, 0);
-          inMemCtx[i].setTransform(tf);
-        }
-      }
-    });
+      });
   }
 }
 
 
 // Draw to the canvas
 function drawLine(pageNum) {
-  if(isDrawing) {
+  if (isDrawing) {
     drawLineHelper(ctx[pageNum]);
     drawLineHelper(inMemCtx[pageNum]);
     lastPos = mousePos;
-	}
+  }
 }
 
 function drawLineHelper(ctx) {
   ctx.beginPath();
   var mode = window.drawService.mode;
-  if(mode == "pen") {
+  let rate = curScale / 100.0;
+  if (mode == "pen") {
     ctx.strokeStyle = color;
-    ctx.lineWidth = width;
+    ctx.lineWidth = (width * rate);
     ctx.globalAlpha = transparency;
     ctx.lineJoin = ctx.lineCap = 'round';
-    ctx.globalCompositeOperation="source-over";
+    ctx.globalCompositeOperation = "source-over";
     ctx.moveTo(lastPos.x, lastPos.y);
     ctx.lineTo(mousePos.x, mousePos.y);
     ctx.stroke();
-  } else if(mode == "eraser") {
+  } else if (mode == "eraser") {
     ctx.globalCompositeOperation = "destination-out";
-    ctx.arc(lastPos.x,lastPos.y,20,0,Math.PI*2,false);
+    ctx.arc(lastPos.x, lastPos.y, 20 * rate, 0, Math.PI * 2, false);
     ctx.fill();
   }
 }
@@ -329,13 +336,13 @@ drawSocket.on('MOUSEMOVE', (data) => {
   transparency = data.transparency;
   //mousePos = data.mousePos;
   let pageNum = data.pageNum;
-  let element = document.getElementsByClassName('penCanvas')[pageNum-1];
-  inMemCanvases[pageNum-1].width = element.width;
-  inMemCanvases[pageNum-1].height = element.height;
-  inMemCtx[pageNum-1].drawImage(element, 0, 0);
+  let element = document.getElementsByClassName('penCanvas')[pageNum - 1];
+  inMemCanvases[pageNum - 1].width = element.width;
+  inMemCanvases[pageNum - 1].height = element.height;
+  inMemCtx[pageNum - 1].drawImage(element, 0, 0);
 
-  drawLine(pageNum-1);
-  drawLine(pageNum-1);
+  drawLine(pageNum - 1);
+  drawLine(pageNum - 1);
   lastPos = mousePos;
 })
 
