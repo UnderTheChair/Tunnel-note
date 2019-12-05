@@ -3,6 +3,7 @@ const router = express.Router();
 const pdfModel = require('../db/models/pdf')
 const userModel = require('../db/models/user');
 const authMiddleware = require('../middlewares/auth')
+const anyMiddleware = require('../middlewares/any')
 const multer = require('multer');
 const fs = require('fs');
 const PDF2Pic = require("pdf2pic");
@@ -58,8 +59,8 @@ const storageCvs = multer.diskStorage({
 const upload = multer({ storage: storage })
 const uploadCvs = multer({ storage: storageCvs})
 
-router.use('/', authMiddleware);
-
+//router.use('/', authMiddleware);
+router.use('/', anyMiddleware); // USING DEVELOPMENT
 
 router.post('/upload', upload.single('pdfFile'), (req, res) => {
   let { name, size } = req.body
