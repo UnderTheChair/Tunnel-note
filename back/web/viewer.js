@@ -804,8 +804,6 @@ var PDFViewerApplication = {
     } while (--ticks > 0 && newScale < _ui_utils.MAX_SCALE);
 
     this.pdfViewer.currentScaleValue = newScale;
-    // J2
-    window.customScaleCallback();
   },
   zoomOut: function zoomOut(ticks) {
     if (this.pdfViewer.isInPresentationMode) {
@@ -821,8 +819,6 @@ var PDFViewerApplication = {
     } while (--ticks > 0 && newScale > _ui_utils.MIN_SCALE);
 
     this.pdfViewer.currentScaleValue = newScale;
-    // J2
-    window.customScaleCallback();
   },
   zoomReset: function zoomReset() {
     if (this.pdfViewer.isInPresentationMode) {
@@ -830,8 +826,6 @@ var PDFViewerApplication = {
     }
 
     this.pdfViewer.currentScaleValue = _ui_utils.DEFAULT_SCALE_VALUE;
-    // J2
-    window.customScaleCallback();
   },
 
   get pagesCount() {
@@ -2211,8 +2205,6 @@ function webViewerPageNumberChanged(evt) {
 
 function webViewerScaleChanged(evt) {
   PDFViewerApplication.pdfViewer.currentScaleValue = evt.value;
-  // J2
-  window.customScaleCallback();
 }
 
 function webViewerRotateCw() {
@@ -2310,8 +2302,6 @@ function webViewerPageChanging(evt) {
       Stats.add(page, pageView.stats);
     }
   }
-  // J2
-  window.customScaleCallback();
 }
 
 function webViewerVisibilityChange(evt) {
@@ -10825,6 +10815,7 @@ function () {
       if (this.defaultRenderingQueue) {
         this.update();
       }
+      window.customScaleCallback();
     }
   }, {
     key: "_setScale",
