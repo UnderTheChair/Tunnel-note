@@ -49,6 +49,8 @@ let mousePenEvent = {
     isDrawing = true;
     [x, y] = pdfViewer._pages[currentPageNum].viewport.convertToPdfPoint(lastPos.x, lastPos.y)
     pdfMousePos = { x: x, y: y };
+    
+    width = document.getElementById("selWidth").value;
 
     drawSocket.emit("MOUSEDOWN", {
       lastPos: pdfMousePos,
@@ -264,9 +266,10 @@ function drawLine(pageNum) {
 function drawLineHelper(ctx) {
   ctx.beginPath();
   var mode = window.drawService.mode;
+  let rate = curScale / 100.0;
   if(mode == "pen") {
     ctx.strokeStyle = color;
-    ctx.lineWidth = width;
+    ctx.lineWidth = (width * rate);
     ctx.globalAlpha = transparency;
     ctx.lineJoin = ctx.lineCap = 'round';
     ctx.globalCompositeOperation="source-over";
@@ -275,7 +278,7 @@ function drawLineHelper(ctx) {
     ctx.stroke();
   } else if(mode == "eraser") {
     ctx.globalCompositeOperation = "destination-out";
-    ctx.arc(lastPos.x,lastPos.y,20,0,Math.PI*2,false);
+    ctx.arc(lastPos.x, lastPos.y, 20 * rate,0, Math.PI*2, false);
     ctx.fill();
   }
 }
