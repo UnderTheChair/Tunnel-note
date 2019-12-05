@@ -179,8 +179,8 @@ class DrawService {
   }
 
   updateCanvas() {
-    let height = this.canvases[0].height;
     let width = this.canvases[0].width;
+    let height = this.canvases[0].height;
     let scaleDelta = window.PDFViewerApplication.pdfViewer._location.scale / curScale;
     curScale = window.PDFViewerApplication.pdfViewer._location.scale;
     for (let i = 0; i < ctx.length; i++) {
@@ -341,7 +341,7 @@ drawSocket.on('MOUSEMOVE', (data) => {
   inMemCanvases[pageNum - 1].height = element.height;
   inMemCtx[pageNum - 1].drawImage(element, 0, 0);
 
-  drawLine(pageNum - 1);
+  drawLine(pageNum-1);
   drawLine(pageNum - 1);
   lastPos = mousePos;
 })

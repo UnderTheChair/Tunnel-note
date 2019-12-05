@@ -2,6 +2,17 @@ import { tunnelBoxSocket } from './socket.io.js';
 import { screenControl } from './screen_control.js';
 import { tunnelBox_app } from './tunnelnote_app.js';
 
+var socketTimestamp = performance.now();
+var scaleChanging = false;
+
+function socketReady() {
+  if(performance.now() - socketTimestamp > 0.05) {
+    socketTimestamp = performance.now();
+    return true;
+  }
+  return false;
+}
+
 class TunnelBox {
   constructor() {
     this.DOM = document.getElementById('tunnel');
@@ -84,7 +95,7 @@ class TunnelBox {
       lastPos.y = currentPos.y;
 
       let position = self.getPosition();
-      tunnelBoxSocket.emit('BOX_RESIZE', position);
+      if(socketReady()) tunnelBoxSocket.emit('BOX_RESIZE', position);
     }
     function elementDrag(e) {
       e = e || window.event;
@@ -103,7 +114,7 @@ class TunnelBox {
       lastPos.y = currentPos.y;
 
       let position = self.getPosition();
-      tunnelBoxSocket.emit('BOX_MOVE', position);
+      if(socketReady()) tunnelBoxSocket.emit('BOX_MOVE', position);
     }
     function closeDragElement() {
       // stop moving when mouse button is released:
@@ -241,8 +252,9 @@ class TunnelBox {
     screenControl.setOffsetHeight(boxHeight);
 
     newScale = (document.body.clientWidth / (width / currentScale)) * (width / boxWidth);
+    scaleChanging = true;
     pdfViewer._setScale(newScale);
-    window.drawService.updateCanvas()
+    scaleChanging = false;
   }
 
   //mobile
@@ -293,7 +305,8 @@ tunnelBoxSocket.on('BOX_INIT', (position) => {
   $('#viewerContainer').scroll(mobileScrollCallback);
   window.customScaleCallback = () => {
     var position = tunnel.getPosition();
-    tunnelBoxSocket.emit('MOBILE_RESIZE', position);
+    if(!scaleChanging && socketReady()) tunnelBoxSocket.emit('MOBILE_RESIZE', position);
+    window.drawService.updateCanvas()
   };
 
   let toolbar_height = document.getElementById('toolbarContainer').offsetHeight;
@@ -365,7 +378,7 @@ let mobileScrollCallback = () => {
   if(tunnel.mobileDrag){
     tunnel.setPos();
     var position = tunnel.getPosition();
-    tunnelBoxSocket.emit('MOBILE_MOVE', position);
+    if(socketReady()) tunnelBoxSocket.emit('MOBILE_MOVE', position);
   }
 };
 
