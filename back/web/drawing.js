@@ -50,6 +50,7 @@ Image.prototype.load = function(url){
 
 let mousePenEvent = {
   async mouseDown(e) {
+    
 
     let pdfMousePos;
     let x, y;
@@ -57,6 +58,8 @@ let mousePenEvent = {
     let xy_loc; //형광펜 교정 x,y축 
     let erase_xy;
     var mode = window.drawService.mode;
+    //mouse down 하면 지움
+    if(mode == "pen") points = [];
 
     lastPos = await getMousePos(e);
     isDrawing = true;
@@ -66,7 +69,7 @@ let mousePenEvent = {
     erase_x = e.offsetX;
     erase_y = e.offsetY;
 
-    console.log(mode + "down");
+    // console.log(mode + "down");
     //console.log(xy_loc);
 
 
@@ -91,32 +94,77 @@ let mousePenEvent = {
 
   }, mouseUp(e) {
     var mode = window.drawService.mode;
+    // var h = this.canvases[0].height;
+    // var w = this.canvases[0].width;
     isDown = false;
     isDrawing = false;
     let pageNum = e.target.getAttribute('data-page-number');
+    let scaleDelta = window.PDFViewerApplication.pdfViewer._location.scale / curScale;
+    curScale = window.PDFViewerApplication.pdfViewer._location.scale;
     window.drawService.saveCanvas(pageNum);
+  
     drawSocket.emit('MOUSEUP')
-    if(mode == "eraser") erase_pt = [];
-    else if(mode == "pen"){
-      console.log("start");
-      // let scaleDelta = window.PDFViewerApplication.pdfViewer._location.scale / curScale;
-      // curScale = window.PDFViewerApplication.pdfViewer._location.scale;
-      
-      // let pageNum = e.target.getAttribute('data-page-number');
-      // let element = document.getElementsByClassName('penCanvas')[pageNum-1];
-      // inMemCanvases[pageNum-1].width = element.width;
-      // inMemCanvases[pageNum-1].height = element.height;
-      // inMemCtx[pageNum-1].drawImage(element, 0, 0);
-      // console.log("for문 전");
+    if(mode == "pen"){
 
-      // for (let i = 0; i < ctx.length; i++) {
-      //   console.log("sumin");
-      //   ctx[i].drawImage(inMemCanvases[i], 0, 0, INMEMSIZE, INMEMSIZE, 0, 0, ctx[i].canvas.width, ctx[i].canvas.height);
-      //   inMemCtx[i].scale(1/scaleDelta, 1/scaleDelta);
-      // }
+      console.log("drawing");
+      for (let i = 0; i < ctx.length; i++) {
+        console.log("sumin");
+        ctx[i].drawImage(inMemCanvases[i], 0, 0, INMEMSIZE, INMEMSIZE, 0, 0, ctx[i].canvas.width, ctx[i].canvas.height);
+        // ctx[i].drawImage(inMemCanvases[i], 0, 0, INMEMSIZE, INMEMSIZE, 0, 0, ctx[i].canvas.width, ctx[i].canvas.height);
+        // inMemCtx[i].scale(1/scaleDelta, 1/scaleDelta);
+        let tf = inMemCtx[i].getTransform();
+        inMemCtx[i].setTransform(1, 0, 0, 1, 0, 0);
+        inMemCtx[i].drawImage(inMemCanvases[i], 0, 0);
+        inMemCtx[i].setTransform(tf);
+      }
+      reredrawAll(inMemCtx[pageNum-1]);
 
-      points = [];
+      // ctx[pageNum].drawImage(inMemCtx[pageNum], 0,0);
     }
+    // if (mode == "pen") {
+    //   console.log("test");
+    //   window.drawService.updateCanvas();r
+    //   // for (let i =0;i<ctx.length;i++){
+    //   //   console.log("forforfor");
+    //   //   ctx[i].drawImage(inMemCtx[i], 0,0,INMEMSIZE,INMEMSIZE, 0, 0, this.canvases[0].width, this.canvases[0].height);
+    //   // }
+    //   // redrawAll(inMemCtx[pageNum]);
+
+    // }
+  
+    // console.log("sumin");
+
+
+    if(mode == "eraser") erase_pt = [];
+    
+    
+    // else if(mode == "pen"){
+    //   console.log("imstart");
+    //   // for (let i =0;i<ctx.length;i++){
+    //   //   console.log("forforfor");
+    //   //   ctx[i].drawImage(inMemCtx[i], 0,0,INMEMSIZE,INMEMSIZE, 0, 0, w, h);
+    //   // }
+    //   redrawAll(inMemCtx[pageNum]);
+    //   console.log("redraw");
+
+    //   // let scaleDelta = window.PDFViewerApplication.pdfViewer._location.scale / curScale;
+    //   // curScale = window.PDFViewerApplication.pdfViewer._location.scale;
+      
+    //   // let pageNum = e.target.getAttribute('data-page-number');
+    //   // let element = document.getElementsByClassName('penCanvas')[pageNum-1];
+    //   // inMemCanvases[pageNum-1].width = element.width;
+    //   // inMemCanvases[pageNum-1].height = element.height;
+    //   // inMemCtx[pageNum-1].drawImage(element, 0, 0);
+    //   // console.log("for문 전");
+
+    //   // for (let i = 0; i < ctx.length; i++) {
+    //   //   console.log("sumin");
+    //   //   ctx[i].drawImage(inMemCanvases[i], 0, 0, INMEMSIZE, INMEMSIZE, 0, 0, ctx[i].canvas.width, ctx[i].canvas.height);
+    //   //   inMemCtx[i].scale(1/scaleDelta, 1/scaleDelta);
+    //   // }
+
+    //   // points = [];
+    // }
 
 
   }, async mouseMove(e) {
@@ -143,7 +191,7 @@ let mousePenEvent = {
     erase_y = e.offsetY;
     // console.log(xy_loc);
 
-    console.log(mode + "move");
+    // console.log(mode + "move");
 
     drawSocket.emit('MOUSEMOVE', {
       mode : mode,
@@ -155,10 +203,15 @@ let mousePenEvent = {
       pageNum: e.target.getAttribute('data-page-number')
     })
     
-    if(mode == "pen") points.push(xy_loc);
+    if(mode == "pen") {
+      points.push(xy_loc);
+      redrawAll(ctx[e.target.getAttribute('data-page-number') - 1]);
+    }
+
     else if (mode == "eraser") {
       erase_xy = {x:e.offsetX, y:e.offsetY, isStart:false};
       erase_pt.push(erase_xy);
+      eraseAll(ctx[e.target.getAttribute('data-page-number') - 1]);
       // for(var i =0;i<erase_pt.length;i++){
       //   for(var j =0;j<points.length;j++){
       //     if(erase_pt[i] == points[j]){
@@ -170,7 +223,8 @@ let mousePenEvent = {
     }
 
   }
-    drawLine(e.target.getAttribute('data-page-number') - 1);
+  //실제canvas redrawall
+    // drawLine(e.target.getAttribute('data-page-number') - 1);
   }
 }
 
@@ -355,11 +409,61 @@ function redrawAll(ctx){
     ctx.lineTo(pt.x, pt.y);
   });
   ctx.stroke();
-  ctx.strokeStyle = color;
+  // ctx.strokeStyle = color;
 
 }
 
+function reredrawAll(ctx){
+  var mode = window.drawService.mode;
+  if(mode == "pen"){
+  ctx.save();
+  // ctx.strokeStyle = "black";
+  ctx.strokeStyle = color;
+
+  ctx.lineWidth = width;
+  ctx.linejoin = 'round';
+  ctx.lineCap = 'round';
+  ctx.globalAlpha = transparency;
+  // console.log(ctx.globalAlpha);
+  ctx.globalCompositeOperation="source-over";
+  points.forEach(function(pt) {
+    if(pt.isStart){
+      ctx.beginPath();
+    }
+    ctx.lineTo(pt.x, pt.y);
+  });
+  ctx.stroke();
+  ctx.restore();
+  // ctx.strokeStyle = color;
+  }
+  else if(mode == "eraser"){
+    console.log("erase");
+    ctx.clearRect(erase_x-width,erase_y-width, 2*width, 2*width);
+    ctx.beginPath();
+    // ctx.strokeStyle = "black";
+    ctx.strokeStyle = "white";
+
+    ctx.lineWidth = width;
+    ctx.linejoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.globalAlpha = transparency;
+    // console.log(ctx.globalAlpha);
+    ctx.globalCompositeOperation="destination-out";
+    points.forEach(function(pt) {
+      if(pt.isStart){
+        ctx.stroke();
+        ctx.beginPath();
+      }
+      ctx.lineTo(pt.x, pt.y);
+    });
+    ctx.stroke();
+    // ctx.strokeStyle = color;
+    }
+  }
+
+
 function eraseAll(ctx){
+  console.log("본 지우개");
   // ctx.clearRect(0,0, ctx.canvas.width, ctx.canvas.height);
   ctx.clearRect(erase_x-width,erase_y-width, 2*width, 2*width);
   ctx.beginPath();
@@ -388,7 +492,9 @@ function eraseAll(ctx){
 // Draw to the canvas
 function drawLine(pageNum) {
   if(isDrawing) {
-    redrawAll(ctx[pageNum]);
+    // console.log("start");
+    // redrawAll(ctx[pageNum]);
+    drawLineHelper(ctx[pageNum]);
     drawLineHelper(inMemCtx[pageNum]);
     // drawLineHelper(ctx[pageNum]);
     // drawLineHelper(inMemCtx[pageNum]);
@@ -400,18 +506,22 @@ function drawLineHelper(ctx) {
   ctx.beginPath();
   var mode = window.drawService.mode;
   if(mode == "pen") {
-    //내코드
-    // redrawAll(ctx);
-
-    //기존코드
-    ctx.strokeStyle = color;
-    ctx.lineWidth = width;
-    ctx.globalAlpha = transparency;
-    ctx.lineJoin = ctx.lineCap = 'round';
-    ctx.globalCompositeOperation="source-over";
-    ctx.moveTo(lastPos.x, lastPos.y);
-    ctx.lineTo(mousePos.x, mousePos.y);
-    ctx.stroke();
+    if(ctx.globalAlpha == 1){
+      //기존코드
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.globalAlpha = transparency;
+      ctx.lineJoin = ctx.lineCap = 'round';
+      ctx.globalCompositeOperation="source-over";
+      ctx.moveTo(lastPos.x, lastPos.y);
+      ctx.lineTo(mousePos.x, mousePos.y);
+      ctx.stroke();
+    }
+    else{
+      //내코드
+      redrawAll(ctx);
+    }
+ 
   } else if(mode == "eraser") {
     //내코드
     // ctx.clearRect(erase_x-width,erase_y-width, 2*width, 2*width);
