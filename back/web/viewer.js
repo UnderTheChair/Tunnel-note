@@ -10635,8 +10635,8 @@ function () {
           cvs.className = 'penCanvas';
           cvs.setAttribute('width',  Math.floor(viewport.width) + 'px');
           cvs.setAttribute('height',  Math.floor(viewport.height) + 'px');
-          cvs.style.width = Math.floor(viewport.width) + 'px';
-          cvs.style.height = Math.floor(viewport.height) + 'px';
+          //cvs.style.width = Math.floor(viewport.width) + 'px';
+          //cvs.style.height = Math.floor(viewport.height) + 'px';
           cvs.setAttribute('data-page-number', pageNum);
           canvasContainer.appendChild(cvs);
 
@@ -11829,6 +11829,13 @@ function () {
       var childNodes = div.childNodes;
       var currentZoomLayerNode = keepZoomLayer && this.zoomLayer || null;
       var currentAnnotationNode = keepAnnotations && this.annotationLayer && this.annotationLayer.div || null;
+      /** JINU add
+       * Dispatch "reset" custom event when page reset 
+       */
+      let index = div.getAttribute('data-page-number') - 1;
+      var penCanvas = document.getElementsByClassName('penCanvas')[index];
+
+      penCanvas.dispatchEvent(new CustomEvent('reset'));
 
       for (var i = childNodes.length - 1; i >= 0; i--) {
         var node = childNodes[i];
@@ -11839,7 +11846,7 @@ function () {
 
         div.removeChild(node);
       }
-
+      
       div.removeAttribute('data-loaded');
 
       if (currentAnnotationNode) {

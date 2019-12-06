@@ -135,12 +135,14 @@ let touchPenEvent = {
 }
 
 class DrawService {
-  constructor(canvasDOMs) {
+  constructor(canvasDOMs, pageHeight, pageWidth) {
     this.canvases = canvasDOMs;
     this.canvasLen = canvasDOMs.length;
     // fill loaded canvas image element to this array by loadCanvas()
     this.loadedCanvasList = new Array(this.canvasLen);
     this.mode = 'hand';
+    this.pageHeight = pageHeight,
+    this.pageWidth = pageWidth,
     
     ctx = new Array(this.canvasLen);
     inMemCtx = new Array(this.canvasLen);
@@ -156,27 +158,60 @@ class DrawService {
     //   inMemCtx.push(context);
     //   inMemCanvases.push(inMem);
     // }
+    
+    /**
+     * BUG : handling if curScale is auto
+     * 
+     */
     pdfViewer = window.PDFViewerApplication.pdfViewer;
     curScale = window.PDFViewerApplication.pdfViewer._location.scale;
+    
   }
 
   pageRendered(index) {
-    ctx[index] = (this.canvases[index].getContext('2d'));
-    let inMem = document.createElement('canvas');
-    inMem.width = this.canvases[0].width;
-    inMem.height = this.canvases[0].height;
-    let context = inMem.getContext('2d');
-    inMemCtx[index] = context;
-    inMemCanvases[index] = inMem;
-
+    console.log(`load : ${index}`)
+    let self = this;
+    if (ctx[index]) {
+      ctx[index].canvas.setAttribute('height', this.pageHeight+'px');
+      ctx[index].canvas.setAttribute('width', this.pageWidth+'px');
+      inMemCtx[index].canvas.setAttribute('height', this.pageHeight+'px');
+      inMemCtx[index].canvas.setAttribute('width', this.pageWidth+'px');
+    } else {
+      ctx[index] = (this.canvases[index].getContext('2d'));
+      let inMem = document.createElement('canvas');
+      inMem.width = this.pageWidth;
+      inMem.height = this.pageHeight;
+      inMemCtx[index] = inMem.getContext('2d');
+      inMemCanvases[index] = inMem;
+    }
     let image = this.loadedCanvasList[index];
-    if (!image) return;
+
+    if(!image) return;
+
+    image.load(image.src);
+    
     image.onload = function () {
-      context.drawImage(image, 0, 0, self.canvases[0].width, self.canvases[0].height);
+      ctx[index].drawImage(image, 0, 0, self.pageWidth, self.pageHeight);
+    
       let tf = inMemCtx[index].getTransform()
       inMemCtx[index].setTransform(1, 0, 0, 1, 0, 0);
       inMemCtx[index].drawImage(image, 0, 0);
       inMemCtx[index].setTransform(tf);
+    }
+  }
+
+  reset(index) {
+    if (ctx[index]) {
+      console.log(`reset : ${index}`);
+      let image = new Image();
+      image.src = ctx[index].canvas.toDataURL("image/png");
+      this.loadedCanvasList[index] = image;    
+      
+      ctx[index].canvas.setAttribute('height', '0px')
+      ctx[index].canvas.setAttribute('width', '0px');
+      inMemCtx[index].canvas.setAttribute('height', '0px')
+      inMemCtx[index].canvas.setAttribute('width', '0px');
+
     }
   }
 
@@ -271,11 +306,10 @@ class DrawService {
           let image = new Image();
           if (!loadingCanvas) {
             // Will manipulate loadingbar
-            image.load(`data:image/png;base64,${resCvs}`);
+            // image.load(`data:image/png;base64,${resCvs}`);
             loadingCanvas = true;
           }
-          else image.src = `data:image/png;base64,${resCvs}`
-          
+          image.src = `data:image/png;base64,${resCvs}`
           self.loadedCanvasList[i] = image;
           // image.onload = function () {
           //   context.drawImage(image, 0, 0, self.canvases[0].width, self.canvases[0].height);
@@ -303,6 +337,7 @@ function drawLineHelper(ctx) {
   ctx.beginPath();
   var mode = window.drawService.mode;
   let rate = curScale / 100.0;
+
   if (mode == "pen") {
     ctx.strokeStyle = color;
     ctx.lineWidth = (width * rate);

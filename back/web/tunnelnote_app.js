@@ -12,7 +12,12 @@ window.customSetup = ()=> {
   console.log('Initializing canvas');
   isSetup = true;
   let canvases = document.getElementsByClassName('penCanvas');
-  let drawService = new DrawService(canvases);
+  let viewerPage = document.querySelector("#viewer > div:nth-child(1)");
+
+  let height = viewerPage.style.height.split('px')[0];
+  let width = viewerPage.style.width.split('px')[0];
+  console.log(height, width)
+  let drawService = new DrawService(canvases, height, width);
   
   initDraw(drawService);
 
@@ -91,6 +96,9 @@ function initDraw(drawService){
   for (let i = 0; i < cvsLen; i++) {
     canvases[i].addEventListener("pagerendered", (event)=>{
       drawService.pageRendered(i);
+    })
+    canvases[i].addEventListener("reset", (event) => {
+      drawService.reset(i);
     })
   }
 }
