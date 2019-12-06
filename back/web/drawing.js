@@ -147,17 +147,6 @@ class DrawService {
     ctx = new Array(this.canvasLen);
     inMemCtx = new Array(this.canvasLen);
     inMemCanvases = new Array(this.canvasLen);
-
-    // for (let cvs of this.canvases) {
-    //   ctx.push(cvs.getContext('2d'));
-    //   var inMem = document.createElement('canvas');
-    //   inMem.width = this.canvases[0].width;
-    //   inMem.height = this.canvases[0].height;
-    //   var context = inMem.getContext('2d');
-    //   //context.scale(INMEMSIZE / canvasDOMs[0].width, INMEMSIZE / canvasDOMs[0].height);
-    //   inMemCtx.push(context);
-    //   inMemCanvases.push(inMem);
-    // }
     
     /**
      * BUG : handling if curScale is auto
@@ -244,17 +233,7 @@ class DrawService {
   }
 
   updateCanvas() {
-    // let width = this.pageWidth;
-    // let height = this.pageHeight;
-    // console.log()
-    // let scaleDelta = window.PDFViewerApplication.pdfViewer._location.scale / curScale;
-    // curScale = window.PDFViewerApplication.pdfViewer._location.scale;
-    // for (let i = 0; i < ctx.length; i++) {
-    //   if(ctx[i]) {
-    //     ctx[i].drawImage(inMemCanvases[i], 0, 0, INMEMSIZE, INMEMSIZE, 0, 0, width, height);
-    //     inMemCtx[i].scale(1 / scaleDelta, 1 / scaleDelta);
-    //   }
-    // }
+    // Unused this function
   }
 
   saveCanvas(pageNum) {
@@ -309,18 +288,10 @@ class DrawService {
           let image = new Image();
           if (!loadingCanvas) {
             // Will manipulate loadingbar
-            // image.load(`data:image/png;base64,${resCvs}`);
             loadingCanvas = true;
           }
           image.src = `data:image/png;base64,${resCvs}`
           self.loadedCanvasList[i] = image;
-          // image.onload = function () {
-          //   context.drawImage(image, 0, 0, self.canvases[0].width, self.canvases[0].height);
-          //   let tf = inMemCtx[i].getTransform()
-          //   inMemCtx[i].setTransform(1, 0, 0, 1, 0, 0);
-          //   inMemCtx[i].drawImage(image, 0, 0);
-          //   inMemCtx[i].setTransform(tf);
-          // }
         }
       });
   }
@@ -406,12 +377,7 @@ drawSocket.on('MOUSEMOVE', (data) => {
   transparency = data.transparency;
   //mousePos = data.mousePos;
   let pageNum = data.pageNum;
-  let element = document.getElementsByClassName('penCanvas')[pageNum - 1];
-  inMemCanvases[pageNum - 1].width = element.width;
-  inMemCanvases[pageNum - 1].height = element.height;
-  inMemCtx[pageNum - 1].drawImage(element, 0, 0);
-
-  drawLine(pageNum - 1);
+  
   drawLine(pageNum - 1);
   lastPos = mousePos;
 })
