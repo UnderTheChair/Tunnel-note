@@ -68,7 +68,7 @@ let mousePenEvent = {
 
     if (mode === 'pen' || mode === 'eraser')
       window.drawService.saveCanvas(pageNum);
-    
+
     drawSocket.emit('MOUSEUP')
   }, async mouseMove(e) {
     if (isDrawing == false) return;
@@ -138,7 +138,10 @@ class DrawService {
   constructor(canvasDOMs) {
     this.canvases = canvasDOMs;
     this.canvasLen = canvasDOMs.length;
+    // fill loaded canvas image element to this array by loadCanvas()
+    this.loadedCanvasList = new Array(this.canvasLen);
     this.mode = 'hand';
+    
     ctx = new Array(this.canvasLen);
     inMemCtx = new Array(this.canvasLen);
     inMemCanvases = new Array(this.canvasLen);
@@ -158,14 +161,23 @@ class DrawService {
   }
 
   pageRendered(index) {
-    console.log(index);
     ctx[index] = (this.canvases[index].getContext('2d'));
-    let inMem = document.createElement('cavnas');
+    let inMem = document.createElement('canvas');
     inMem.width = this.canvases[0].width;
     inMem.height = this.canvases[0].height;
     let context = inMem.getContext('2d');
     inMemCtx[index] = context;
-    inMemCtx[index] = inMem;
+    inMemCanvases[index] = inMem;
+
+    let image = this.loadedCanvasList[index];
+    if (!image) return;
+    image.onload = function () {
+      context.drawImage(image, 0, 0, self.canvases[0].width, self.canvases[0].height);
+      let tf = inMemCtx[index].getTransform()
+      inMemCtx[index].setTransform(1, 0, 0, 1, 0, 0);
+      inMemCtx[index].drawImage(image, 0, 0);
+      inMemCtx[index].setTransform(tf);
+    }
   }
 
   enableMouseEventListener() {
@@ -250,11 +262,12 @@ class DrawService {
       .then(res => res.json())
       .then(res => {
         let self = this
+
         for (let [i, context] of ctx.entries()) {
-          
+
           let resCvs = res.cvsList[i];
           if (resCvs === null) continue;
-          console.log("load index: " + i );
+          
           let image = new Image();
           if (!loadingCanvas) {
             // Will manipulate loadingbar
@@ -262,14 +275,15 @@ class DrawService {
             loadingCanvas = true;
           }
           else image.src = `data:image/png;base64,${resCvs}`
-
-          image.onload = function () {
-            context.drawImage(image, 0, 0, self.canvases[0].width, self.canvases[0].height);
-            let tf = inMemCtx[i].getTransform()
-            inMemCtx[i].setTransform(1, 0, 0, 1, 0, 0);
-            inMemCtx[i].drawImage(image, 0, 0);
-            inMemCtx[i].setTransform(tf);
-          }
+          
+          self.loadedCanvasList[i] = image;
+          // image.onload = function () {
+          //   context.drawImage(image, 0, 0, self.canvases[0].width, self.canvases[0].height);
+          //   let tf = inMemCtx[i].getTransform()
+          //   inMemCtx[i].setTransform(1, 0, 0, 1, 0, 0);
+          //   inMemCtx[i].drawImage(image, 0, 0);
+          //   inMemCtx[i].setTransform(tf);
+          // }
         }
       });
   }
@@ -359,7 +373,7 @@ drawSocket.on('MOUSEMOVE', (data) => {
   inMemCanvases[pageNum - 1].height = element.height;
   inMemCtx[pageNum - 1].drawImage(element, 0, 0);
 
-  drawLine(pageNum-1);
+  drawLine(pageNum - 1);
   drawLine(pageNum - 1);
   lastPos = mousePos;
 })

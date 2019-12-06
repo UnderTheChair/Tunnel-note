@@ -13,7 +13,7 @@ window.customSetup = ()=> {
   isSetup = true;
   let canvases = document.getElementsByClassName('penCanvas');
   let drawService = new DrawService(canvases);
-
+  
   initDraw(drawService);
 
   window.drawService = drawService;
@@ -87,6 +87,7 @@ function initDraw(drawService){
 
   let canvases = drawService.canvases;
   let cvsLen = canvases.length
+  
   for (let i = 0; i < cvsLen; i++) {
     canvases[i].addEventListener("pagerendered", (event)=>{
       drawService.pageRendered(i);
