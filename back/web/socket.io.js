@@ -1,4 +1,5 @@
-const serverURL = 'http://localhost:9000';
+import {SERVER_IP} from './config.js'
+const serverURL = `http://${SERVER_IP}:9000`;
 
 
 let drawSocket = io.connect(serverURL, {
@@ -12,7 +13,7 @@ let tunnelBoxSocket = io.connect(serverURL, {
 socket_init()
 
 // Disconnect socket before close window.
-window.onbeforeunload = async function () {
+window.onunload = window.onbeforeunload = async function () {
   await tunnelBoxSocket.emit('DISCONNECT');
   await drawsocket.emit('DISCONNECT');
 }

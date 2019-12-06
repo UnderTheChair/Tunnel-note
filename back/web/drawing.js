@@ -1,5 +1,6 @@
 import { drawSocket } from "./socket.io.js";
 import { tunnelBox_app } from './tunnelnote_app.js';
+import { SERVER_IP } from './config.js'
 
 // Set up mouse events for drawing
 let isDrawing = false;
@@ -136,20 +137,37 @@ let touchPenEvent = {
 class DrawService {
   constructor(canvasDOMs) {
     this.canvases = canvasDOMs;
+    this.canvasLen = canvasDOMs.length;
     this.mode = 'hand';
-    for (let cvs of this.canvases) {
-      ctx.push(cvs.getContext('2d'));
-      var inMem = document.createElement('canvas');
-      inMem.width = INMEMSIZE;
-      inMem.height = INMEMSIZE;
-      var context = inMem.getContext('2d');
-      context.scale(INMEMSIZE / canvasDOMs[0].width, INMEMSIZE / canvasDOMs[0].height);
-      inMemCtx.push(context);
-      inMemCanvases.push(inMem);
-    }
+    ctx = new Array(this.canvasLen);
+    inMemCtx = new Array(this.canvasLen);
+    inMemCanvases = new Array(this.canvasLen);
+
+    // for (let cvs of this.canvases) {
+    //   ctx.push(cvs.getContext('2d'));
+    //   var inMem = document.createElement('canvas');
+    //   inMem.width = this.canvases[0].width;
+    //   inMem.height = this.canvases[0].height;
+    //   var context = inMem.getContext('2d');
+    //   //context.scale(INMEMSIZE / canvasDOMs[0].width, INMEMSIZE / canvasDOMs[0].height);
+    //   inMemCtx.push(context);
+    //   inMemCanvases.push(inMem);
+    // }
     pdfViewer = window.PDFViewerApplication.pdfViewer;
     curScale = window.PDFViewerApplication.pdfViewer._location.scale;
   }
+
+  pageRendered(index) {
+    console.log(index);
+    ctx[index] = (this.canvases[index].getContext('2d'));
+    let inMem = document.createElement('cavnas');
+    inMem.width = this.canvases[0].width;
+    inMem.height = this.canvases[0].height;
+    let context = inMem.getContext('2d');
+    inMemCtx[index] = context;
+    inMemCtx[index] = inMem;
+  }
+
   enableMouseEventListener() {
     for (let cvs of this.canvases) {
       cvs.addEventListener("mousedown", mousePenEvent.mouseDown, false);
@@ -200,7 +218,7 @@ class DrawService {
       formData.append('cvsFile', blob, cvsName)
       formData.append('pdfName', pdfName)
 
-      fetch(`http://localhost:8000/pdfs/blob/cvs/save/`, {
+      fetch(`http://${SERVER_IP}:8000/pdfs/blob/cvs/save/`, {
         method: 'POST',
         headers: new Headers({
           'Authorization': `Bearer ${token}`,
@@ -218,7 +236,7 @@ class DrawService {
     let token = localStorage.getItem('accessToken')
     let pdfPageNum = this.canvases.length
 
-    fetch(`http://localhost:8000/pdfs/blob/cvs/load/`, {
+    fetch(`http://${SERVER_IP}:8000/pdfs/blob/cvs/load/`, {
       method: 'POST',
       headers: new Headers({
         'Authorization': `Bearer ${token}`,
@@ -233,10 +251,10 @@ class DrawService {
       .then(res => {
         let self = this
         for (let [i, context] of ctx.entries()) {
-
+          
           let resCvs = res.cvsList[i];
           if (resCvs === null) continue;
-
+          console.log("load index: " + i );
           let image = new Image();
           if (!loadingCanvas) {
             // Will manipulate loadingbar

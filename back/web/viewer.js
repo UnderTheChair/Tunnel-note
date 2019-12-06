@@ -1941,10 +1941,15 @@ var webViewerOpenFileViaURL;
 }
 
 function webViewerPageRendered(evt) {
+  /** JINU add
+   * Dispatch "pagerendered" custom event when page rendered 
+   */
+  var penCanvases = document.getElementsByClassName('penCanvas');
   var pageNumber = evt.pageNumber;
   var pageIndex = pageNumber - 1;
   var pageView = PDFViewerApplication.pdfViewer.getPageView(pageIndex);
 
+  penCanvases[pageIndex].dispatchEvent(new CustomEvent('pagerendered'));
   if (pageNumber === PDFViewerApplication.page) {
     PDFViewerApplication.toolbar.updateLoadingIndicatorState(false);
   }
