@@ -244,14 +244,17 @@ class DrawService {
   }
 
   updateCanvas() {
-    let width = this.canvases[0].width;
-    let height = this.canvases[0].height;
-    let scaleDelta = window.PDFViewerApplication.pdfViewer._location.scale / curScale;
-    curScale = window.PDFViewerApplication.pdfViewer._location.scale;
-    for (let i = 0; i < ctx.length; i++) {
-      ctx[i].drawImage(inMemCanvases[i], 0, 0, INMEMSIZE, INMEMSIZE, 0, 0, width, height);
-      inMemCtx[i].scale(1 / scaleDelta, 1 / scaleDelta);
-    }
+    // let width = this.pageWidth;
+    // let height = this.pageHeight;
+    // console.log()
+    // let scaleDelta = window.PDFViewerApplication.pdfViewer._location.scale / curScale;
+    // curScale = window.PDFViewerApplication.pdfViewer._location.scale;
+    // for (let i = 0; i < ctx.length; i++) {
+    //   if(ctx[i]) {
+    //     ctx[i].drawImage(inMemCanvases[i], 0, 0, INMEMSIZE, INMEMSIZE, 0, 0, width, height);
+    //     inMemCtx[i].scale(1 / scaleDelta, 1 / scaleDelta);
+    //   }
+    // }
   }
 
   saveCanvas(pageNum) {
