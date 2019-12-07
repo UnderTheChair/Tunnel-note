@@ -25,7 +25,7 @@ let currentPageNum;
 let mousePenEvent = {
   async mouseDown(e) {
     // prevent simultaneous inputs from PC and mobile
-    if(otherEndDrawing) return; 
+    if (otherEndDrawing) return;
     curEndDrawing = true;
 
     let pdfMousePos;
@@ -45,10 +45,10 @@ let mousePenEvent = {
     width = selWidth.value;
     transparency = selTransparency.value;
 
-    if(mode === 'pen')
-      startLine(currentPageNum-1);
+    if (mode === 'pen')
+      startLine(currentPageNum - 1);
     else if (mode === 'eraser')
-      eraseLine(currentPageNum-1);
+      eraseLine(currentPageNum - 1);
 
     drawSocket.emit("MOUSEDOWN", {
       mousePos: pdfMousePos,
@@ -59,13 +59,13 @@ let mousePenEvent = {
       pageNum: currentPageNum,
     })
   }, mouseUp(e) {
-    if(otherEndDrawing) return; 
+    if (otherEndDrawing) return;
     curEndDrawing = false;
 
     let pageNum = e.target.getAttribute('data-page-number');
     let mode = window.drawService.mode;
 
-    let loadedContext = window.drawService.loadedCanvasList[pageNum-1];
+    let loadedContext = window.drawService.loadedCanvasList[pageNum - 1];
     loadedContext.stroke();
 
     if (mode === 'pen' || mode === 'eraser')
@@ -73,7 +73,7 @@ let mousePenEvent = {
 
     drawSocket.emit('MOUSEUP')
   }, async mouseMove(e) {
-    if(otherEndDrawing || !curEndDrawing) return; 
+    if (otherEndDrawing || !curEndDrawing) return;
     let pdfMousePos;
     let x, y;
     let pageNum = e.target.getAttribute('data-page-number');
@@ -95,10 +95,10 @@ let mousePenEvent = {
       mode: mode
     })
 
-    if(mode === 'pen')
-      drawLine(pageNum-1);
+    if (mode === 'pen')
+      drawLine(pageNum - 1);
     else if (mode === 'eraser')
-      eraseLine(pageNum-1);
+      eraseLine(pageNum - 1);
   }
 }
 
@@ -149,7 +149,7 @@ class DrawService {
     this.mode = 'hand';
     this.pageHeight = pageHeight;
     this.pageWidth = pageWidth;
-    
+
     ctx = new Array(this.canvasLen);
 
     /**
@@ -164,7 +164,7 @@ class DrawService {
   async pageRendered(index) {
     await this.reset()
     console.log(`load : ${index}`)
-    
+
     if (ctx[index]) {
 
       this.pageHeight = ctx[index].canvas.style.height.split('px')[0];
@@ -175,16 +175,25 @@ class DrawService {
 
     } else {
       ctx[index] = (this.canvases[index].getContext('2d'));
+
+      if (!this.loadedCanvasList[index]) {
+        let canvasEl = document.createElement('canvas');
+        let context = canvasEl.getContext('2d');
+        canvasEl.width = BUFFER_SIZE;
+        canvasEl.height = BUFFER_SIZE;
+        this.loadedCanvasList[index] = context;
+      }
+
     }
     let context = this.loadedCanvasList[index];
 
     if (!context) return;
 
     ctx[index].drawImage(context.canvas, 0, 0, BUFFER_SIZE, BUFFER_SIZE, 0, 0, this.pageWidth, this.pageHeight);
-    
+
     curScale = window.PDFViewerApplication.pdfViewer._currentScale
     this.loadedCanvasList[index].setTransform(1, 0, 0, 1, 0, 0);
-    this.loadedCanvasList[index].scale(BUFFER_SIZE/this.pageWidth, BUFFER_SIZE/this.pageHeight);
+    this.loadedCanvasList[index].scale(BUFFER_SIZE / this.pageWidth, BUFFER_SIZE / this.pageHeight);
   }
 
   reset(index) {
@@ -276,17 +285,17 @@ class DrawService {
       .then(res => {
         let self = this
         for (let i = 0; i < this.canvasLen; i++) {
-          
+
           let resCvs = res.cvsList[i];
           if (resCvs === null) continue;
 
           let image = new Image();
-          
+
           image.src = `data:image/png;base64,${resCvs}`
           let canvasEl = document.createElement('canvas');
           let context = canvasEl.getContext('2d');
 
-          image.onload = function(){
+          image.onload = function () {
             canvasEl.width = BUFFER_SIZE;
             canvasEl.height = BUFFER_SIZE;
             context.drawImage(image, 0, 0, BUFFER_SIZE, BUFFER_SIZE);
@@ -313,9 +322,9 @@ function startLineHelper(target) {
   target.globalAlpha = transparency;
   target.lineJoin = 'round'
   target.lineCap = 'round';
-  if(transparency < 1)
+  if (transparency < 1)
     target.globalCompositeOperation = 'xor';
-  else 
+  else
     target.globalCompositeOperation = 'source-over';
   target.moveTo(mousePos.x, mousePos.y);
 }
@@ -323,15 +332,15 @@ function startLineHelper(target) {
 function drawLine(index) {
   let curContext, loadedContext;
 
-  curContext = ctx[index]; 
+  curContext = ctx[index];
   loadedContext = window.drawService.loadedCanvasList[index];
 
   curContext.lineTo(mousePos.x, mousePos.y);
   curContext.stroke();
-  
+
   loadedContext.lineTo(mousePos.x, mousePos.y);
   // loadedContext.stroke();
-  
+
 }
 
 function eraseLine(index) {
@@ -341,7 +350,7 @@ function eraseLine(index) {
   target.globalCompositeOperation = "destination-out";
   target.arc(mousePos.x, mousePos.y, 20 * rate, 0, Math.PI * 2, false);
   target.fill();
-  
+
   target = window.drawService.loadedCanvasList[index];
   target.beginPath();
   target.globalCompositeOperation = "destination-out";
@@ -370,7 +379,7 @@ function getTouchPos(touchEvent) {
 }
 
 drawSocket.on('MOUSEDOWN', (data) => {
-  if(curEndDrawing) return; 
+  if (curEndDrawing) return;
   let [x, y] = pdfViewer._pages[0].viewport.convertToViewportPoint(data.mousePos.x, data.mousePos.y);
 
   color = data.color;
@@ -380,25 +389,25 @@ drawSocket.on('MOUSEDOWN', (data) => {
   mousePos = { x: x, y: y };
   otherEndDrawing = true;
 
-  if(data.mode === 'pen')
-    startLine(data.pageNum-1);
-  else if(data.mode === 'eraser')
-    eraseLine(data.pageNum-1);
+  if (data.mode === 'pen')
+    startLine(data.pageNum - 1);
+  else if (data.mode === 'eraser')
+    eraseLine(data.pageNum - 1);
 })
 
 drawSocket.on('MOUSEUP', (data) => {
-  if(curEndDrawing) return; 
+  if (curEndDrawing) return;
   otherEndDrawing = false;
 })
 
 drawSocket.on('MOUSEMOVE', (data) => {
-  if(curEndDrawing || !otherEndDrawing) return;
+  if (curEndDrawing || !otherEndDrawing) return;
   let [x, y] = pdfViewer._pages[0].viewport.convertToViewportPoint(data.mousePos.x, data.mousePos.y);
   mousePos = { x: x, y: y };
-  if(data.mode === 'pen')
-    drawLine(data.pageNum-1);
-  else if(data.mode === 'eraser')
-    eraseLine(data.pageNum-1);
+  if (data.mode === 'pen')
+    drawLine(data.pageNum - 1);
+  else if (data.mode === 'eraser')
+    eraseLine(data.pageNum - 1);
 })
 
 
