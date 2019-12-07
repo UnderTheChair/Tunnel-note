@@ -108,9 +108,6 @@ let mousePenEvent = {
 
     drawSocket.emit('MOUSEMOVE', {
       mousePos: pdfMousePos,
-      color: color,
-      width: width,
-      transparency: transparency,
       pageNum: pageNum
     })
 
@@ -383,6 +380,9 @@ drawSocket.on('MOUSEDOWN', (data) => {
   selColor.value = data.color;
   selWidth.value = data.width;
   selTransparency.value = data.transparency;
+  color = data.color;
+  width = data.width;
+  transparency = data.transparency;
 
   mousePos = { x: x, y: y };
   isDrawing = true;
@@ -401,10 +401,6 @@ drawSocket.on('MOUSEUP', (data) => {
 drawSocket.on('MOUSEMOVE', (data) => {
   let [x, y] = pdfViewer._pages[0].viewport.convertToViewportPoint(data.mousePos.x, data.mousePos.y);
   mousePos = { x: x, y: y };
-  color = data.color;
-  width = data.width;
-  transparency = data.transparency;
-
   if(window.drawService.mode === 'pen')
     drawLine(data.pageNum-1);
   else if(window.drawService.mode === 'eraser')
