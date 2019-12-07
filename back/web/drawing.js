@@ -176,24 +176,27 @@ class DrawService {
     let image = this.loadedCanvasList[index];
 
     if(!image) return;
-
-    image.load(image.src);
     
-    image.onload = function () {
-      ctx[index].drawImage(image, 0, 0, self.pageWidth, self.pageHeight);
-    
-      let tf = inMemCtx[index].getTransform()
-      inMemCtx[index].setTransform(1, 0, 0, 1, 0, 0);
-      inMemCtx[index].drawImage(image, 0, 0);
-      inMemCtx[index].setTransform(tf);
-    }
+    ctx[index].drawImage(image, 0, 0);
+  
+    let tf = inMemCtx[index].getTransform()
+    inMemCtx[index].setTransform(1, 0, 0, 1, 0, 0);
+    inMemCtx[index].drawImage(image, 0, 0);
+    inMemCtx[index].setTransform(tf);
+  
   }
 
   reset(index) {
     if (ctx[index]) {
       console.log(`reset : ${index}`);
+      let canvasEl = document.createElement('canvas');
+      canvasEl.width = 3000;
+      canvasEl.height = 3000;
+      let context = canvasEl.getContext('2d');
+      context.drawImage(this.canvases[index], 0, 0);
+
       let image = new Image();
-      image.src = ctx[index].canvas.toDataURL("image/png");
+      image.src = canvasEl.toDataURL("image/png");
       this.loadedCanvasList[index] = image;    
       
       ctx[index].canvas.setAttribute('height', '0px')
