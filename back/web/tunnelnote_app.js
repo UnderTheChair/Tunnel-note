@@ -20,8 +20,10 @@ window.customSetup = ()=> {
   let drawService = new DrawService(canvases, height, width);
   
   initDraw(drawService);
-
+  
   window.drawService = drawService;
+  window.drawService.loadCanvas();
+  
   var container = document.getElementById('penContainer');
   var viewer = document.getElementById('viewerContainer');
   // var hammer = new Hammer(container, {
@@ -66,8 +68,6 @@ window.customSetup = ()=> {
   if(drawService.mode != 'hand'){
 
   }
-
-  window.drawService.loadCanvas();
 
   return true;
 }

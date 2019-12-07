@@ -17,7 +17,7 @@ var width = selWidth.value;
 var selTransparency = document.getElementById("selTransparency");
 var transparency = selTransparency.value;
 
-const BUFFER_SIZE = 3000;
+const BUFFER_SIZE = 1500;
 
 var curScale;
 let currentPageNum;
@@ -188,7 +188,6 @@ class DrawService {
     let context = this.loadedCanvasList[index];
 
     if (!context) return;
-
     ctx[index].drawImage(context.canvas, 0, 0, BUFFER_SIZE, BUFFER_SIZE, 0, 0, this.pageWidth, this.pageHeight);
 
     curScale = window.PDFViewerApplication.pdfViewer._currentScale
@@ -300,6 +299,7 @@ class DrawService {
             canvasEl.height = BUFFER_SIZE;
             context.drawImage(image, 0, 0, BUFFER_SIZE, BUFFER_SIZE);
             self.loadedCanvasList[i] = context;
+            self.pageRendered(i);
           }
         }
       });
