@@ -43,7 +43,6 @@ class TunnelBox {
 
     function currentMouseMove(e){
       if(!self.isHandMode){
-        console.log("is not hand mode");
         closeDragElement();
         container.style.cursor = "default";
         return;
@@ -295,6 +294,7 @@ class TunnelBox {
 }
 
 let tunnel;
+let toolbar_height = document.getElementById('toolbarContainer').offsetHeight;
 
 //pc -> mobile
 tunnelBoxSocket.on('BOX_INIT', (position) => {
@@ -308,8 +308,7 @@ tunnelBoxSocket.on('BOX_INIT', (position) => {
     if(!scaleChanging && socketReady()) tunnelBoxSocket.emit('MOBILE_RESIZE', position);
     window.drawService.updateCanvas()
   };
-
-  let toolbar_height = document.getElementById('toolbarContainer').offsetHeight;
+  
   let mobile_width = $( window ).width();
   let mobile_height = $( window ).height() - toolbar_height;
 
@@ -359,6 +358,7 @@ tunnelBoxSocket.on('BOX_SIZE_INIT', (sizeData) => {
   var position = tunnel.getPosition();
   tunnelBoxSocket.emit('BOX_MOVE', position);
   tunnelBoxSocket.emit('PC_MOVE_END', null);
+  $('#viewerContainer').scroll(validTunnelBoxInView);
 });
 
 tunnelBoxSocket.on('MOBILE_MOVE', (position) => {
@@ -381,5 +381,43 @@ let mobileScrollCallback = () => {
     if(socketReady()) tunnelBoxSocket.emit('MOBILE_MOVE', position);
   }
 };
+
+let isBoxMove = false;
+
+//check pc scroll
+setInterval(function(){
+  if(isBoxMove){
+    let position = tunnel.getPosition();
+    if(socketReady()) tunnelBoxSocket.emit('BOX_MOVE', position);
+    isBoxMove = false;
+  }
+}, 250);
+
+let lastScrollTop = 0;
+let PcWindowHeight = $(window).height();
+
+function validTunnelBoxInView() {
+  var currentScrollTop = document.querySelector('#viewerContainer').scrollTop;
+  var clientRect = tunnel.DOM.getBoundingClientRect();
+  var scrollChange = currentScrollTop - lastScrollTop;
+  if(scrollChange > 0) { 
+    //scroll down
+    if(clientRect.top <= toolbar_height + 5){
+      tunnel.top += scrollChange;
+      tunnel.DOM.style.top = tunnel.top + 'px';
+      isBoxMove = true;
+    }
+  }else{    
+    //scroll up
+    if(clientRect.bottom >= PcWindowHeight - 5){
+      tunnel.top += scrollChange;
+      tunnel.DOM.style.top = tunnel.top + 'px';
+      isBoxMove = true;
+    }
+  }
+
+  lastScrollTop = currentScrollTop;
+}
+
 
 export { TunnelBox, };
