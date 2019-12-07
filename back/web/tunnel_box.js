@@ -19,15 +19,19 @@ class TunnelBox {
     this.resizeDOM = document.getElementById('resizer');
     this.on = false;
     this.isInit = false;
-    // width = height * screenRatio
+    // width = height * resolution
     this.resolution = 2;
     this.width = 300;
     this.height = 150;
     this.left = 0;
     this.top = 0;
+
+    this.mobileWidth = 300;
+    this.mobileHeight = 150;
+
+    this.isHandMode = true;
     this.mobileDrag = true;
     this.isMobile = true;
-    this.isHandMode = true;
   }
   _dragElement(elmnt) {
     let container = document.getElementById('penContainer');
@@ -263,9 +267,10 @@ class TunnelBox {
   }
 
   //mobile
-  setSize(width, height){
+  setMobileSizeValue(width, height){
     this.width = width;
     this.height = height;
+    this.resolution = this.width / this.height;
   }
   setPos(){
     this.top = document.querySelector('#viewerContainer').scrollTop;
@@ -287,15 +292,20 @@ class TunnelBox {
     
     tunnel.DOM.style.top = this.top + 'px';
     tunnel.DOM.style.left = this.left + 'px';
-    //this.width = currentScale * this.width;
+  }
+  setBoxSizeInit(sizeData){
+    this.mobileHeight = sizeData.height;
+    this.mobileWidth = sizeData.width;
+    this.resolution = this.mobileWidth/ this.mobileHeight;
+    this.setBoxSize(1.5);
   }
   //pc by mobile control
-  setBoxSize(mobileWidth, mobileHeight, mobileScale) {
-    this.width = mobileWidth / mobileScale;
-    this.DOM.style.width = this.width + 'px';
-    this.height = mobileHeight / mobileScale;
+  setBoxSize(mobileScale) {
+    mobileScale = mobileScale * 10 / 11;
+    this.height = this.mobileHeight / mobileScale;
     this.DOM.style.height = this.height + 'px';
-    this.resolution = this.width / this.height;
+    this.width = this.height * this.resolution;
+    this.DOM.style.width = this.width + 'px';
   }
 }
 
@@ -315,14 +325,15 @@ tunnelBoxSocket.on('BOX_INIT', (position) => {
     window.drawService.updateCanvas()
   };
   
-  let mobile_width = $( window ).width();
-  let mobile_height = $( window ).height() - toolbar_height;
+  //set tunnel size value by mobile screen size
+  var mobileWidth = $( window ).width();
+  var mobileHeight = $( window ).height() - toolbar_height;
 
   tunnelBoxSocket.emit('BOX_SIZE_INIT', { 
-    width: mobile_width, 
-    height: mobile_height
+    width: mobileWidth, 
+    height: mobileHeight
   });
-  tunnel.setSize(mobile_width, mobile_height);
+  tunnel.setMobileSizeValue(mobileWidth, mobileHeight);
   tunnel.setMobilePosition(position);
   tunnel.rcvActivate();
 });
@@ -360,10 +371,13 @@ tunnelBoxSocket.on('DISCONNECT', () => {
 //mobile -> pc
 tunnelBoxSocket.on('BOX_SIZE_INIT', (sizeData) => {
   tunnel = tunnelBox_app;
-  tunnel.setBoxSize(sizeData.width, sizeData.height, 1.5);
-  var position = tunnel.getPosition();
-  tunnelBoxSocket.emit('BOX_MOVE', position);
+  tunnel.setBoxSizeInit(sizeData);
+
+  //set mobile position
+  var pcPosition = tunnel.getPosition();
+  tunnelBoxSocket.emit('BOX_MOVE', pcPosition);
   tunnelBoxSocket.emit('PC_MOVE_END', null);
+
   $('#viewerContainer').scroll(validTunnelBoxInView);
 });
 
@@ -374,8 +388,8 @@ tunnelBoxSocket.on('MOBILE_MOVE', (position) => {
 
 tunnelBoxSocket.on('MOBILE_RESIZE', (position) => {
   if(tunnel === undefined) return;
+  tunnel.setBoxSize(position.currentScale);
   tunnel.setBoxPosition(position);
-  tunnel.setBoxSize(position.boxWidth, position.boxHeight, position.currentScale);
 });
 
 //in mobile call
@@ -390,7 +404,7 @@ let mobileScrollCallback = () => {
 
 let isBoxMove = false;
 
-//check pc scroll
+//check box move by pc scroll
 setInterval(function(){
   if(isBoxMove){
     let position = tunnel.getPosition();

@@ -57,11 +57,6 @@ window.customSetup = ()=> {
     drawService.updateCanvas();
   };
 
-  //drag TunnelBox only in handmode
-  if(drawService.mode != 'hand'){
-
-  }
-
   window.drawService.loadCanvas();
 
   return true;
