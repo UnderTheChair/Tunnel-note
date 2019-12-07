@@ -44,12 +44,17 @@ let mousePenEvent = {
     currentPageNum = e.target.getAttribute('data-page-number');
     var mode = window.drawService.mode;
 
-    lastPos = await getMousePos(e);
+    mousePos = await getMousePos(e);
     isDrawing = true;
     [x, y] = pdfViewer._pages[currentPageNum].viewport.convertToPdfPoint(lastPos.x, lastPos.y)
     pdfMousePos = { x: x, y: y };
 
     width = document.getElementById("selWidth").value;
+
+    if(mode === 'pen')
+      startLine(currentPageNum-1);
+    else if (mode === 'eraser')
+      eraseLine(currentPageNum-1);
 
     drawSocket.emit("MOUSEDOWN", {
       lastPos: pdfMousePos,
@@ -73,13 +78,13 @@ let mousePenEvent = {
     let pdfMousePos;
     let x, y;
     let pageNum = e.target.getAttribute('data-page-number');
+    var mode = window.drawService.mode;
 
     if (pageNum !== currentPageNum) {
       return;
     }
 
     mousePos = await getMousePos(e);
-
     [x, y] = pdfViewer._pages[pageNum].viewport.convertToPdfPoint(mousePos.x, mousePos.y)
     pdfMousePos = { x: x, y: y };
 
@@ -88,9 +93,13 @@ let mousePenEvent = {
       color: color,
       width: width,
       transparency: transparency,
-      pageNum: e.target.getAttribute('data-page-number')
+      pageNum: pageNum
     })
-    drawLine(e.target.getAttribute('data-page-number') - 1);
+
+    if(mode === 'pen')
+      drawLine(pageNum-1);
+    else if (mode === 'eraser')
+      eraseLine(pageNum-1);
   }
 }
 
@@ -283,34 +292,32 @@ class DrawService {
   }
 }
 
-
+function startLine(pageNum) {
+  var target = ctx[pageNum];
+  let rate = curScale / 100.0;
+  target.beginPath();
+  target.strokeStyle = color;
+  target.lineWidth = (width * rate);
+  target.globalAlpha = transparency;
+  target.lineJoin = 'round'
+  target.lineCap = 'round';
+  target.globalCompositeOperation = 'xor';
+  target.moveTo(mousePos.x, mousePos.y);
+  lastPos = mousePos;
+}
 // Draw to the canvas
 function drawLine(pageNum) {
-  if (isDrawing) {
-    drawLineHelper(ctx[pageNum]);
-    lastPos = mousePos;
-  }
+  var target = ctx[pageNum];
+  target.lineTo(mousePos.x, mousePos.y);
+  target.stroke();
 }
 
-function drawLineHelper(ctx) {
-  ctx.beginPath();
-  var mode = window.drawService.mode;
+function eraseLine(pageNum) {
+  var target = ctx[pageNum];
   let rate = curScale / 100.0;
-
-  if (mode == "pen") {
-    ctx.strokeStyle = color;
-    ctx.lineWidth = (width * rate);
-    ctx.globalAlpha = transparency;
-    ctx.lineJoin = ctx.lineCap = 'round';
-    ctx.globalCompositeOperation = "source-over";
-    ctx.moveTo(lastPos.x, lastPos.y);
-    ctx.lineTo(mousePos.x, mousePos.y);
-    ctx.stroke();
-  } else if (mode == "eraser") {
-    ctx.globalCompositeOperation = "destination-out";
-    ctx.arc(lastPos.x, lastPos.y, 20 * rate, 0, Math.PI * 2, false);
-    ctx.fill();
-  }
+  target.globalCompositeOperation = "destination-out";
+  target.arc(mousePos.x, mousePos.y, 20 * rate, 0, Math.PI * 2, false);
+  target.fill();
 }
 
 // Get the position of the mouse relative to the canvas
