@@ -10635,8 +10635,8 @@ function () {
           cvs.className = 'penCanvas';
           cvs.setAttribute('width',  Math.floor(viewport.width) + 'px');
           cvs.setAttribute('height',  Math.floor(viewport.height) + 'px');
-          //cvs.style.width = Math.floor(viewport.width) + 'px';
-          //cvs.style.height = Math.floor(viewport.height) + 'px';
+          cvs.style.width = Math.floor(viewport.width) + 'px';
+          cvs.style.height = Math.floor(viewport.height) + 'px';
           cvs.setAttribute('data-page-number', pageNum);
           canvasContainer.appendChild(cvs);
 

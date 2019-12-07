@@ -25,31 +25,10 @@ selTransparency.onchange = function (e) {
   transparency = selTransparency.value;
 }
 
-const BUFFER_SIZE = 2000.0;
+const BUFFER_SIZE = 3000;
 
 var curScale;
 let currentPageNum;
-var loadingCanvas = false;
-
-Image.prototype.load = function (url) {
-  var thisImg = this;
-  var xmlHTTP = new XMLHttpRequest();
-  xmlHTTP.open('GET', url, true);
-  xmlHTTP.responseType = 'arraybuffer';
-  xmlHTTP.onload = function (e) {
-    var blob = new Blob([this.response]);
-    thisImg.src = window.URL.createObjectURL(blob);
-    window.PDFViewerApplication.loadingBar.hide();
-  };
-  xmlHTTP.onprogress = function (e) {
-    window.PDFViewerApplication.loadingBar.percent = parseInt((e.loaded / e.total) * 100);
-  };
-  xmlHTTP.onloadstart = function () {
-    window.PDFViewerApplication.loadingBar.percent = 10;
-    window.PDFViewerApplication.loadingBar.show();
-  };
-  xmlHTTP.send();
-};
 
 let mousePenEvent = {
   async mouseDown(e) {
@@ -176,14 +155,14 @@ class DrawService {
      * 
      */
     pdfViewer = window.PDFViewerApplication.pdfViewer;
-    curScale = window.PDFViewerApplication.pdfViewer._location.scale;
+    curScale = window.PDFViewerApplication.pdfViewer._currentScale;
 
   }
 
-  pageRendered(index) {
-    
+  async pageRendered(index) {
+    await this.reset()
     console.log(`load : ${index}`)
-    curScale = window.PDFViewerApplication.pdfViewer._location.scale;
+    
     if (ctx[index]) {
 
       this.pageHeight = ctx[index].canvas.style.height.split('px')[0];
@@ -195,12 +174,15 @@ class DrawService {
     } else {
       ctx[index] = (this.canvases[index].getContext('2d'));
     }
-    let image = this.loadedCanvasList[index];
+    let context = this.loadedCanvasList[index];
 
-    if (!image) return;
+    if (!context) return;
 
-    ctx[index].drawImage(image, 0, 0, image.width, image.height, 0, 0, this.pageWidth, this.pageHeight);
-
+    ctx[index].drawImage(context.canvas, 0, 0, BUFFER_SIZE, BUFFER_SIZE, 0, 0, this.pageWidth, this.pageHeight);
+    
+    curScale = window.PDFViewerApplication.pdfViewer._currentScale
+    this.loadedCanvasList[index].setTransform(1, 0, 0, 1, 0, 0);
+    this.loadedCanvasList[index].scale(BUFFER_SIZE/this.pageWidth, BUFFER_SIZE/this.pageHeight);
   }
 
   reset(index) {
@@ -211,25 +193,9 @@ class DrawService {
       if (height == 0 && width == 0) return;
 
       console.log(`reset : ${index}`);
-      let canvasEl = document.createElement('canvas');
-      canvasEl.width = BUFFER_SIZE;
-      canvasEl.height = BUFFER_SIZE;
-      let context = canvasEl.getContext('2d');
-      context.scale(BUFFER_SIZE / this.pageWidth, BUFFER_SIZE / this.pageHeight);
-
-      let image = new Image();
-
-      context.drawImage(this.canvases[index], 0, 0)
-
-      image.src = context.canvas.toDataURL();
-
-      this.loadedCanvasList[index] = image;
 
       ctx[index].canvas.setAttribute('height', '0px')
       ctx[index].canvas.setAttribute('width', '0px');
-      context.canvas.setAttribute('height', '0px')
-      context.canvas.setAttribute('width', '0px');
-
     }
   }
 
@@ -269,8 +235,7 @@ class DrawService {
     let pdfName = localStorage.getItem('pdfName')
     let token = localStorage.getItem('accessToken')
 
-    // FIX: canvas => loadedlist
-    this.canvases[pageNum - 1].toBlob((blob) => {
+    this.loadedCanvasList[pageNum - 1].canvas.toBlob((blob) => {
       let cvsName = `${pageNum}-cvs.png`
       let formData = new FormData();
 
@@ -309,30 +274,41 @@ class DrawService {
       .then(res => res.json())
       .then(res => {
         let self = this
-
-        for (let [i, context] of ctx.entries()) {
-
+        for (let i = 0; i < this.canvasLen; i++) {
+          
           let resCvs = res.cvsList[i];
           if (resCvs === null) continue;
 
           let image = new Image();
-          if (!loadingCanvas) {
-            // Will manipulate loadingbar
-            loadingCanvas = true;
-          }
+          
           image.src = `data:image/png;base64,${resCvs}`
-          self.loadedCanvasList[i] = image;
+          let canvasEl = document.createElement('canvas');
+          let context = canvasEl.getContext('2d');
+
+          image.onload = function(){
+            canvasEl.width = BUFFER_SIZE;
+            canvasEl.height = BUFFER_SIZE;
+            context.drawImage(image, 0, 0, BUFFER_SIZE, BUFFER_SIZE);
+            self.loadedCanvasList[i] = context;
+          }
         }
       });
   }
 }
 
 function startLine(pageNum) {
-  var target = ctx[pageNum];
-  let rate = curScale / 100.0;
+  let curContext = ctx[pageNum];
+  let loadedContext = window.drawService.loadedCanvasList[pageNum];
+  startLineHelper(curContext)
+  startLineHelper(loadedContext);
+}
+
+function startLineHelper(target) {
+  let rate = curScale;
+
   target.beginPath();
   target.strokeStyle = color;
-  target.lineWidth = (width * rate);
+  target.lineWidth = Math.max((width * rate), 1);
   target.globalAlpha = transparency;
   target.lineJoin = 'round'
   target.lineCap = 'round';
@@ -344,14 +320,25 @@ function startLine(pageNum) {
 }
 // Draw to the canvas
 function drawLine(pageNum) {
-  var target = ctx[pageNum];
+  let target;
+
+  target = ctx[pageNum]; 
+  target.lineTo(mousePos.x, mousePos.y);
+  target.stroke();
+  
+  target = window.drawService.loadedCanvasList[pageNum];
   target.lineTo(mousePos.x, mousePos.y);
   target.stroke();
 }
 
 function eraseLine(pageNum) {
-  var target = ctx[pageNum];
+  let target = ctx[pageNum];
   let rate = curScale / 100.0;
+  target.globalCompositeOperation = "destination-out";
+  target.arc(mousePos.x, mousePos.y, 20 * rate, 0, Math.PI * 2, false);
+  target.fill();
+  
+  target = window.drawService.loadedCanvasList[pageNum];
   target.globalCompositeOperation = "destination-out";
   target.arc(mousePos.x, mousePos.y, 20 * rate, 0, Math.PI * 2, false);
   target.fill();
