@@ -2,17 +2,31 @@ import { drawSocket } from "./socket.io.js";
 import { tunnelBox_app } from './tunnelnote_app.js';
 import { SERVER_IP } from './config.js'
 
+
 // Set up mouse events for drawing
 let isDrawing = false;
 let mousePos = { x: 0, y: 0 };
-let lastPos = mousePos;
-let color;
-let width;
-let transparency
 let ctx = [];
 let pdfViewer;
 
+var selColor = document.getElementById("selColor");
+var color = selColor.value;
+var selWidth = document.getElementById("selWidth");
+var width = selWidth.value;
+var selTransparency = document.getElementById("selTransparency");
+var transparency = selTransparency.value;
+selColor.onchange = function (e) {
+  color = selColor.value;
+}
+selWidth.onchange = function (e) {
+  width = selWidth.value;
+}
+selTransparency.onchange = function (e) {
+  transparency = selTransparency.value;
+}
+
 const BUFFER_SIZE = 2000.0;
+
 var curScale;
 let currentPageNum;
 var loadingCanvas = false;
@@ -44,15 +58,22 @@ let mousePenEvent = {
     currentPageNum = e.target.getAttribute('data-page-number');
     var mode = window.drawService.mode;
 
-    lastPos = await getMousePos(e);
+    mousePos = await getMousePos(e);
     isDrawing = true;
-    [x, y] = pdfViewer._pages[0].viewport.convertToPdfPoint(lastPos.x, lastPos.y)
+
+    [x, y] = pdfViewer._pages[0].viewport.convertToPdfPoint(mousePos.x, mousePos.y)
+
     pdfMousePos = { x: x, y: y };
 
     width = document.getElementById("selWidth").value;
 
+    if(mode === 'pen')
+      startLine(currentPageNum-1);
+    else if (mode === 'eraser')
+      eraseLine(currentPageNum-1);
+
     drawSocket.emit("MOUSEDOWN", {
-      lastPos: pdfMousePos,
+      mousePos: pdfMousePos,
       mode: mode,
       color: color,
       width: width,
@@ -73,6 +94,7 @@ let mousePenEvent = {
     let pdfMousePos;
     let x, y;
     let pageNum = e.target.getAttribute('data-page-number');
+    var mode = window.drawService.mode;
 
     if (pageNum !== currentPageNum) {
       return;
@@ -81,6 +103,7 @@ let mousePenEvent = {
     mousePos = await getMousePos(e);
 
     [x, y] = pdfViewer._pages[0].viewport.convertToPdfPoint(mousePos.x, mousePos.y)
+
     pdfMousePos = { x: x, y: y };
 
     drawSocket.emit('MOUSEMOVE', {
@@ -88,9 +111,13 @@ let mousePenEvent = {
       color: color,
       width: width,
       transparency: transparency,
-      pageNum: e.target.getAttribute('data-page-number')
+      pageNum: pageNum
     })
-    drawLine(e.target.getAttribute('data-page-number') - 1);
+
+    if(mode === 'pen')
+      drawLine(pageNum-1);
+    else if (mode === 'eraser')
+      eraseLine(pageNum-1);
   }
 }
 
@@ -300,34 +327,34 @@ class DrawService {
   }
 }
 
-
+function startLine(pageNum) {
+  var target = ctx[pageNum];
+  let rate = curScale / 100.0;
+  target.beginPath();
+  target.strokeStyle = color;
+  target.lineWidth = (width * rate);
+  target.globalAlpha = transparency;
+  target.lineJoin = 'round'
+  target.lineCap = 'round';
+  if(transparency < 1)
+    target.globalCompositeOperation = 'xor';
+  else 
+    target.globalCompositeOperation = 'source-over';
+  target.moveTo(mousePos.x, mousePos.y);
+}
 // Draw to the canvas
 function drawLine(pageNum) {
-  if (isDrawing) {
-    drawLineHelper(ctx[pageNum]);
-    lastPos = mousePos;
-  }
+  var target = ctx[pageNum];
+  target.lineTo(mousePos.x, mousePos.y);
+  target.stroke();
 }
 
-function drawLineHelper(ctx) {
-  ctx.beginPath();
-  var mode = window.drawService.mode;
+function eraseLine(pageNum) {
+  var target = ctx[pageNum];
   let rate = curScale / 100.0;
-
-  if (mode == "pen") {
-    ctx.strokeStyle = color;
-    ctx.lineWidth = Math.max((width * rate), 1);
-    ctx.globalAlpha = transparency;
-    ctx.lineJoin = ctx.lineCap = 'round';
-    ctx.globalCompositeOperation = "source-over";
-    ctx.moveTo(lastPos.x, lastPos.y);
-    ctx.lineTo(mousePos.x, mousePos.y);
-    ctx.stroke();
-  } else if (mode == "eraser") {
-    ctx.globalCompositeOperation = "destination-out";
-    ctx.arc(lastPos.x, lastPos.y, 20 * rate, 0, Math.PI * 2, false);
-    ctx.fill();
-  }
+  target.globalCompositeOperation = "destination-out";
+  target.arc(mousePos.x, mousePos.y, 20 * rate, 0, Math.PI * 2, false);
+  target.fill();
 }
 
 // Get the position of the mouse relative to the canvas
@@ -351,20 +378,20 @@ function getTouchPos(touchEvent) {
 }
 
 drawSocket.on('MOUSEDOWN', (data) => {
-  let [x, y] = pdfViewer._pages[0].viewport.convertToViewportPoint(data.lastPos.x, data.lastPos.y);
-  let selColor = document.getElementById("selColor");
-  let selWidth = document.getElementById("selWidth");
-  let selTransparency = document.getElementById("selTransparency");
+  let [x, y] = pdfViewer._pages[0].viewport.convertToViewportPoint(data.mousePos.x, data.mousePos.y);
 
   selColor.value = data.color;
   selWidth.value = data.width;
   selTransparency.value = data.transparency;
 
-  lastPos = { x: x, y: y };
-
-  //lastPos = data.lastPos;
-  window.drawService.mode = data.mode;
+  mousePos = { x: x, y: y };
   isDrawing = true;
+
+  window.drawService.mode = data.mode;
+  if(data.mode === 'pen')
+    startLine(data.pageNum-1);
+  else if(data.mode === 'eraser')
+    eraseLine(data.pageNum-1);
 })
 
 drawSocket.on('MOUSEUP', (data) => {
@@ -377,33 +404,13 @@ drawSocket.on('MOUSEMOVE', (data) => {
   color = data.color;
   width = data.width;
   transparency = data.transparency;
-  //mousePos = data.mousePos;
-  let pageNum = data.pageNum;
 
-  drawLine(pageNum - 1);
-  lastPos = mousePos;
+  if(window.drawService.mode === 'pen')
+    drawLine(data.pageNum-1);
+  else if(window.drawService.mode === 'eraser')
+    eraseLine(data.pageNum-1);
 })
 
-var selColor = document.getElementById("selColor");
-color = selColor.value;
-
-var selWidth = document.getElementById("selWidth");
-color = selWidth.value;
-
-var selTransparency = document.getElementById("selTransparency");
-transparency = selTransparency.value;
-
-selColor.onchange = function (e) {
-  color = selColor.value;
-}
-
-selWidth.onchange = function (e) {
-  width = selWidth.value;
-}
-
-selTransparency.onchange = function (e) {
-  transparency = selTransparency.value;
-}
 
 export {
   DrawService
