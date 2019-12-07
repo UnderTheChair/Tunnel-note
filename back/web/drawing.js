@@ -301,7 +301,10 @@ function startLine(pageNum) {
   target.globalAlpha = transparency;
   target.lineJoin = 'round'
   target.lineCap = 'round';
-  target.globalCompositeOperation = 'xor';
+  if(transparency < 1)
+    target.globalCompositeOperation = 'xor';
+  else 
+    target.globalCompositeOperation = 'source-over';
   target.moveTo(mousePos.x, mousePos.y);
   lastPos = mousePos;
 }
