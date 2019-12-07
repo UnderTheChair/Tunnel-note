@@ -10820,7 +10820,7 @@ function () {
       if (this.defaultRenderingQueue) {
         this.update();
       }
-      window.customScaleCallback();
+     
     }
   }, {
     key: "_setScale",

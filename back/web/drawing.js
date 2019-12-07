@@ -236,10 +236,6 @@ class DrawService {
     }, false)
   }
 
-  updateCanvas() {
-    // Unused this function
-  }
-
   saveCanvas(pageNum) {
     let pdfName = localStorage.getItem('pdfName')
     let token = localStorage.getItem('accessToken')
