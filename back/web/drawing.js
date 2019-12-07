@@ -12,9 +12,7 @@ let transparency
 let ctx = [];
 let pdfViewer;
 
-let inMemCanvases = [];
-let inMemCtx = [];
-const INMEMSIZE = 3000;
+const BUFFER_SIZE = 3000;
 var curScale;
 let currentPageNum;
 var loadingCanvas = false;
@@ -145,8 +143,6 @@ class DrawService {
     this.pageWidth = pageWidth,
     
     ctx = new Array(this.canvasLen);
-    inMemCtx = new Array(this.canvasLen);
-    inMemCanvases = new Array(this.canvasLen);
     
     /**
      * BUG : handling if curScale is auto
@@ -163,15 +159,8 @@ class DrawService {
     if (ctx[index]) {
       ctx[index].canvas.setAttribute('height', this.pageHeight+'px');
       ctx[index].canvas.setAttribute('width', this.pageWidth+'px');
-      inMemCtx[index].canvas.setAttribute('height', this.pageHeight+'px');
-      inMemCtx[index].canvas.setAttribute('width', this.pageWidth+'px');
     } else {
       ctx[index] = (this.canvases[index].getContext('2d'));
-      let inMem = document.createElement('canvas');
-      inMem.width = this.pageWidth;
-      inMem.height = this.pageHeight;
-      inMemCtx[index] = inMem.getContext('2d');
-      inMemCanvases[index] = inMem;
     }
     let image = this.loadedCanvasList[index];
 
@@ -179,19 +168,14 @@ class DrawService {
     
     ctx[index].drawImage(image, 0, 0);
   
-    let tf = inMemCtx[index].getTransform()
-    inMemCtx[index].setTransform(1, 0, 0, 1, 0, 0);
-    inMemCtx[index].drawImage(image, 0, 0);
-    inMemCtx[index].setTransform(tf);
-  
   }
 
   reset(index) {
     if (ctx[index]) {
       console.log(`reset : ${index}`);
       let canvasEl = document.createElement('canvas');
-      canvasEl.width = 3000;
-      canvasEl.height = 3000;
+      canvasEl.width = BUFFER_SIZE;
+      canvasEl.height = BUFFER_SIZE;
       let context = canvasEl.getContext('2d');
       context.drawImage(this.canvases[index], 0, 0);
 
@@ -201,8 +185,6 @@ class DrawService {
       
       ctx[index].canvas.setAttribute('height', '0px')
       ctx[index].canvas.setAttribute('width', '0px');
-      inMemCtx[index].canvas.setAttribute('height', '0px')
-      inMemCtx[index].canvas.setAttribute('width', '0px');
 
     }
   }
@@ -243,7 +225,8 @@ class DrawService {
     let pdfName = localStorage.getItem('pdfName')
     let token = localStorage.getItem('accessToken')
 
-    inMemCanvases[pageNum - 1].toBlob((blob) => {
+    // FIX: canvas => loadedlist
+    this.canvases[pageNum - 1].toBlob((blob) => {
       let cvsName = `${pageNum}-cvs.png`
       let formData = new FormData();
 
@@ -305,7 +288,6 @@ class DrawService {
 function drawLine(pageNum) {
   if (isDrawing) {
     drawLineHelper(ctx[pageNum]);
-    drawLineHelper(inMemCtx[pageNum]);
     lastPos = mousePos;
   }
 }
