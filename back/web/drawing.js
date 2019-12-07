@@ -1,5 +1,6 @@
 import { drawSocket } from "./socket.io.js";
 import { tunnelBox_app } from './tunnelnote_app.js';
+import { SERVER_IP } from './config.js'
 
 // Set up mouse events for drawing
 let isDrawing = false;
@@ -11,9 +12,7 @@ let transparency
 let ctx = [];
 let pdfViewer;
 
-let inMemCanvases = [];
-let inMemCtx = [];
-const INMEMSIZE = 3000;
+const BUFFER_SIZE = 2000.0;
 var curScale;
 let currentPageNum;
 var loadingCanvas = false;
@@ -47,7 +46,7 @@ let mousePenEvent = {
 
     lastPos = await getMousePos(e);
     isDrawing = true;
-    [x, y] = pdfViewer._pages[currentPageNum].viewport.convertToPdfPoint(lastPos.x, lastPos.y)
+    [x, y] = pdfViewer._pages[0].viewport.convertToPdfPoint(lastPos.x, lastPos.y)
     pdfMousePos = { x: x, y: y };
 
     width = document.getElementById("selWidth").value;
@@ -67,7 +66,7 @@ let mousePenEvent = {
 
     if (mode === 'pen' || mode === 'eraser')
       window.drawService.saveCanvas(pageNum);
-    
+
     drawSocket.emit('MOUSEUP')
   }, async mouseMove(e) {
     if (isDrawing == false) return;
@@ -81,7 +80,7 @@ let mousePenEvent = {
 
     mousePos = await getMousePos(e);
 
-    [x, y] = pdfViewer._pages[pageNum].viewport.convertToPdfPoint(mousePos.x, mousePos.y)
+    [x, y] = pdfViewer._pages[0].viewport.convertToPdfPoint(mousePos.x, mousePos.y)
     pdfMousePos = { x: x, y: y };
 
     drawSocket.emit('MOUSEMOVE', {
@@ -134,22 +133,79 @@ let touchPenEvent = {
 }
 
 class DrawService {
-  constructor(canvasDOMs) {
+  constructor(canvasDOMs, pageHeight, pageWidth) {
     this.canvases = canvasDOMs;
+    this.canvasLen = canvasDOMs.length;
+    // fill loaded canvas image element to this array by loadCanvas()
+    this.loadedCanvasList = new Array(this.canvasLen);
     this.mode = 'hand';
-    for (let cvs of this.canvases) {
-      ctx.push(cvs.getContext('2d'));
-      var inMem = document.createElement('canvas');
-      inMem.width = INMEMSIZE;
-      inMem.height = INMEMSIZE;
-      var context = inMem.getContext('2d');
-      context.scale(INMEMSIZE / canvasDOMs[0].width, INMEMSIZE / canvasDOMs[0].height);
-      inMemCtx.push(context);
-      inMemCanvases.push(inMem);
-    }
+    this.pageHeight = pageHeight;
+    this.pageWidth = pageWidth;
+    
+    ctx = new Array(this.canvasLen);
+
+    /**
+     * BUG : handling if curScale is auto
+     * 
+     */
     pdfViewer = window.PDFViewerApplication.pdfViewer;
     curScale = window.PDFViewerApplication.pdfViewer._location.scale;
+
   }
+
+  pageRendered(index) {
+    
+    console.log(`load : ${index}`)
+    curScale = window.PDFViewerApplication.pdfViewer._location.scale;
+    if (ctx[index]) {
+
+      this.pageHeight = ctx[index].canvas.style.height.split('px')[0];
+      this.pageWidth = ctx[index].canvas.style.width.split('px')[0];
+
+      ctx[index].canvas.setAttribute('height', this.pageHeight + 'px');
+      ctx[index].canvas.setAttribute('width', this.pageWidth + 'px');
+
+    } else {
+      ctx[index] = (this.canvases[index].getContext('2d'));
+    }
+    let image = this.loadedCanvasList[index];
+
+    if (!image) return;
+
+    ctx[index].drawImage(image, 0, 0, image.width, image.height, 0, 0, this.pageWidth, this.pageHeight);
+
+  }
+
+  reset(index) {
+
+    if (ctx[index]) {
+      let height = ctx[index].canvas.getAttribute('height').split('px')[0];
+      let width = ctx[index].canvas.getAttribute('width').split('px')[0];
+      if (height == 0 && width == 0) return;
+
+      console.log(`reset : ${index}`);
+      let canvasEl = document.createElement('canvas');
+      canvasEl.width = BUFFER_SIZE;
+      canvasEl.height = BUFFER_SIZE;
+      let context = canvasEl.getContext('2d');
+      context.scale(BUFFER_SIZE / this.pageWidth, BUFFER_SIZE / this.pageHeight);
+
+      let image = new Image();
+
+      context.drawImage(this.canvases[index], 0, 0)
+
+      image.src = context.canvas.toDataURL();
+
+      this.loadedCanvasList[index] = image;
+
+      ctx[index].canvas.setAttribute('height', '0px')
+      ctx[index].canvas.setAttribute('width', '0px');
+      context.canvas.setAttribute('height', '0px')
+      context.canvas.setAttribute('width', '0px');
+
+    }
+  }
+
   enableMouseEventListener() {
     for (let cvs of this.canvases) {
       cvs.addEventListener("mousedown", mousePenEvent.mouseDown, false);
@@ -179,28 +235,22 @@ class DrawService {
   }
 
   updateCanvas() {
-    let width = this.canvases[0].width;
-    let height = this.canvases[0].height;
-    let scaleDelta = window.PDFViewerApplication.pdfViewer._location.scale / curScale;
-    curScale = window.PDFViewerApplication.pdfViewer._location.scale;
-    for (let i = 0; i < ctx.length; i++) {
-      ctx[i].drawImage(inMemCanvases[i], 0, 0, INMEMSIZE, INMEMSIZE, 0, 0, width, height);
-      inMemCtx[i].scale(1 / scaleDelta, 1 / scaleDelta);
-    }
+    // Unused this function
   }
 
   saveCanvas(pageNum) {
     let pdfName = localStorage.getItem('pdfName')
     let token = localStorage.getItem('accessToken')
 
-    inMemCanvases[pageNum - 1].toBlob((blob) => {
+    // FIX: canvas => loadedlist
+    this.canvases[pageNum - 1].toBlob((blob) => {
       let cvsName = `${pageNum}-cvs.png`
       let formData = new FormData();
 
       formData.append('cvsFile', blob, cvsName)
       formData.append('pdfName', pdfName)
 
-      fetch(`http://localhost:8000/pdfs/blob/cvs/save/`, {
+      fetch(`http://${SERVER_IP}:8000/pdfs/blob/cvs/save/`, {
         method: 'POST',
         headers: new Headers({
           'Authorization': `Bearer ${token}`,
@@ -218,7 +268,7 @@ class DrawService {
     let token = localStorage.getItem('accessToken')
     let pdfPageNum = this.canvases.length
 
-    fetch(`http://localhost:8000/pdfs/blob/cvs/load/`, {
+    fetch(`http://${SERVER_IP}:8000/pdfs/blob/cvs/load/`, {
       method: 'POST',
       headers: new Headers({
         'Authorization': `Bearer ${token}`,
@@ -232,6 +282,7 @@ class DrawService {
       .then(res => res.json())
       .then(res => {
         let self = this
+
         for (let [i, context] of ctx.entries()) {
 
           let resCvs = res.cvsList[i];
@@ -240,18 +291,10 @@ class DrawService {
           let image = new Image();
           if (!loadingCanvas) {
             // Will manipulate loadingbar
-            image.load(`data:image/png;base64,${resCvs}`);
             loadingCanvas = true;
           }
-          else image.src = `data:image/png;base64,${resCvs}`
-
-          image.onload = function () {
-            context.drawImage(image, 0, 0, self.canvases[0].width, self.canvases[0].height);
-            let tf = inMemCtx[i].getTransform()
-            inMemCtx[i].setTransform(1, 0, 0, 1, 0, 0);
-            inMemCtx[i].drawImage(image, 0, 0);
-            inMemCtx[i].setTransform(tf);
-          }
+          image.src = `data:image/png;base64,${resCvs}`
+          self.loadedCanvasList[i] = image;
         }
       });
   }
@@ -262,7 +305,6 @@ class DrawService {
 function drawLine(pageNum) {
   if (isDrawing) {
     drawLineHelper(ctx[pageNum]);
-    drawLineHelper(inMemCtx[pageNum]);
     lastPos = mousePos;
   }
 }
@@ -271,9 +313,10 @@ function drawLineHelper(ctx) {
   ctx.beginPath();
   var mode = window.drawService.mode;
   let rate = curScale / 100.0;
+
   if (mode == "pen") {
     ctx.strokeStyle = color;
-    ctx.lineWidth = (width * rate);
+    ctx.lineWidth = Math.max((width * rate), 1);
     ctx.globalAlpha = transparency;
     ctx.lineJoin = ctx.lineCap = 'round';
     ctx.globalCompositeOperation = "source-over";
@@ -308,7 +351,7 @@ function getTouchPos(touchEvent) {
 }
 
 drawSocket.on('MOUSEDOWN', (data) => {
-  let [x, y] = pdfViewer._pages[data.pageNum].viewport.convertToViewportPoint(data.lastPos.x, data.lastPos.y);
+  let [x, y] = pdfViewer._pages[0].viewport.convertToViewportPoint(data.lastPos.x, data.lastPos.y);
   let selColor = document.getElementById("selColor");
   let selWidth = document.getElementById("selWidth");
   let selTransparency = document.getElementById("selTransparency");
@@ -329,19 +372,14 @@ drawSocket.on('MOUSEUP', (data) => {
 })
 
 drawSocket.on('MOUSEMOVE', (data) => {
-  let [x, y] = pdfViewer._pages[data.pageNum].viewport.convertToViewportPoint(data.mousePos.x, data.mousePos.y);
+  let [x, y] = pdfViewer._pages[0].viewport.convertToViewportPoint(data.mousePos.x, data.mousePos.y);
   mousePos = { x: x, y: y };
   color = data.color;
   width = data.width;
   transparency = data.transparency;
   //mousePos = data.mousePos;
   let pageNum = data.pageNum;
-  let element = document.getElementsByClassName('penCanvas')[pageNum - 1];
-  inMemCanvases[pageNum - 1].width = element.width;
-  inMemCanvases[pageNum - 1].height = element.height;
-  inMemCtx[pageNum - 1].drawImage(element, 0, 0);
 
-  drawLine(pageNum-1);
   drawLine(pageNum - 1);
   lastPos = mousePos;
 })
