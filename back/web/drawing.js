@@ -15,15 +15,6 @@ var selWidth = document.getElementById("selWidth");
 var width = selWidth.value;
 var selTransparency = document.getElementById("selTransparency");
 var transparency = selTransparency.value;
-selColor.onchange = function (e) {
-  color = selColor.value;
-}
-selWidth.onchange = function (e) {
-  width = selWidth.value;
-}
-selTransparency.onchange = function (e) {
-  transparency = selTransparency.value;
-}
 
 const BUFFER_SIZE = 2000.0;
 
@@ -66,6 +57,10 @@ let mousePenEvent = {
     pdfMousePos = { x: x, y: y };
 
     width = document.getElementById("selWidth").value;
+
+    color = selColor.value;
+    width = selWidth.value;
+    transparency = selTransparency.value;
 
     if(mode === 'pen')
       startLine(currentPageNum-1);
@@ -377,9 +372,6 @@ function getTouchPos(touchEvent) {
 drawSocket.on('MOUSEDOWN', (data) => {
   let [x, y] = pdfViewer._pages[0].viewport.convertToViewportPoint(data.mousePos.x, data.mousePos.y);
 
-  selColor.value = data.color;
-  selWidth.value = data.width;
-  selTransparency.value = data.transparency;
   color = data.color;
   width = data.width;
   transparency = data.transparency;
