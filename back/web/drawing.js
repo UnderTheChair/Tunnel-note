@@ -162,7 +162,7 @@ class DrawService {
   async pageRendered(index) {
     await this.reset()
     console.log(`load : ${index}`)
-    curScale = window.PDFViewerApplication.pdfViewer._location.scale;
+    
     if (ctx[index]) {
 
       this.pageHeight = ctx[index].canvas.style.height.split('px')[0];
@@ -181,8 +181,6 @@ class DrawService {
     ctx[index].drawImage(context.canvas, 0, 0, BUFFER_SIZE, BUFFER_SIZE, 0, 0, this.pageWidth, this.pageHeight);
     this.loadedCanvasList[index].setTransform(1, 0, 0, 1, 0, 0);
     this.loadedCanvasList[index].scale(BUFFER_SIZE/this.pageWidth, BUFFER_SIZE/this.pageHeight);
-    // context.canvas.setAttribute('height', '0px')
-    // context.canvas.setAttribute('width', '0px');
   }
 
   reset(index) {
@@ -193,20 +191,9 @@ class DrawService {
       if (height == 0 && width == 0) return;
 
       console.log(`reset : ${index}`);
-      // let canvasEl = document.createElement('canvas');
-      // canvasEl.width = BUFFER_SIZE
-      // canvasEl.height = BUFFER_SIZE
-      // let context = canvasEl.getContext('2d');
-      // context.scale(BUFFER_SIZE / this.pageWidth, BUFFER_SIZE / this.pageHeight);
-      // context.drawImage(this.canvases[index], 0, 0);
-      // console.log(canvasEl);
-      // this.loadedCanvasList[index] = context;
 
       ctx[index].canvas.setAttribute('height', '0px')
       ctx[index].canvas.setAttribute('width', '0px');
-      // context.canvas.setAttribute('height', '0px')
-      // context.canvas.setAttribute('width', '0px');
-
     }
   }
 
@@ -246,7 +233,6 @@ class DrawService {
     let pdfName = localStorage.getItem('pdfName')
     let token = localStorage.getItem('accessToken')
 
-    // FIX: canvas => loadedlist
     this.loadedCanvasList[pageNum - 1].canvas.toBlob((blob) => {
       let cvsName = `${pageNum}-cvs.png`
       let formData = new FormData();
@@ -301,9 +287,7 @@ class DrawService {
             canvasEl.width = BUFFER_SIZE;
             canvasEl.height = BUFFER_SIZE;
             context.drawImage(image, 0, 0, BUFFER_SIZE, BUFFER_SIZE);
-            console.log(context)
             self.loadedCanvasList[i] = context;
-
           }
         }
       });
@@ -311,10 +295,10 @@ class DrawService {
 }
 
 function startLine(pageNum) {
-  var target = ctx[pageNum];
-  startLineHelper(target)
-  startLineHelper(window.drawService.loadedCanvasList[pageNum]);
-  console.log(window.drawService.loadedCanvasList[pageNum]);
+  let curContext = ctx[pageNum];
+  let loadedContext = window.drawService.loadedCanvasList[pageNum];
+  startLineHelper(curContext)
+  startLineHelper(loadedContext);
 }
 
 function startLineHelper(target) {
@@ -333,16 +317,19 @@ function startLineHelper(target) {
 }
 // Draw to the canvas
 function drawLine(pageNum) {
-  var target = ctx[pageNum]; 
+  let target;
+
+  target = ctx[pageNum]; 
   target.lineTo(mousePos.x, mousePos.y);
   target.stroke();
+  
   target = window.drawService.loadedCanvasList[pageNum];
   target.lineTo(mousePos.x, mousePos.y);
   target.stroke();
 }
 
 function eraseLine(pageNum) {
-  var target = ctx[pageNum];
+  let target = ctx[pageNum];
   let rate = curScale / 100.0;
   target.globalCompositeOperation = "destination-out";
   target.arc(mousePos.x, mousePos.y, 20 * rate, 0, Math.PI * 2, false);
