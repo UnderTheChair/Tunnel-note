@@ -155,7 +155,7 @@ class DrawService {
      * 
      */
     pdfViewer = window.PDFViewerApplication.pdfViewer;
-    curScale = window.PDFViewerApplication.pdfViewer._location.scale;
+    curScale = window.PDFViewerApplication.pdfViewer._currentScale;
 
   }
 
@@ -179,6 +179,8 @@ class DrawService {
     if (!context) return;
 
     ctx[index].drawImage(context.canvas, 0, 0, BUFFER_SIZE, BUFFER_SIZE, 0, 0, this.pageWidth, this.pageHeight);
+    
+    curScale = window.PDFViewerApplication.pdfViewer._currentScale
     this.loadedCanvasList[index].setTransform(1, 0, 0, 1, 0, 0);
     this.loadedCanvasList[index].scale(BUFFER_SIZE/this.pageWidth, BUFFER_SIZE/this.pageHeight);
   }
@@ -302,10 +304,11 @@ function startLine(pageNum) {
 }
 
 function startLineHelper(target) {
-  let rate = curScale / 100.0;
+  let rate = curScale;
+
   target.beginPath();
   target.strokeStyle = color;
-  target.lineWidth = (width * rate);
+  target.lineWidth = Math.max((width * rate), 1);
   target.globalAlpha = transparency;
   target.lineJoin = 'round'
   target.lineCap = 'round';
