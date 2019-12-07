@@ -103,7 +103,8 @@ let mousePenEvent = {
 
     drawSocket.emit('MOUSEMOVE', {
       mousePos: pdfMousePos,
-      pageNum: pageNum
+      pageNum: pageNum,
+      mode: mode
     })
 
     if(mode === 'pen')
@@ -379,7 +380,6 @@ drawSocket.on('MOUSEDOWN', (data) => {
   mousePos = { x: x, y: y };
   isDrawing = true;
 
-  window.drawService.mode = data.mode;
   if(data.mode === 'pen')
     startLine(data.pageNum-1);
   else if(data.mode === 'eraser')
@@ -393,9 +393,9 @@ drawSocket.on('MOUSEUP', (data) => {
 drawSocket.on('MOUSEMOVE', (data) => {
   let [x, y] = pdfViewer._pages[0].viewport.convertToViewportPoint(data.mousePos.x, data.mousePos.y);
   mousePos = { x: x, y: y };
-  if(window.drawService.mode === 'pen')
+  if(data.mode === 'pen')
     drawLine(data.pageNum-1);
-  else if(window.drawService.mode === 'eraser')
+  else if(data.mode === 'eraser')
     eraseLine(data.pageNum-1);
 })
 
