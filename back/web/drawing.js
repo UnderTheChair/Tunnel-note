@@ -24,7 +24,9 @@ selWidth.onchange = function (e) {
 selTransparency.onchange = function (e) {
   transparency = selTransparency.value;
 }
-const BUFFER_SIZE = 3000;
+
+const BUFFER_SIZE = 2000.0;
+
 var curScale;
 let currentPageNum;
 var loadingCanvas = false;
@@ -58,7 +60,9 @@ let mousePenEvent = {
 
     mousePos = await getMousePos(e);
     isDrawing = true;
-    [x, y] = pdfViewer._pages[currentPageNum].viewport.convertToPdfPoint(mousePos.x, mousePos.y)
+
+    [x, y] = pdfViewer._pages[0].viewport.convertToPdfPoint(mousePos.x, mousePos.y)
+
     pdfMousePos = { x: x, y: y };
 
     width = document.getElementById("selWidth").value;
@@ -97,7 +101,9 @@ let mousePenEvent = {
     }
 
     mousePos = await getMousePos(e);
-    [x, y] = pdfViewer._pages[pageNum].viewport.convertToPdfPoint(mousePos.x, mousePos.y)
+
+    [x, y] = pdfViewer._pages[0].viewport.convertToPdfPoint(mousePos.x, mousePos.y)
+
     pdfMousePos = { x: x, y: y };
 
     drawSocket.emit('MOUSEMOVE', {
@@ -160,52 +166,69 @@ class DrawService {
     // fill loaded canvas image element to this array by loadCanvas()
     this.loadedCanvasList = new Array(this.canvasLen);
     this.mode = 'hand';
-    this.pageHeight = pageHeight,
-    this.pageWidth = pageWidth,
+    this.pageHeight = pageHeight;
+    this.pageWidth = pageWidth;
     
     ctx = new Array(this.canvasLen);
-    
+
     /**
      * BUG : handling if curScale is auto
      * 
      */
     pdfViewer = window.PDFViewerApplication.pdfViewer;
     curScale = window.PDFViewerApplication.pdfViewer._location.scale;
-    
+
   }
 
   pageRendered(index) {
+    
     console.log(`load : ${index}`)
-    let self = this;
+    curScale = window.PDFViewerApplication.pdfViewer._location.scale;
     if (ctx[index]) {
-      ctx[index].canvas.setAttribute('height', this.pageHeight+'px');
-      ctx[index].canvas.setAttribute('width', this.pageWidth+'px');
+
+      this.pageHeight = ctx[index].canvas.style.height.split('px')[0];
+      this.pageWidth = ctx[index].canvas.style.width.split('px')[0];
+
+      ctx[index].canvas.setAttribute('height', this.pageHeight + 'px');
+      ctx[index].canvas.setAttribute('width', this.pageWidth + 'px');
+
     } else {
       ctx[index] = (this.canvases[index].getContext('2d'));
     }
     let image = this.loadedCanvasList[index];
 
-    if(!image) return;
-    
-    ctx[index].drawImage(image, 0, 0);
-  
+    if (!image) return;
+
+    ctx[index].drawImage(image, 0, 0, image.width, image.height, 0, 0, this.pageWidth, this.pageHeight);
+
   }
 
   reset(index) {
+
     if (ctx[index]) {
+      let height = ctx[index].canvas.getAttribute('height').split('px')[0];
+      let width = ctx[index].canvas.getAttribute('width').split('px')[0];
+      if (height == 0 && width == 0) return;
+
       console.log(`reset : ${index}`);
       let canvasEl = document.createElement('canvas');
       canvasEl.width = BUFFER_SIZE;
       canvasEl.height = BUFFER_SIZE;
       let context = canvasEl.getContext('2d');
-      context.drawImage(this.canvases[index], 0, 0);
+      context.scale(BUFFER_SIZE / this.pageWidth, BUFFER_SIZE / this.pageHeight);
 
       let image = new Image();
-      image.src = canvasEl.toDataURL("image/png");
-      this.loadedCanvasList[index] = image;    
-      
+
+      context.drawImage(this.canvases[index], 0, 0)
+
+      image.src = context.canvas.toDataURL();
+
+      this.loadedCanvasList[index] = image;
+
       ctx[index].canvas.setAttribute('height', '0px')
       ctx[index].canvas.setAttribute('width', '0px');
+      context.canvas.setAttribute('height', '0px')
+      context.canvas.setAttribute('width', '0px');
 
     }
   }
@@ -291,7 +314,7 @@ class DrawService {
 
           let resCvs = res.cvsList[i];
           if (resCvs === null) continue;
-          
+
           let image = new Image();
           if (!loadingCanvas) {
             // Will manipulate loadingbar
@@ -355,7 +378,7 @@ function getTouchPos(touchEvent) {
 }
 
 drawSocket.on('MOUSEDOWN', (data) => {
-  let [x, y] = pdfViewer._pages[data.pageNum].viewport.convertToViewportPoint(data.mousePos.x, data.mousePos.y);
+  let [x, y] = pdfViewer._pages[0].viewport.convertToViewportPoint(data.mousePos.x, data.mousePos.y);
 
   selColor.value = data.color;
   selWidth.value = data.width;
@@ -376,7 +399,7 @@ drawSocket.on('MOUSEUP', (data) => {
 })
 
 drawSocket.on('MOUSEMOVE', (data) => {
-  let [x, y] = pdfViewer._pages[data.pageNum].viewport.convertToViewportPoint(data.mousePos.x, data.mousePos.y);
+  let [x, y] = pdfViewer._pages[0].viewport.convertToViewportPoint(data.mousePos.x, data.mousePos.y);
   mousePos = { x: x, y: y };
   color = data.color;
   width = data.width;
