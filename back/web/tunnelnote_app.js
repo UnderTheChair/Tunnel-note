@@ -12,47 +12,52 @@ window.customSetup = ()=> {
   console.log('Initializing canvas');
   isSetup = true;
   let canvases = document.getElementsByClassName('penCanvas');
-  let drawService = new DrawService(canvases);
+  let viewerPage = document.querySelector("#viewer > div:nth-child(1)");
 
+  let height = viewerPage.style.height.split('px')[0];
+  let width = viewerPage.style.width.split('px')[0];
+  console.log(height, width)
+  let drawService = new DrawService(canvases, height, width);
+  
   initDraw(drawService);
 
   window.drawService = drawService;
   var container = document.getElementById('penContainer');
   var viewer = document.getElementById('viewerContainer');
-  var hammer = new Hammer(container, {
-    touchAction: 'pan-x pan-y'
-  });
+  // var hammer = new Hammer(container, {
+  //   touchAction: 'pan-x pan-y'
+  // });
 
-  hammer.get('pinch').set({ enable: true });
-  hammer.get('pan').set({
-    direction: Hammer.DIRECTION_ALL
-  });
+  // hammer.get('pinch').set({ enable: true });
+  // hammer.get('pan').set({
+  //   direction: Hammer.DIRECTION_ALL
+  // });
 
-  var curScale = window.PDFViewerApplication.pdfViewer._location.scale;
+  // var curScale = window.PDFViewerApplication.pdfViewer._location.scale;
 
-  // hammer.on('pinch pinchend pan', (e)=> {
-  hammer.on('pinch pinchend', (e)=> {
-    if(window.drawService.mode === 'hand') {
-      if(e.type == 'pinch') {
-        if(performance.now() - scaleTimestamp > 80) {
-          scaleTimestamp = performance.now();
-          scale = parseInt(Math.max(50, Math.min(curScale * (e.scale), 400)));
-          window.PDFViewerApplication.pdfViewer._setScale(scale / 100)
-        }
-      } else if(e.type == 'pinchend') {
-        curScale = scale;
-        window.PDFViewerApplication.pdfViewer._setScale(curScale / 100);
-        drawService.updateCanvas();
-      }
-      // else if(e.type == 'pan') {
-      //   viewer.scrollTo(
-      //     viewer.scrollLeft - e.deltaX * 0.1,
-      //     viewer.scrollTop - e.deltaY * 0.1
-      //   );
-      //   console.log(e);
-      // }
-    }
-  });
+  // // hammer.on('pinch pinchend pan', (e)=> {
+  // hammer.on('pinch pinchend', (e)=> {
+  //   if(window.drawService.mode === 'hand') {
+  //     if(e.type == 'pinch') {
+  //       if(performance.now() - scaleTimestamp > 80) {
+  //         scaleTimestamp = performance.now();
+  //         scale = parseInt(Math.max(50, Math.min(curScale * (e.scale), 400)));
+  //         window.PDFViewerApplication.pdfViewer._setScale(scale / 100)
+  //       }
+  //     } else if(e.type == 'pinchend') {
+  //       curScale = scale;
+  //       window.PDFViewerApplication.pdfViewer._setScale(curScale / 100);
+  //       drawService.updateCanvas();
+  //     }
+  //     // else if(e.type == 'pan') {
+  //     //   viewer.scrollTo(
+  //     //     viewer.scrollLeft - e.deltaX * 0.1,
+  //     //     viewer.scrollTop - e.deltaY * 0.1
+  //     //   );
+  //     //   console.log(e);
+  //     // }
+  //   }
+  // });
   window.customScaleCallback = () => {
     drawService.updateCanvas();
   };
@@ -79,6 +84,18 @@ function initDraw(drawService){
   drawService.registerDrawToolButton(secondaryPenBtn, 'pen');
   drawService.registerDrawToolButton(secondaryEraserBtn, 'eraser');
   drawService.registerDrawToolButton(secondaryHandBtn, 'hand');
+
+  let canvases = drawService.canvases;
+  let cvsLen = canvases.length
+  
+  for (let i = 0; i < cvsLen; i++) {
+    canvases[i].addEventListener("pagerendered", (event)=>{
+      drawService.pageRendered(i);
+    })
+    canvases[i].addEventListener("reset", (event) => {
+      drawService.reset(i);
+    })
+  }
 }
 
 let tunnelToggle = function() {
@@ -100,11 +117,12 @@ drawSocket.on('SETUP', () => {
 $(document).ready(function () {
   let fileURL = localStorage.getItem('fileURL')
   let pdfName = localStorage.getItem('pdfName')
+
   // USING DEVELOPMENT
   if(pdfName === null) {
     localStorage.setItem('pdfName', 'pdf')
   }
-  //
+
   if(fileURL)
     PDFViewerApplicationOptions.set('defaultUrl', fileURL);
 

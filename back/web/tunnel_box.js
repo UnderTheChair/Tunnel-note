@@ -220,10 +220,12 @@ class TunnelBox {
     clientY = this.top;
 
     // pt1 has [x, y] converted to PDF point
-    [x, y]= pdfViewer._pages[currentPage].viewport.convertToPdfPoint(clientX, clientY);
+    [x, y]= pdfViewer._pages[0].viewport.convertToPdfPoint(clientX, clientY);
     p1 = {x : x, y : y};
     
-    [x, y] = pdfViewer._pages[currentPage].viewport.convertToPdfPoint(clientX + this.width, clientY + this.height);
+
+    [x, y] = pdfViewer._pages[0].viewport.convertToPdfPoint(clientX + this.width, clientY - this.height);
+
     p2 = {x : x, y : y};
 
     if(p1.y <= 0){
@@ -249,10 +251,10 @@ class TunnelBox {
     let x, y, p1, p2;
     let newScale;
     
-    [x, y] = pdfViewer._pages[currentPage].viewport.convertToViewportPoint(pagePoint[0].x, pagePoint[0].y);
+    [x, y] = pdfViewer._pages[0].viewport.convertToViewportPoint(pagePoint[0].x, pagePoint[0].y);
     p1 = {x : x, y : y}; 
     
-    [x, y] = pdfViewer._pages[currentPage].viewport.convertToViewportPoint(pagePoint[1].x, pagePoint[1].y);
+    [x, y] = pdfViewer._pages[0].viewport.convertToViewportPoint(pagePoint[1].x, pagePoint[1].y);
     p2 = {x : x, y : y};
 
     this.left = p1.x + currentPageElment.offsetLeft;
@@ -288,7 +290,9 @@ class TunnelBox {
     let currentPageElment = document.querySelector(`#viewer > div:nth-child(${currentPage})`);
     let tmpX, tmpY;
 
-    [tmpX, tmpY] = pdfViewer._pages[1].viewport.convertToViewportPoint(pagePoint[0].x, pagePoint[0].y);
+
+    [tmpX, tmpY] = pdfViewer._pages[0].viewport.convertToViewportPoint(pagePoint[0].x, pagePoint[0].y);
+
     let p1 = { x: tmpX, y: tmpY };
 
     var changeTop = p1.y - this.top;
@@ -332,9 +336,9 @@ tunnelBoxSocket.on('BOX_INIT', (position) => {
     isMobileScroll = true;
   });
   window.customScaleCallback = () => {
-    var position = tunnel.getPosition();
-    if(!scaleChanging && socketReady()) tunnelBoxSocket.emit('MOBILE_RESIZE', position);
-    window.drawService.updateCanvas()
+    // var position = tunnel.getPosition();
+    // if(!scaleChanging && socketReady()) tunnelBoxSocket.emit('MOBILE_RESIZE', position);
+    // window.drawService.updateCanvas()
   };
   
   //set tunnel size value by mobile screen size

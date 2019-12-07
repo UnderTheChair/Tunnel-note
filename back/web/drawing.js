@@ -1,59 +1,57 @@
 import { drawSocket } from "./socket.io.js";
 import { tunnelBox_app } from './tunnelnote_app.js';
+import { SERVER_IP } from './config.js'
+
 
 // Set up mouse events for drawing
-let isDrawing = false;
+let curEndDrawing = false;
+let otherEndDrawing = false;
 let mousePos = { x: 0, y: 0 };
-let lastPos = mousePos;
-let color;
-let width;
-let transparency
 let ctx = [];
 let pdfViewer;
 
-let inMemCanvases = [];
-let inMemCtx = [];
-const INMEMSIZE = 3000;
+var selColor = document.getElementById("selColor");
+var color = selColor.value;
+var selWidth = document.getElementById("selWidth");
+var width = selWidth.value;
+var selTransparency = document.getElementById("selTransparency");
+var transparency = selTransparency.value;
+
+const BUFFER_SIZE = 3000;
+
 var curScale;
 let currentPageNum;
-var loadingCanvas = false;
-
-Image.prototype.load = function (url) {
-  var thisImg = this;
-  var xmlHTTP = new XMLHttpRequest();
-  xmlHTTP.open('GET', url, true);
-  xmlHTTP.responseType = 'arraybuffer';
-  xmlHTTP.onload = function (e) {
-    var blob = new Blob([this.response]);
-    thisImg.src = window.URL.createObjectURL(blob);
-    window.PDFViewerApplication.loadingBar.hide();
-  };
-  xmlHTTP.onprogress = function (e) {
-    window.PDFViewerApplication.loadingBar.percent = parseInt((e.loaded / e.total) * 100);
-  };
-  xmlHTTP.onloadstart = function () {
-    window.PDFViewerApplication.loadingBar.percent = 10;
-    window.PDFViewerApplication.loadingBar.show();
-  };
-  xmlHTTP.send();
-};
 
 let mousePenEvent = {
   async mouseDown(e) {
+    // prevent simultaneous inputs from PC and mobile
+    if (otherEndDrawing) return;
+    curEndDrawing = true;
+
     let pdfMousePos;
     let x, y;
-    currentPageNum = e.target.getAttribute('data-page-number');
     var mode = window.drawService.mode;
+    currentPageNum = e.target.getAttribute('data-page-number');
 
-    lastPos = await getMousePos(e);
-    isDrawing = true;
-    [x, y] = pdfViewer._pages[currentPageNum].viewport.convertToPdfPoint(lastPos.x, lastPos.y)
+    mousePos = await getMousePos(e);
+
+    [x, y] = pdfViewer._pages[0].viewport.convertToPdfPoint(mousePos.x, mousePos.y)
+
     pdfMousePos = { x: x, y: y };
 
-    width = document.getElementById("selWidth").value;
+    width = selWidth.value;
+
+    color = selColor.value;
+    width = selWidth.value;
+    transparency = selTransparency.value;
+
+    if (mode === 'pen')
+      startLine(currentPageNum - 1);
+    else if (mode === 'eraser')
+      eraseLine(currentPageNum - 1);
 
     drawSocket.emit("MOUSEDOWN", {
-      lastPos: pdfMousePos,
+      mousePos: pdfMousePos,
       mode: mode,
       color: color,
       width: width,
@@ -61,19 +59,25 @@ let mousePenEvent = {
       pageNum: currentPageNum,
     })
   }, mouseUp(e) {
-    isDrawing = false;
+    if (otherEndDrawing) return;
+    curEndDrawing = false;
+
     let pageNum = e.target.getAttribute('data-page-number');
     let mode = window.drawService.mode;
 
+    let loadedContext = window.drawService.loadedCanvasList[pageNum - 1];
+    loadedContext.stroke();
+
     if (mode === 'pen' || mode === 'eraser')
       window.drawService.saveCanvas(pageNum);
-    
+
     drawSocket.emit('MOUSEUP')
   }, async mouseMove(e) {
-    if (isDrawing == false) return;
+    if (otherEndDrawing || !curEndDrawing) return;
     let pdfMousePos;
     let x, y;
     let pageNum = e.target.getAttribute('data-page-number');
+    var mode = window.drawService.mode;
 
     if (pageNum !== currentPageNum) {
       return;
@@ -81,17 +85,20 @@ let mousePenEvent = {
 
     mousePos = await getMousePos(e);
 
-    [x, y] = pdfViewer._pages[pageNum].viewport.convertToPdfPoint(mousePos.x, mousePos.y)
+    [x, y] = pdfViewer._pages[0].viewport.convertToPdfPoint(mousePos.x, mousePos.y)
+
     pdfMousePos = { x: x, y: y };
 
     drawSocket.emit('MOUSEMOVE', {
       mousePos: pdfMousePos,
-      color: color,
-      width: width,
-      transparency: transparency,
-      pageNum: e.target.getAttribute('data-page-number')
+      pageNum: pageNum,
+      mode: mode
     })
-    drawLine(e.target.getAttribute('data-page-number') - 1);
+
+    if (mode === 'pen')
+      drawLine(pageNum - 1);
+    else if (mode === 'eraser')
+      eraseLine(pageNum - 1);
   }
 }
 
@@ -134,22 +141,74 @@ let touchPenEvent = {
 }
 
 class DrawService {
-  constructor(canvasDOMs) {
+  constructor(canvasDOMs, pageHeight, pageWidth) {
     this.canvases = canvasDOMs;
+    this.canvasLen = canvasDOMs.length;
+    // fill loaded canvas image element to this array by loadCanvas()
+    this.loadedCanvasList = new Array(this.canvasLen);
     this.mode = 'hand';
-    for (let cvs of this.canvases) {
-      ctx.push(cvs.getContext('2d'));
-      var inMem = document.createElement('canvas');
-      inMem.width = INMEMSIZE;
-      inMem.height = INMEMSIZE;
-      var context = inMem.getContext('2d');
-      context.scale(INMEMSIZE / canvasDOMs[0].width, INMEMSIZE / canvasDOMs[0].height);
-      inMemCtx.push(context);
-      inMemCanvases.push(inMem);
-    }
+    this.pageHeight = pageHeight;
+    this.pageWidth = pageWidth;
+
+    ctx = new Array(this.canvasLen);
+
+    /**
+     * BUG : handling if curScale is auto
+     * 
+     */
     pdfViewer = window.PDFViewerApplication.pdfViewer;
-    curScale = window.PDFViewerApplication.pdfViewer._location.scale;
+    curScale = window.PDFViewerApplication.pdfViewer._currentScale;
+
   }
+
+  async pageRendered(index) {
+    await this.reset()
+    console.log(`load : ${index}`)
+
+    if (ctx[index]) {
+
+      this.pageHeight = ctx[index].canvas.style.height.split('px')[0];
+      this.pageWidth = ctx[index].canvas.style.width.split('px')[0];
+
+      ctx[index].canvas.setAttribute('height', this.pageHeight + 'px');
+      ctx[index].canvas.setAttribute('width', this.pageWidth + 'px');
+
+    } else {
+      ctx[index] = (this.canvases[index].getContext('2d'));
+
+      if (!this.loadedCanvasList[index]) {
+        let canvasEl = document.createElement('canvas');
+        let context = canvasEl.getContext('2d');
+        canvasEl.width = BUFFER_SIZE;
+        canvasEl.height = BUFFER_SIZE;
+        this.loadedCanvasList[index] = context;
+      }
+
+    }
+    let context = this.loadedCanvasList[index];
+
+    if (!context) return;
+
+    ctx[index].drawImage(context.canvas, 0, 0, BUFFER_SIZE, BUFFER_SIZE, 0, 0, this.pageWidth, this.pageHeight);
+
+    curScale = window.PDFViewerApplication.pdfViewer._currentScale
+    this.loadedCanvasList[index].setTransform(1, 0, 0, 1, 0, 0);
+    this.loadedCanvasList[index].scale(BUFFER_SIZE / this.pageWidth, BUFFER_SIZE / this.pageHeight);
+  }
+
+  reset(index) {
+    if (ctx[index]) {
+      let height = ctx[index].canvas.getAttribute('height').split('px')[0];
+      let width = ctx[index].canvas.getAttribute('width').split('px')[0];
+      if (height == 0 && width == 0) return;
+
+      console.log(`reset : ${index}`);
+
+      ctx[index].canvas.setAttribute('height', '0px')
+      ctx[index].canvas.setAttribute('width', '0px');
+    }
+  }
+
   enableMouseEventListener() {
     for (let cvs of this.canvases) {
       cvs.addEventListener("mousedown", mousePenEvent.mouseDown, false);
@@ -179,28 +238,21 @@ class DrawService {
   }
 
   updateCanvas() {
-    let width = this.canvases[0].width;
-    let height = this.canvases[0].height;
-    let scaleDelta = window.PDFViewerApplication.pdfViewer._location.scale / curScale;
-    curScale = window.PDFViewerApplication.pdfViewer._location.scale;
-    for (let i = 0; i < ctx.length; i++) {
-      ctx[i].drawImage(inMemCanvases[i], 0, 0, INMEMSIZE, INMEMSIZE, 0, 0, width, height);
-      inMemCtx[i].scale(1 / scaleDelta, 1 / scaleDelta);
-    }
+    // Unused this function
   }
 
   saveCanvas(pageNum) {
     let pdfName = localStorage.getItem('pdfName')
     let token = localStorage.getItem('accessToken')
 
-    inMemCanvases[pageNum - 1].toBlob((blob) => {
+    this.loadedCanvasList[pageNum - 1].canvas.toBlob((blob) => {
       let cvsName = `${pageNum}-cvs.png`
       let formData = new FormData();
 
       formData.append('cvsFile', blob, cvsName)
       formData.append('pdfName', pdfName)
 
-      fetch(`http://localhost:8000/pdfs/blob/cvs/save/`, {
+      fetch(`http://${SERVER_IP}:8000/pdfs/blob/cvs/save/`, {
         method: 'POST',
         headers: new Headers({
           'Authorization': `Bearer ${token}`,
@@ -218,7 +270,7 @@ class DrawService {
     let token = localStorage.getItem('accessToken')
     let pdfPageNum = this.canvases.length
 
-    fetch(`http://localhost:8000/pdfs/blob/cvs/load/`, {
+    fetch(`http://${SERVER_IP}:8000/pdfs/blob/cvs/load/`, {
       method: 'POST',
       headers: new Headers({
         'Authorization': `Bearer ${token}`,
@@ -232,59 +284,78 @@ class DrawService {
       .then(res => res.json())
       .then(res => {
         let self = this
-        for (let [i, context] of ctx.entries()) {
+        for (let i = 0; i < this.canvasLen; i++) {
 
           let resCvs = res.cvsList[i];
           if (resCvs === null) continue;
 
           let image = new Image();
-          if (!loadingCanvas) {
-            // Will manipulate loadingbar
-            image.load(`data:image/png;base64,${resCvs}`);
-            loadingCanvas = true;
-          }
-          else image.src = `data:image/png;base64,${resCvs}`
+
+          image.src = `data:image/png;base64,${resCvs}`
+          let canvasEl = document.createElement('canvas');
+          let context = canvasEl.getContext('2d');
 
           image.onload = function () {
-            context.drawImage(image, 0, 0, self.canvases[0].width, self.canvases[0].height);
-            let tf = inMemCtx[i].getTransform()
-            inMemCtx[i].setTransform(1, 0, 0, 1, 0, 0);
-            inMemCtx[i].drawImage(image, 0, 0);
-            inMemCtx[i].setTransform(tf);
+            canvasEl.width = BUFFER_SIZE;
+            canvasEl.height = BUFFER_SIZE;
+            context.drawImage(image, 0, 0, BUFFER_SIZE, BUFFER_SIZE);
+            self.loadedCanvasList[i] = context;
           }
         }
       });
   }
 }
 
-
-// Draw to the canvas
-function drawLine(pageNum) {
-  if (isDrawing) {
-    drawLineHelper(ctx[pageNum]);
-    drawLineHelper(inMemCtx[pageNum]);
-    lastPos = mousePos;
-  }
+function startLine(pageNum) {
+  let curContext = ctx[pageNum];
+  let loadedContext = window.drawService.loadedCanvasList[pageNum];
+  startLineHelper(curContext)
+  startLineHelper(loadedContext);
 }
 
-function drawLineHelper(ctx) {
-  ctx.beginPath();
-  var mode = window.drawService.mode;
-  let rate = curScale / 100.0;
-  if (mode == "pen") {
-    ctx.strokeStyle = color;
-    ctx.lineWidth = (width * rate);
-    ctx.globalAlpha = transparency;
-    ctx.lineJoin = ctx.lineCap = 'round';
-    ctx.globalCompositeOperation = "source-over";
-    ctx.moveTo(lastPos.x, lastPos.y);
-    ctx.lineTo(mousePos.x, mousePos.y);
-    ctx.stroke();
-  } else if (mode == "eraser") {
-    ctx.globalCompositeOperation = "destination-out";
-    ctx.arc(lastPos.x, lastPos.y, 20 * rate, 0, Math.PI * 2, false);
-    ctx.fill();
-  }
+function startLineHelper(target) {
+  let rate = curScale;
+
+  target.beginPath();
+  target.strokeStyle = color;
+  target.lineWidth = Math.max((width * rate), 1);
+  target.globalAlpha = transparency;
+  target.lineJoin = 'round'
+  target.lineCap = 'round';
+  if (transparency < 1)
+    target.globalCompositeOperation = 'xor';
+  else
+    target.globalCompositeOperation = 'source-over';
+  target.moveTo(mousePos.x, mousePos.y);
+}
+// Draw to the canvas
+function drawLine(index) {
+  let curContext, loadedContext;
+
+  curContext = ctx[index];
+  loadedContext = window.drawService.loadedCanvasList[index];
+
+  curContext.lineTo(mousePos.x, mousePos.y);
+  curContext.stroke();
+
+  loadedContext.lineTo(mousePos.x, mousePos.y);
+  // loadedContext.stroke();
+
+}
+
+function eraseLine(index) {
+  let target = ctx[index];
+  let rate = curScale;
+  target.beginPath();
+  target.globalCompositeOperation = "destination-out";
+  target.arc(mousePos.x, mousePos.y, 20 * rate, 0, Math.PI * 2, false);
+  target.fill();
+
+  target = window.drawService.loadedCanvasList[index];
+  target.beginPath();
+  target.globalCompositeOperation = "destination-out";
+  target.arc(mousePos.x, mousePos.y, 20 * rate, 0, Math.PI * 2, false);
+  target.fill();
 }
 
 // Get the position of the mouse relative to the canvas
@@ -292,8 +363,8 @@ function getMousePos(mouseEvent) {
   let rect = mouseEvent.target.getBoundingClientRect();
 
   return {
-    x: mouseEvent.clientX - rect.left,
-    y: mouseEvent.clientY - rect.top
+    x: Math.round(mouseEvent.clientX - rect.left),
+    y: Math.round(mouseEvent.clientY - rect.top)
   };
 }
 
@@ -308,64 +379,37 @@ function getTouchPos(touchEvent) {
 }
 
 drawSocket.on('MOUSEDOWN', (data) => {
-  let [x, y] = pdfViewer._pages[data.pageNum].viewport.convertToViewportPoint(data.lastPos.x, data.lastPos.y);
-  let selColor = document.getElementById("selColor");
-  let selWidth = document.getElementById("selWidth");
-  let selTransparency = document.getElementById("selTransparency");
+  if (curEndDrawing) return;
+  let [x, y] = pdfViewer._pages[0].viewport.convertToViewportPoint(data.mousePos.x, data.mousePos.y);
 
-  selColor.value = data.color;
-  selWidth.value = data.width;
-  selTransparency.value = data.transparency;
-
-  lastPos = { x: x, y: y };
-
-  //lastPos = data.lastPos;
-  window.drawService.mode = data.mode;
-  isDrawing = true;
-})
-
-drawSocket.on('MOUSEUP', (data) => {
-  isDrawing = false;
-})
-
-drawSocket.on('MOUSEMOVE', (data) => {
-  let [x, y] = pdfViewer._pages[data.pageNum].viewport.convertToViewportPoint(data.mousePos.x, data.mousePos.y);
-  mousePos = { x: x, y: y };
   color = data.color;
   width = data.width;
   transparency = data.transparency;
-  //mousePos = data.mousePos;
-  let pageNum = data.pageNum;
-  let element = document.getElementsByClassName('penCanvas')[pageNum - 1];
-  inMemCanvases[pageNum - 1].width = element.width;
-  inMemCanvases[pageNum - 1].height = element.height;
-  inMemCtx[pageNum - 1].drawImage(element, 0, 0);
 
-  drawLine(pageNum-1);
-  drawLine(pageNum - 1);
-  lastPos = mousePos;
+  mousePos = { x: x, y: y };
+  otherEndDrawing = true;
+
+  if (data.mode === 'pen')
+    startLine(data.pageNum - 1);
+  else if (data.mode === 'eraser')
+    eraseLine(data.pageNum - 1);
 })
 
-var selColor = document.getElementById("selColor");
-color = selColor.value;
+drawSocket.on('MOUSEUP', (data) => {
+  if (curEndDrawing) return;
+  otherEndDrawing = false;
+})
 
-var selWidth = document.getElementById("selWidth");
-color = selWidth.value;
+drawSocket.on('MOUSEMOVE', (data) => {
+  if (curEndDrawing || !otherEndDrawing) return;
+  let [x, y] = pdfViewer._pages[0].viewport.convertToViewportPoint(data.mousePos.x, data.mousePos.y);
+  mousePos = { x: x, y: y };
+  if (data.mode === 'pen')
+    drawLine(data.pageNum - 1);
+  else if (data.mode === 'eraser')
+    eraseLine(data.pageNum - 1);
+})
 
-var selTransparency = document.getElementById("selTransparency");
-transparency = selTransparency.value;
-
-selColor.onchange = function (e) {
-  color = selColor.value;
-}
-
-selWidth.onchange = function (e) {
-  width = selWidth.value;
-}
-
-selTransparency.onchange = function (e) {
-  transparency = selTransparency.value;
-}
 
 export {
   DrawService
