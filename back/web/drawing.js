@@ -6,7 +6,6 @@ import { SERVER_IP } from './config.js'
 // Set up mouse events for drawing
 let isDrawing = false;
 let mousePos = { x: 0, y: 0 };
-let lastPos = mousePos;
 let ctx = [];
 let pdfViewer;
 
@@ -59,7 +58,7 @@ let mousePenEvent = {
 
     mousePos = await getMousePos(e);
     isDrawing = true;
-    [x, y] = pdfViewer._pages[currentPageNum].viewport.convertToPdfPoint(lastPos.x, lastPos.y)
+    [x, y] = pdfViewer._pages[currentPageNum].viewport.convertToPdfPoint(mousePos.x, mousePos.y)
     pdfMousePos = { x: x, y: y };
 
     width = document.getElementById("selWidth").value;
@@ -70,7 +69,7 @@ let mousePenEvent = {
       eraseLine(currentPageNum-1);
 
     drawSocket.emit("MOUSEDOWN", {
-      lastPos: pdfMousePos,
+      mousePos: pdfMousePos,
       mode: mode,
       color: color,
       width: width,
@@ -319,7 +318,6 @@ function startLine(pageNum) {
   else 
     target.globalCompositeOperation = 'source-over';
   target.moveTo(mousePos.x, mousePos.y);
-  lastPos = mousePos;
 }
 // Draw to the canvas
 function drawLine(pageNum) {
@@ -357,17 +355,20 @@ function getTouchPos(touchEvent) {
 }
 
 drawSocket.on('MOUSEDOWN', (data) => {
-  let [x, y] = pdfViewer._pages[data.pageNum].viewport.convertToViewportPoint(data.lastPos.x, data.lastPos.y);
+  let [x, y] = pdfViewer._pages[data.pageNum].viewport.convertToViewportPoint(data.mousePos.x, data.mousePos.y);
 
   selColor.value = data.color;
   selWidth.value = data.width;
   selTransparency.value = data.transparency;
 
-  lastPos = { x: x, y: y };
-
-  //lastPos = data.lastPos;
-  window.drawService.mode = data.mode;
+  mousePos = { x: x, y: y };
   isDrawing = true;
+
+  window.drawService.mode = data.mode;
+  if(data.mode === 'pen')
+    startLine(data.pageNum-1);
+  else if(data.mode === 'eraser')
+    eraseLine(data.pageNum-1);
 })
 
 drawSocket.on('MOUSEUP', (data) => {
@@ -380,11 +381,11 @@ drawSocket.on('MOUSEMOVE', (data) => {
   color = data.color;
   width = data.width;
   transparency = data.transparency;
-  //mousePos = data.mousePos;
-  let pageNum = data.pageNum;
-  
-  drawLine(pageNum - 1);
-  lastPos = mousePos;
+
+  if(window.drawService.mode === 'pen')
+    drawLine(data.pageNum-1);
+  else if(window.drawService.mode === 'eraser')
+    eraseLine(data.pageNum-1);
 })
 
 
