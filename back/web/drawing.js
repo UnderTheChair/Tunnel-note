@@ -2,16 +2,29 @@ import { drawSocket } from "./socket.io.js";
 import { tunnelBox_app } from './tunnelnote_app.js';
 import { SERVER_IP } from './config.js'
 
+
 // Set up mouse events for drawing
 let isDrawing = false;
 let mousePos = { x: 0, y: 0 };
 let lastPos = mousePos;
-let color;
-let width;
-let transparency
 let ctx = [];
 let pdfViewer;
 
+var selColor = document.getElementById("selColor");
+var color = selColor.value;
+var selWidth = document.getElementById("selWidth");
+var width = selWidth.value;
+var selTransparency = document.getElementById("selTransparency");
+var transparency = selTransparency.value;
+selColor.onchange = function (e) {
+  color = selColor.value;
+}
+selWidth.onchange = function (e) {
+  width = selWidth.value;
+}
+selTransparency.onchange = function (e) {
+  transparency = selTransparency.value;
+}
 const BUFFER_SIZE = 3000;
 var curScale;
 let currentPageNum;
@@ -345,9 +358,6 @@ function getTouchPos(touchEvent) {
 
 drawSocket.on('MOUSEDOWN', (data) => {
   let [x, y] = pdfViewer._pages[data.pageNum].viewport.convertToViewportPoint(data.lastPos.x, data.lastPos.y);
-  let selColor = document.getElementById("selColor");
-  let selWidth = document.getElementById("selWidth");
-  let selTransparency = document.getElementById("selTransparency");
 
   selColor.value = data.color;
   selWidth.value = data.width;
@@ -377,26 +387,6 @@ drawSocket.on('MOUSEMOVE', (data) => {
   lastPos = mousePos;
 })
 
-var selColor = document.getElementById("selColor");
-color = selColor.value;
-
-var selWidth = document.getElementById("selWidth");
-color = selWidth.value;
-
-var selTransparency = document.getElementById("selTransparency");
-transparency = selTransparency.value;
-
-selColor.onchange = function (e) {
-  color = selColor.value;
-}
-
-selWidth.onchange = function (e) {
-  width = selWidth.value;
-}
-
-selTransparency.onchange = function (e) {
-  transparency = selTransparency.value;
-}
 
 export {
   DrawService
