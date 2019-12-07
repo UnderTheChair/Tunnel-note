@@ -4,7 +4,8 @@ import { SERVER_IP } from './config.js'
 
 
 // Set up mouse events for drawing
-let isDrawing = false;
+let curEndDrawing = false;
+let otherEndDrawing = false;
 let mousePos = { x: 0, y: 0 };
 let ctx = [];
 let pdfViewer;
@@ -15,15 +16,6 @@ var selWidth = document.getElementById("selWidth");
 var width = selWidth.value;
 var selTransparency = document.getElementById("selTransparency");
 var transparency = selTransparency.value;
-selColor.onchange = function (e) {
-  color = selColor.value;
-}
-selWidth.onchange = function (e) {
-  width = selWidth.value;
-}
-selTransparency.onchange = function (e) {
-  transparency = selTransparency.value;
-}
 
 const BUFFER_SIZE = 3000;
 
@@ -32,19 +24,26 @@ let currentPageNum;
 
 let mousePenEvent = {
   async mouseDown(e) {
+    // prevent simultaneous inputs from PC and mobile
+    if(otherEndDrawing) return; 
+    curEndDrawing = true;
+
     let pdfMousePos;
     let x, y;
-    currentPageNum = e.target.getAttribute('data-page-number');
     var mode = window.drawService.mode;
+    currentPageNum = e.target.getAttribute('data-page-number');
 
     mousePos = await getMousePos(e);
-    isDrawing = true;
 
     [x, y] = pdfViewer._pages[0].viewport.convertToPdfPoint(mousePos.x, mousePos.y)
 
     pdfMousePos = { x: x, y: y };
 
-    width = document.getElementById("selWidth").value;
+    width = selWidth.value;
+
+    color = selColor.value;
+    width = selWidth.value;
+    transparency = selTransparency.value;
 
     if(mode === 'pen')
       startLine(currentPageNum-1);
@@ -60,7 +59,9 @@ let mousePenEvent = {
       pageNum: currentPageNum,
     })
   }, mouseUp(e) {
-    isDrawing = false;
+    if(otherEndDrawing) return; 
+    curEndDrawing = false;
+
     let pageNum = e.target.getAttribute('data-page-number');
     let mode = window.drawService.mode;
 
@@ -69,7 +70,7 @@ let mousePenEvent = {
 
     drawSocket.emit('MOUSEUP')
   }, async mouseMove(e) {
-    if (isDrawing == false) return;
+    if(otherEndDrawing || !curEndDrawing) return; 
     let pdfMousePos;
     let x, y;
     let pageNum = e.target.getAttribute('data-page-number');
@@ -87,10 +88,8 @@ let mousePenEvent = {
 
     drawSocket.emit('MOUSEMOVE', {
       mousePos: pdfMousePos,
-      color: color,
-      width: width,
-      transparency: transparency,
-      pageNum: pageNum
+      pageNum: pageNum,
+      mode: mode
     })
 
     if(mode === 'pen')
@@ -365,16 +364,16 @@ function getTouchPos(touchEvent) {
 }
 
 drawSocket.on('MOUSEDOWN', (data) => {
+  if(curEndDrawing) return; 
   let [x, y] = pdfViewer._pages[0].viewport.convertToViewportPoint(data.mousePos.x, data.mousePos.y);
 
-  selColor.value = data.color;
-  selWidth.value = data.width;
-  selTransparency.value = data.transparency;
+  color = data.color;
+  width = data.width;
+  transparency = data.transparency;
 
   mousePos = { x: x, y: y };
-  isDrawing = true;
+  otherEndDrawing = true;
 
-  window.drawService.mode = data.mode;
   if(data.mode === 'pen')
     startLine(data.pageNum-1);
   else if(data.mode === 'eraser')
@@ -382,19 +381,17 @@ drawSocket.on('MOUSEDOWN', (data) => {
 })
 
 drawSocket.on('MOUSEUP', (data) => {
-  isDrawing = false;
+  if(curEndDrawing) return; 
+  otherEndDrawing = false;
 })
 
 drawSocket.on('MOUSEMOVE', (data) => {
+  if(curEndDrawing || !otherEndDrawing) return;
   let [x, y] = pdfViewer._pages[0].viewport.convertToViewportPoint(data.mousePos.x, data.mousePos.y);
   mousePos = { x: x, y: y };
-  color = data.color;
-  width = data.width;
-  transparency = data.transparency;
-
-  if(window.drawService.mode === 'pen')
+  if(data.mode === 'pen')
     drawLine(data.pageNum-1);
-  else if(window.drawService.mode === 'eraser')
+  else if(data.mode === 'eraser')
     eraseLine(data.pageNum-1);
 })
 
