@@ -4,7 +4,8 @@ import { SERVER_IP } from './config.js'
 
 
 // Set up mouse events for drawing
-let isDrawing = false;
+let curEndDrawing = false;
+let otherEndDrawing = false;
 let mousePos = { x: 0, y: 0 };
 let ctx = [];
 let pdfViewer;
@@ -44,19 +45,22 @@ Image.prototype.load = function (url) {
 
 let mousePenEvent = {
   async mouseDown(e) {
+    // prevent simultaneous inputs from PC and mobile
+    if(otherEndDrawing) return; 
+    curEndDrawing = true;
+
     let pdfMousePos;
     let x, y;
-    currentPageNum = e.target.getAttribute('data-page-number');
     var mode = window.drawService.mode;
+    currentPageNum = e.target.getAttribute('data-page-number');
 
     mousePos = await getMousePos(e);
-    isDrawing = true;
 
     [x, y] = pdfViewer._pages[0].viewport.convertToPdfPoint(mousePos.x, mousePos.y)
 
     pdfMousePos = { x: x, y: y };
 
-    width = document.getElementById("selWidth").value;
+    width = selWidth.value;
 
     color = selColor.value;
     width = selWidth.value;
@@ -76,7 +80,9 @@ let mousePenEvent = {
       pageNum: currentPageNum,
     })
   }, mouseUp(e) {
-    isDrawing = false;
+    if(otherEndDrawing) return; 
+    curEndDrawing = false;
+
     let pageNum = e.target.getAttribute('data-page-number');
     let mode = window.drawService.mode;
 
@@ -85,7 +91,7 @@ let mousePenEvent = {
 
     drawSocket.emit('MOUSEUP')
   }, async mouseMove(e) {
-    if (isDrawing == false) return;
+    if(otherEndDrawing || !curEndDrawing) return; 
     let pdfMousePos;
     let x, y;
     let pageNum = e.target.getAttribute('data-page-number');
@@ -371,6 +377,7 @@ function getTouchPos(touchEvent) {
 }
 
 drawSocket.on('MOUSEDOWN', (data) => {
+  if(curEndDrawing) return; 
   let [x, y] = pdfViewer._pages[0].viewport.convertToViewportPoint(data.mousePos.x, data.mousePos.y);
 
   color = data.color;
@@ -378,7 +385,7 @@ drawSocket.on('MOUSEDOWN', (data) => {
   transparency = data.transparency;
 
   mousePos = { x: x, y: y };
-  isDrawing = true;
+  otherEndDrawing = true;
 
   if(data.mode === 'pen')
     startLine(data.pageNum-1);
@@ -387,10 +394,12 @@ drawSocket.on('MOUSEDOWN', (data) => {
 })
 
 drawSocket.on('MOUSEUP', (data) => {
-  isDrawing = false;
+  if(curEndDrawing) return; 
+  otherEndDrawing = false;
 })
 
 drawSocket.on('MOUSEMOVE', (data) => {
+  if(curEndDrawing || !otherEndDrawing) return;
   let [x, y] = pdfViewer._pages[0].viewport.convertToViewportPoint(data.mousePos.x, data.mousePos.y);
   mousePos = { x: x, y: y };
   if(data.mode === 'pen')
