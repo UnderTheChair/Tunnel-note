@@ -304,9 +304,9 @@ tunnelBoxSocket.on('BOX_INIT', (position) => {
   //detect mobile window control
   $('#viewerContainer').scroll(mobileScrollCallback);
   window.customScaleCallback = () => {
-    var position = tunnel.getPosition();
-    if(!scaleChanging && socketReady()) tunnelBoxSocket.emit('MOBILE_RESIZE', position);
-    window.drawService.updateCanvas()
+    // var position = tunnel.getPosition();
+    // if(!scaleChanging && socketReady()) tunnelBoxSocket.emit('MOBILE_RESIZE', position);
+    // window.drawService.updateCanvas()
   };
 
   let toolbar_height = document.getElementById('toolbarContainer').offsetHeight;
