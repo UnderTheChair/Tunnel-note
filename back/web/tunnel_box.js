@@ -123,7 +123,6 @@ class TunnelBox {
 
       let position = self.getPosition();
       if(socketReady()) tunnelBoxSocket.emit('BOX_MOVE', position);
-      tunnelBoxSocket.emit('PC_MOVE_END', null);
     }
     function closeResizeElement() {
       container.style.cursor = "default";
@@ -134,7 +133,6 @@ class TunnelBox {
 
       let position = self.getPosition();
       if(socketReady()) tunnelBoxSocket.emit('BOX_RESIZE', position);
-      tunnelBoxSocket.emit('PC_MOVE_END', null);
     }
     function isRectLine(x, y){
       if(rect.left-5 < x && x < rect.left+5){
@@ -184,6 +182,7 @@ class TunnelBox {
 
     let position = this.getPosition();
     tunnelBoxSocket.emit('BOX_INIT', position);
+    $('#viewerContainer').scroll(validTunnelBoxInView);
   }
 
   rcvActivate() {
@@ -224,8 +223,12 @@ class TunnelBox {
     [x, y]= pdfViewer._pages[currentPage].viewport.convertToPdfPoint(clientX, clientY);
     p1 = {x : x, y : y};
     
-    [x, y] = pdfViewer._pages[currentPage].viewport.convertToPdfPoint(clientX + this.width, clientY - this.height);
+    [x, y] = pdfViewer._pages[currentPage].viewport.convertToPdfPoint(clientX + this.width, clientY + this.height);
     p2 = {x : x, y : y};
+
+    if(p1.y <= 0){
+      currentPage = 1;
+    }
 
     return {
       pagePoint : [p1, p2],
@@ -264,6 +267,7 @@ class TunnelBox {
     scaleChanging = true;
     pdfViewer._setScale(newScale);
     scaleChanging = false;
+    this.mobileDrag = true;
   }
 
   //mobile
@@ -284,14 +288,14 @@ class TunnelBox {
     let currentPageElment = document.querySelector(`#viewer > div:nth-child(${currentPage})`);
     let tmpX, tmpY;
 
-    [tmpX, tmpY] = pdfViewer._pages[currentPage].viewport.convertToViewportPoint(pagePoint[0].x, pagePoint[0].y);
+    [tmpX, tmpY] = pdfViewer._pages[1].viewport.convertToViewportPoint(pagePoint[0].x, pagePoint[0].y);
     let p1 = { x: tmpX, y: tmpY };
 
     this.left = p1.x + currentPageElment.offsetLeft;
     this.top = p1.y;
     
-    tunnel.DOM.style.top = this.top + 'px';
-    tunnel.DOM.style.left = this.left + 'px';
+    this.DOM.style.top = this.top + 'px';
+    this.DOM.style.left = this.left + 'px';
   }
   setBoxSizeInit(sizeData){
     this.mobileHeight = sizeData.height;
@@ -301,8 +305,7 @@ class TunnelBox {
   }
   //pc by mobile control
   setBoxSize(mobileScale) {
-    mobileScale = mobileScale * 10 / 11;
-    this.height = this.mobileHeight / mobileScale;
+    this.height = (this.mobileHeight) / mobileScale;
     this.DOM.style.height = this.height + 'px';
     this.width = this.height * this.resolution;
     this.DOM.style.width = this.width + 'px';
@@ -349,12 +352,8 @@ tunnelBoxSocket.on('BOX_MOVE', (position) => {
 });
 
 tunnelBoxSocket.on('BOX_RESIZE', (position) => {
-  tunnel.setMobilePosition(position);
   tunnel.mobileDrag = false;
-});
-
-tunnelBoxSocket.on('PC_MOVE_END', () => {
-  tunnel.mobileDrag = true;
+  tunnel.setMobilePosition(position);
 });
 
 tunnelBoxSocket.on('BOX_CLEAR', (position) => {
@@ -379,9 +378,6 @@ tunnelBoxSocket.on('BOX_SIZE_INIT', (sizeData) => {
   //set mobile position
   var pcPosition = tunnel.getPosition();
   tunnelBoxSocket.emit('BOX_MOVE', pcPosition);
-  tunnelBoxSocket.emit('PC_MOVE_END', null);
-
-  $('#viewerContainer').scroll(validTunnelBoxInView);
 });
 
 tunnelBoxSocket.on('MOBILE_MOVE', (position) => {
@@ -411,6 +407,7 @@ function mobileScrollCallback() {
   }
 };
 
+
 let isBoxMove = false;
 
 //check box move by pc scroll
@@ -425,20 +422,21 @@ setInterval(function(){
 let lastScrollTop = 0;
 let PcWindowHeight = $(window).height();
 
+//pc
 function validTunnelBoxInView() {
   var currentScrollTop = document.querySelector('#viewerContainer').scrollTop;
   var clientRect = tunnel.DOM.getBoundingClientRect();
   var scrollChange = currentScrollTop - lastScrollTop;
   if(scrollChange > 0) { 
     //scroll down
-    if(clientRect.top <= toolbar_height + 5){
-      tunnel.top += scrollChange;
+    if(clientRect.top <= toolbar_height+5 && clientRect.top >= toolbar_height-300){
+      tunnel.top = currentScrollTop;
       tunnel.DOM.style.top = tunnel.top + 'px';
       isBoxMove = true;
     }
   }else{    
     //scroll up
-    if(clientRect.bottom >= PcWindowHeight - 5){
+    if(clientRect.bottom >= PcWindowHeight-5 && clientRect.bottom <= PcWindowHeight+300){
       tunnel.top += scrollChange;
       tunnel.DOM.style.top = tunnel.top + 'px';
       isBoxMove = true;
