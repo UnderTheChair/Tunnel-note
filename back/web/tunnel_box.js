@@ -67,7 +67,7 @@ class TunnelBox {
       lastPos.y = e.clientY;
       container.removeEventListener("mousemove", currentMouseMove);
       container.addEventListener("mousemove", elementResize);
-      container.addEventListener("mouseup", closeDragElement);
+      container.addEventListener("mouseup", closeResizeElement);
     }
     function dragMouseDown(e) {
       container.style.cursor = "grabbing";
@@ -92,9 +92,6 @@ class TunnelBox {
       elmnt.style.width = self.width + "px";
       
       lastPos.y = currentPos.y;
-
-      let position = self.getPosition();
-      if(socketReady()) tunnelBoxSocket.emit('BOX_RESIZE', position);
     }
     function elementDrag(e) {
       e = e || window.event;
@@ -111,20 +108,28 @@ class TunnelBox {
       elmnt.style.left = self.left + "px";
       lastPos.x = currentPos.x;
       lastPos.y = currentPos.y;
-
-      let position = self.getPosition();
-      if(socketReady()) tunnelBoxSocket.emit('BOX_MOVE', position);
     }
     function closeDragElement() {
       // stop moving when mouse button is released:
       container.style.cursor = "grab";
       container.removeEventListener("mouseup", closeDragElement);
       container.removeEventListener("mousedown", dragMouseDown);
-      container.removeEventListener("mousedown", resizeMouseDown);
       container.removeEventListener("mousemove", elementDrag);
+      container.addEventListener("mousemove", currentMouseMove);
+
+      let position = self.getPosition();
+      if(socketReady()) tunnelBoxSocket.emit('BOX_MOVE', position);
+      tunnelBoxSocket.emit('PC_MOVE_END', null);
+    }
+    function closeResizeElement() {
+      container.style.cursor = "default";
+      container.removeEventListener("mouseup", closeResizeElement);
+      container.removeEventListener("mousedown", resizeMouseDown);
       container.removeEventListener("mousemove", elementResize);
       container.addEventListener("mousemove", currentMouseMove);
 
+      let position = self.getPosition();
+      if(socketReady()) tunnelBoxSocket.emit('BOX_RESIZE', position);
       tunnelBoxSocket.emit('PC_MOVE_END', null);
     }
     function isRectLine(x, y){
@@ -155,12 +160,13 @@ class TunnelBox {
   activate() {
     this.isMobile = false;
     this.on = true;
-    this.left = document.querySelector(`#viewer > div:nth-child(${1})`).offsetLeft;
+    this.DOM.style.top = this.top + 'px';
     this.DOM.style.left = this.left + 'px';
     this.DOM.style.height = this.height + 'px';
     this.DOM.style.width = this.width + 'px';
     this.DOM.style.border = '2px solid #abc';
     if(!this.isInit){
+      this.left = document.querySelector(`#viewer > div:nth-child(${1})`).offsetLeft;
       this._dragElement(this.DOM);
       this.isInit = true;
     }
@@ -415,7 +421,6 @@ function validTunnelBoxInView() {
       isBoxMove = true;
     }
   }
-
   lastScrollTop = currentScrollTop;
 }
 
