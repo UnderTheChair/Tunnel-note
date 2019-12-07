@@ -185,7 +185,6 @@ class DrawService {
   }
 
   reset(index) {
-
     if (ctx[index]) {
       let height = ctx[index].canvas.getAttribute('height').split('px')[0];
       let width = ctx[index].canvas.getAttribute('width').split('px')[0];
@@ -320,7 +319,6 @@ function startLineHelper(target) {
 // Draw to the canvas
 function drawLine(pageNum) {
   let target;
-
   target = ctx[pageNum]; 
   target.lineTo(mousePos.x, mousePos.y);
   target.stroke();
@@ -332,12 +330,14 @@ function drawLine(pageNum) {
 
 function eraseLine(pageNum) {
   let target = ctx[pageNum];
-  let rate = curScale / 100.0;
+  let rate = curScale;
+  target.beginPath();
   target.globalCompositeOperation = "destination-out";
   target.arc(mousePos.x, mousePos.y, 20 * rate, 0, Math.PI * 2, false);
   target.fill();
   
   target = window.drawService.loadedCanvasList[pageNum];
+  target.beginPath();
   target.globalCompositeOperation = "destination-out";
   target.arc(mousePos.x, mousePos.y, 20 * rate, 0, Math.PI * 2, false);
   target.fill();
