@@ -311,6 +311,7 @@ class TunnelBox {
 
 let tunnel;
 let toolbar_height = document.getElementById('toolbarContainer').offsetHeight;
+let isMobileScroll = false;
 
 //pc -> mobile
 tunnelBoxSocket.on('BOX_INIT', (position) => {
@@ -318,7 +319,9 @@ tunnelBoxSocket.on('BOX_INIT', (position) => {
   if (tunnel.on == true) return;
 
   //detect mobile window control
-  $('#viewerContainer').scroll(mobileScrollCallback);
+  $('#viewerContainer').scroll(function(event){
+    isMobileScroll = true;
+  });
   window.customScaleCallback = () => {
     var position = tunnel.getPosition();
     if(!scaleChanging && socketReady()) tunnelBoxSocket.emit('MOBILE_RESIZE', position);
@@ -392,9 +395,15 @@ tunnelBoxSocket.on('MOBILE_RESIZE', (position) => {
   tunnel.setBoxPosition(position);
 });
 
+setInterval(function(){
+  if(isMobileScroll){
+    mobileScrollCallback();
+    isMobileScroll = false;
+  }
+}, 250);
+
 //in mobile call
-let mobileScrollCallback = () => {
-  // callback
+function mobileScrollCallback() {
   if(tunnel.mobileDrag){
     tunnel.setPos();
     var position = tunnel.getPosition();
