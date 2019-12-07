@@ -291,11 +291,17 @@ class TunnelBox {
     [tmpX, tmpY] = pdfViewer._pages[1].viewport.convertToViewportPoint(pagePoint[0].x, pagePoint[0].y);
     let p1 = { x: tmpX, y: tmpY };
 
+    var changeTop = p1.y - this.top;
+    console.log("changeTop: ", changeTop);
+
     this.left = p1.x + currentPageElment.offsetLeft;
     this.top = p1.y;
     
     this.DOM.style.top = this.top + 'px';
     this.DOM.style.left = this.left + 'px';
+
+    document.querySelector('#viewerContainer').scrollTop += changeTop;
+    document.querySelector('#viewerContainer').dispatchEvent(new Event('scroll'))
   }
   setBoxSizeInit(sizeData){
     this.mobileHeight = sizeData.height;
@@ -382,6 +388,7 @@ tunnelBoxSocket.on('BOX_SIZE_INIT', (sizeData) => {
 
 tunnelBoxSocket.on('MOBILE_MOVE', (position) => {
   if(tunnel === undefined) return;
+  
   tunnel.setBoxPosition(position);
 });
 
