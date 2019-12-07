@@ -65,6 +65,9 @@ let mousePenEvent = {
     let pageNum = e.target.getAttribute('data-page-number');
     let mode = window.drawService.mode;
 
+    let loadedContext = window.drawService.loadedCanvasList[pageNum-1];
+    loadedContext.stroke();
+
     if (mode === 'pen' || mode === 'eraser')
       window.drawService.saveCanvas(pageNum);
 
@@ -317,26 +320,29 @@ function startLineHelper(target) {
   target.moveTo(mousePos.x, mousePos.y);
 }
 // Draw to the canvas
-function drawLine(pageNum) {
-  let target;
-  target = ctx[pageNum]; 
-  target.lineTo(mousePos.x, mousePos.y);
-  target.stroke();
+function drawLine(index) {
+  let curContext, loadedContext;
+
+  curContext = ctx[index]; 
+  loadedContext = window.drawService.loadedCanvasList[index];
+
+  curContext.lineTo(mousePos.x, mousePos.y);
+  curContext.stroke();
   
-  target = window.drawService.loadedCanvasList[pageNum];
-  target.lineTo(mousePos.x, mousePos.y);
-  target.stroke();
+  loadedContext.lineTo(mousePos.x, mousePos.y);
+  // loadedContext.stroke();
+  
 }
 
-function eraseLine(pageNum) {
-  let target = ctx[pageNum];
+function eraseLine(index) {
+  let target = ctx[index];
   let rate = curScale;
   target.beginPath();
   target.globalCompositeOperation = "destination-out";
   target.arc(mousePos.x, mousePos.y, 20 * rate, 0, Math.PI * 2, false);
   target.fill();
   
-  target = window.drawService.loadedCanvasList[pageNum];
+  target = window.drawService.loadedCanvasList[index];
   target.beginPath();
   target.globalCompositeOperation = "destination-out";
   target.arc(mousePos.x, mousePos.y, 20 * rate, 0, Math.PI * 2, false);
@@ -348,8 +354,8 @@ function getMousePos(mouseEvent) {
   let rect = mouseEvent.target.getBoundingClientRect();
 
   return {
-    x: mouseEvent.clientX - rect.left,
-    y: mouseEvent.clientY - rect.top
+    x: Math.round(mouseEvent.clientX - rect.left),
+    y: Math.round(mouseEvent.clientY - rect.top)
   };
 }
 
