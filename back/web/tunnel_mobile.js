@@ -148,7 +148,6 @@ tunnelBoxSocket.on('BOX_MOVE', (position) => {
   if (tunnel.on == false ) return;
   tunnel.isDragByPC = true;
   tunnel.setMobilePosition(position);
-  console.log("set mobile position by box move emit");
   setTimeout(function(){
     tunnel.isDragByPC = false;
   }, 1000);
@@ -159,7 +158,6 @@ tunnelBoxSocket.on('BOX_RESIZE', (position) => {
   tunnel.isDragByPC = true;
   tunnel.setMobileSize(position);
   tunnel.setMobilePosition(position);
-  console.log("set mobile size by box resize emit");
   setTimeout(function(){
     tunnel.isDragByPC = false;
   }, 500);
@@ -195,7 +193,6 @@ function setAllInterval(){
 
 function mobileScrollCallback() {
   if(!tunnel.isDragByPC){
-    console.log("mobile scroll call back");
     tunnel.setPos();
     var position = tunnel.getPosition();
     if(socketReady()) tunnelBoxSocket.emit('MOBILE_MOVE', position);

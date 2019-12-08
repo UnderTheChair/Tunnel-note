@@ -281,13 +281,11 @@ tunnelBoxSocket.on('BOX_SIZE_INIT', (sizeData) => {
 
 tunnelBoxSocket.on('MOBILE_MOVE', (position) => {
   if(tunnel === undefined) return;
-  console.log("mobile scroll socket emit");
   tunnel.setBoxPosition(position);
 });
 
 tunnelBoxSocket.on('MOBILE_RESIZE', (position) => {
   if(tunnel === undefined) return;
-  console.log("mobile resize socket emit");
   tunnel.setBoxSize(position.currentScale);
   tunnel.setBoxPosition(position);
 });
