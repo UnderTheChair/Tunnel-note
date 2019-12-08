@@ -28,9 +28,10 @@ class TunnelBox {
 
     this.mobileWidth = 300;
     this.mobileHeight = 150;
+    this.initScaleValue = 1.5;
 
     this.isHandMode = true;
-    this.mobileDrag = true;
+    this.isMobileDrag = true;
     this.isMobile = true;
   }
   _dragElement(elmnt) {
@@ -182,11 +183,7 @@ class TunnelBox {
 
     let position = this.getPosition();
     tunnelBoxSocket.emit('BOX_INIT', position);
-    $('#viewerContainer').scroll(validTunnelBoxInView);
-  }
-
-  rcvActivate() {
-    this.on = true;
+    $('#viewerContainer').scroll(maintainBoxPositionSticky);
   }
 
   deactivate() {
@@ -204,12 +201,6 @@ class TunnelBox {
     
     tunnelBoxSocket.emit('BOX_CLEAR');
   }
-
-  rcvDeactivate() {
-    this.on = false;
-    this.deactivate();
-  }
-
   getPosition() {
     let pdfViewer = window.PDFViewerApplication.pdfViewer;
     let clientX, clientY;
@@ -222,12 +213,8 @@ class TunnelBox {
     // pt1 has [x, y] converted to PDF point
     [x, y]= pdfViewer._pages[0].viewport.convertToPdfPoint(clientX, clientY);
     p1 = {x : x, y : y};
-    
-<<<<<<< HEAD
-    [x, y] = pdfViewer._pages[currentPage].viewport.convertToPdfPoint(clientX + this.width, clientY + this.height);
-=======
+
     [x, y] = pdfViewer._pages[0].viewport.convertToPdfPoint(clientX + this.width, clientY - this.height);
->>>>>>> 179eba437990fffab31375b3da6a7baf4fef453f
     p2 = {x : x, y : y};
 
     if(p1.y <= 0){
@@ -245,46 +232,6 @@ class TunnelBox {
     }
   }
 
-  //mobile
-  setMobilePosition(position) {
-    let {pagePoint, currentPage, width, currentScale, boxHeight, boxWidth} = position;
-    let pdfViewer = window.PDFViewerApplication.pdfViewer;
-    let currentPageElment = document.querySelector(`#viewer > div:nth-child(${currentPage})`);
-    let x, y, p1, p2;
-    let newScale;
-    
-    [x, y] = pdfViewer._pages[0].viewport.convertToViewportPoint(pagePoint[0].x, pagePoint[0].y);
-    p1 = {x : x, y : y}; 
-    
-    [x, y] = pdfViewer._pages[0].viewport.convertToViewportPoint(pagePoint[1].x, pagePoint[1].y);
-    p2 = {x : x, y : y};
-
-    this.left = p1.x + currentPageElment.offsetLeft;
-    this.top = p1.y;
-    
-    screenControl.setScrollTop(currentPageElment.offsetTop + this.top);
-    screenControl.setScrollLeft(currentPageElment.offsetLeft + this.left);
-    screenControl.setOffsetWidth(boxWidth);
-    screenControl.setOffsetHeight(boxHeight);
-
-    newScale = (document.body.clientWidth / (width / currentScale)) * (width / boxWidth);
-    scaleChanging = true;
-    pdfViewer._setScale(newScale);
-    scaleChanging = false;
-    this.mobileDrag = true;
-  }
-
-  //mobile
-  setMobileSizeValue(width, height){
-    this.width = width;
-    this.height = height;
-    this.resolution = this.width / this.height;
-  }
-  setPos(){
-    this.top = document.querySelector('#viewerContainer').scrollTop;
-    this.left = document.querySelector('#viewerContainer').scrollLeft;
-  }
-
   //pc by mobile control
   setBoxPosition(position){
     let {pagePoint, currentPage} = position;
@@ -292,32 +239,25 @@ class TunnelBox {
     let currentPageElment = document.querySelector(`#viewer > div:nth-child(${currentPage})`);
     let tmpX, tmpY;
 
-<<<<<<< HEAD
-    [tmpX, tmpY] = pdfViewer._pages[1].viewport.convertToViewportPoint(pagePoint[0].x, pagePoint[0].y);
-=======
     [tmpX, tmpY] = pdfViewer._pages[0].viewport.convertToViewportPoint(pagePoint[0].x, pagePoint[0].y);
->>>>>>> 179eba437990fffab31375b3da6a7baf4fef453f
     let p1 = { x: tmpX, y: tmpY };
 
-    var changeTop = p1.y - this.top;
-    console.log("changeTop: ", changeTop);
+     //scroll pc view by mobile scroll
+    var changeTop = p1.y - this.top; 
+    screenControl.addScrollTop(changeTop);
 
     this.left = p1.x + currentPageElment.offsetLeft;
     this.top = p1.y;
     
     this.DOM.style.top = this.top + 'px';
     this.DOM.style.left = this.left + 'px';
-
-    document.querySelector('#viewerContainer').scrollTop += changeTop;
-    document.querySelector('#viewerContainer').dispatchEvent(new Event('scroll'))
   }
   setBoxSizeInit(sizeData){
     this.mobileHeight = sizeData.height;
     this.mobileWidth = sizeData.width;
     this.resolution = this.mobileWidth/ this.mobileHeight;
-    this.setBoxSize(1.5);
+    this.setBoxSize(this.initScaleValue);
   }
-  //pc by mobile control
   setBoxSize(mobileScale) {
     this.height = (this.mobileHeight) / mobileScale;
     this.DOM.style.height = this.height + 'px';
@@ -328,61 +268,6 @@ class TunnelBox {
 
 let tunnel;
 let toolbar_height = document.getElementById('toolbarContainer').offsetHeight;
-let isMobileScroll = false;
-
-//pc -> mobile
-tunnelBoxSocket.on('BOX_INIT', (position) => {
-  tunnel = tunnelBox_app;
-  if (tunnel.on == true) return;
-
-  //detect mobile window control
-  $('#viewerContainer').scroll(function(event){
-    isMobileScroll = true;
-  });
-  window.customScaleCallback = () => {
-    // var position = tunnel.getPosition();
-    // if(!scaleChanging && socketReady()) tunnelBoxSocket.emit('MOBILE_RESIZE', position);
-    // window.drawService.updateCanvas()
-  };
-  
-  //set tunnel size value by mobile screen size
-  var mobileWidth = $( window ).width();
-  var mobileHeight = $( window ).height() - toolbar_height;
-
-  tunnelBoxSocket.emit('BOX_SIZE_INIT', { 
-    width: mobileWidth, 
-    height: mobileHeight
-  });
-  tunnel.setMobileSizeValue(mobileWidth, mobileHeight);
-  tunnel.setMobilePosition(position);
-  tunnel.rcvActivate();
-});
-
-tunnelBoxSocket.on('BOX_MOVE', (position) => {
-  // Temporary remove for continue operating when page referch at remote device
-  if (tunnel.on == false ) return;
-  tunnel.mobileDrag = false;
-  tunnel.setMobilePosition(position);
-});
-
-tunnelBoxSocket.on('BOX_RESIZE', (position) => {
-  tunnel.mobileDrag = false;
-  tunnel.setMobilePosition(position);
-});
-
-tunnelBoxSocket.on('BOX_CLEAR', (position) => {
-  if (tunnel.on == false) return;
-  tunnel.rcvDeactivate();
-});
-
-tunnelBoxSocket.on('BOX_DOWN', (position) => {
-  if (tunnel.on = false) return;
-});
-
-tunnelBoxSocket.on('DISCONNECT', () => {
-  if (tunnel === undefined) return;
-  tunnel.rcvDeactivate();
-});
 
 //mobile -> pc
 tunnelBoxSocket.on('BOX_SIZE_INIT', (sizeData) => {
@@ -396,36 +281,22 @@ tunnelBoxSocket.on('BOX_SIZE_INIT', (sizeData) => {
 
 tunnelBoxSocket.on('MOBILE_MOVE', (position) => {
   if(tunnel === undefined) return;
-  
+  console.log("mobile scroll socket emit");
   tunnel.setBoxPosition(position);
 });
 
 tunnelBoxSocket.on('MOBILE_RESIZE', (position) => {
   if(tunnel === undefined) return;
+  console.log("mobile resize socket emit");
   tunnel.setBoxSize(position.currentScale);
   tunnel.setBoxPosition(position);
 });
 
-setInterval(function(){
-  if(isMobileScroll){
-    mobileScrollCallback();
-    isMobileScroll = false;
-  }
-}, 250);
-
-//in mobile call
-function mobileScrollCallback() {
-  if(tunnel.mobileDrag){
-    tunnel.setPos();
-    var position = tunnel.getPosition();
-    if(socketReady()) tunnelBoxSocket.emit('MOBILE_MOVE', position);
-  }
-};
-
-
-let isBoxMove = false;
-
 //check box move by pc scroll
+let isBoxMove = false;
+let lastScrollTop = 0;
+let PcWindowHeight = $(window).height();
+
 setInterval(function(){
   if(isBoxMove){
     let position = tunnel.getPosition();
@@ -434,24 +305,20 @@ setInterval(function(){
   }
 }, 250);
 
-let lastScrollTop = 0;
-let PcWindowHeight = $(window).height();
-
-//pc
-function validTunnelBoxInView() {
+function maintainBoxPositionSticky() {
   var currentScrollTop = document.querySelector('#viewerContainer').scrollTop;
   var clientRect = tunnel.DOM.getBoundingClientRect();
   var scrollChange = currentScrollTop - lastScrollTop;
   if(scrollChange > 0) { 
     //scroll down
-    if(clientRect.top <= toolbar_height+5 && clientRect.top >= toolbar_height-300){
+    if(clientRect.top <= toolbar_height+5){
       tunnel.top = currentScrollTop;
       tunnel.DOM.style.top = tunnel.top + 'px';
       isBoxMove = true;
     }
   }else{    
     //scroll up
-    if(clientRect.bottom >= PcWindowHeight-5 && clientRect.bottom <= PcWindowHeight+300){
+    if(clientRect.bottom >= PcWindowHeight-5){
       tunnel.top += scrollChange;
       tunnel.DOM.style.top = tunnel.top + 'px';
       isBoxMove = true;
