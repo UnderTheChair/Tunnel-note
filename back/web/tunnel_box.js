@@ -260,7 +260,7 @@ class TunnelBox {
     this.setBoxSize(this.initScaleValue);
   }
   setBoxSize(mobileScale) {
-    this.height = (this.mobileHeight) / mobileScale;
+    this.height = (this.mobileHeight / mobileScale) * 13 / 12;
     this.DOM.style.height = this.height + 'px';
     this.width = this.height * this.resolution;
     this.DOM.style.width = this.width + 'px';
@@ -292,7 +292,6 @@ tunnelBoxSocket.on('MOBILE_RESIZE', (position) => {
 });
 
 tunnelBoxSocket.on('MOBILE_ROTATE', () => {
-  console.log("mobile rotate socket emit");
   if(tunnel === undefined) return;
   tunnel.deactivate();
   tunnel.activate();

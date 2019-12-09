@@ -115,18 +115,22 @@ let isInit = false;
 
 //pc -> mobile
 tunnelBoxSocket.on('BOX_INIT', (position) => {
-  console.log("box init");
   if(!isInit){
     tunnel = tunnelBox_app;
 
     //add event for detect mobile window control
-    $('#viewerContainer').scroll(function(event){
-      isMobileScroll = true;
-    });
-    // window.addEventListener("resize", function(){
-    //   console.log("is mobile resize: ", isMobileResize);
-    //   isMobileResize = true;
-    // }, false);
+    $('#viewerContainer').scroll(mobileScrollCallback);
+    // $('#viewerContainer').scroll(function(event){
+    //   isMobileScroll = true;
+    // });
+    let canvases = document.getElementsByClassName('penCanvas');
+    let cvsLen = canvases.length
+
+    for (let i = 0; i < cvsLen; i++) {
+      canvases[i].addEventListener("pagerendered", (event) => {
+        isMobileResize = true;
+      });
+    }
     setAllInterval();
     window.addEventListener("orientationchange", function(){
       tunnelBoxSocket.emit('MOBILE_ROTATE', null);
@@ -170,7 +174,7 @@ tunnelBoxSocket.on('BOX_RESIZE', (position) => {
   tunnel.setMobilePosition(position);
   setTimeout(function(){
     tunnel.isDragByPC = false;
-  }, 500);
+  }, 1000);
 });
 
 tunnelBoxSocket.on('BOX_CLEAR', (position) => {
@@ -193,7 +197,7 @@ function setAllInterval(){
     if(isMobileScroll && !tunnel.isDragByPC){
       mobileScrollCallback();
     }
-    if(isMobileResize && !scaleChanging && socketReady()){
+    if(isMobileResize && !scaleChanging && socketReady() && !tunnel.isDragByPC){
       mobileResizeCallback();
     }
     isMobileScroll = false;
@@ -212,7 +216,6 @@ function mobileResizeCallback() {
   tunnel.setPos();
   var position = tunnel.getPosition();
   tunnelBoxSocket.emit('MOBILE_RESIZE', position);
-  window.drawService.updateCanvas();
 }
 
 export { TunnelMobile, };

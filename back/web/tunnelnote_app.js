@@ -97,7 +97,7 @@ function initDraw(drawService) {
 
 let tunnelToggle = function () {
   var windowWidth = $(window).width();
-  if (windowWidth < 900) {     //mobile
+  if (detectMobile()) {     //mobile
     console.log("mobile is not support tunnel box");
     return;
   }
