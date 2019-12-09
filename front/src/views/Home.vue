@@ -15,30 +15,27 @@
             <label class="custom-file-label" for="customFile">Choose file</label>
           </div>
         </div>
-    
       </div>
 
       <div class="row">
         <div class="col-sm-4" style v-for="pdf in pdfList" v-bind:key="pdf.modification_time">
-          <PDFItem 
-          v-bind:pdfName="pdf.name" 
-          v-bind:thumbnail="pdf.thumbnail" 
-          v-bind:pdfId="pdf.id"
-          style="margin: 3% 0%;"
-          
+          <PDFItem
+            v-bind:pdfName="pdf.name"
+            v-bind:thumbnail="pdf.thumbnail"
+            v-bind:pdfId="pdf.id"
+            style="margin: 3% 0%;"
           />
         </div>
       </div>
     </div>
     <Loading v-bind:isLoading="isLoading"/>
-
   </div>
 </template>
 
 <script>
 import PDFItem from "@/components/PDFItem";
 import Loading from '@/components/Loading';
-import 'vue-loading-overlay/dist/vue-loading.css';
+
 
 export default {
   name: "home",
@@ -63,10 +60,9 @@ export default {
       this.$store.dispatch("LOGOUT").then(() => this.$router.push("/login"));
     },
     reqUploadPDF(event) {
-      
       const reqURL = `${this.baseURL}/pdfs/upload`;
       let files = event.target.files || event.dataTransfer.files;
-      let { name, size } = files[0];
+      let { name, size , type} = files[0];
 
       if (!files.length) {
         return;
@@ -76,13 +72,29 @@ export default {
       formData.append("pdfFile", files[0]);
       formData.append("name", name);
       formData.append("size", size);
-
+      
+      if (type !== "application/pdf") {
+        this.noticeToastMsg("File supplied is not a valid PDF");
+        return;
+      }
+      
       this.isLoading = true;
-      this.$http.post(reqURL, formData).then(({data}) => {
-        this.pdfList = [data].concat(this.pdfList);
-        event.target.value = "";
-        this.isLoading = false
-      });
+      this.$http
+        .post(reqURL, formData)
+        .then(({ data }) => {
+          if (data.data === "failed") {
+            this.isLoading = false;
+            this.noticeToastMsg(data.message);
+          } else {
+            this.pdfList = [data].concat(this.pdfList);
+            event.target.value = "";
+            this.isLoading = false;
+          }
+        })
+        .catch(err => {
+          console.log(err);
+          return;
+        });
     },
     reqGetPDFs() {
       const reqURL = `${this.baseURL}/pdfs`;
@@ -96,7 +108,13 @@ export default {
       })
     },
     onCancel() {
-      console.log('User cancelled the loader.')
+      console.log("User cancelled the loader.");
+    },
+    noticeToastMsg: function(msg) {
+      this.$bvToast.toast(msg, {
+        title: `Notice`,
+        solid: true
+      });
     }
   },
   components: {
