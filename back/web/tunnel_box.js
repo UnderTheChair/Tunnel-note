@@ -30,6 +30,7 @@ class TunnelBox {
     this.mobileWidth = 300;
     this.mobileHeight = 150;
     this.initScaleValue = 1.5;
+    this.mobileScale = 1.5;
 
     this.isHandMode = true;
     this.isMobileDrag = true;
@@ -174,6 +175,17 @@ class TunnelBox {
       this._dragElement(this.DOM);
       $('#viewerContainer').scroll(maintainBoxPositionSticky);
       this.isInit = true;
+
+      let canvases = document.getElementsByClassName('penCanvas');
+      let cvsLen = canvases.length
+
+      for (let i = 0; i < cvsLen; i++) {
+        canvases[i].addEventListener("pagerendered", (event) => {
+          this.setBoxSize(this.mobileScale);
+          this.DOM.style.top = this.top + 'px';
+          this.DOM.style.left = this.left + 'px';
+        });
+      }
     }
     
     this.resizeDOM.style.borderRadius = '50%';
@@ -258,7 +270,9 @@ class TunnelBox {
     this.setBoxSize(this.initScaleValue);
   }
   setBoxSize(mobileScale) {
-    this.height = (this.mobileHeight / mobileScale) * 13 / 12;
+    let pcCurrentScale = window.PDFViewerApplication.pdfViewer.currentScale
+    this.mobileScale = this.mobileScale;
+    this.height = (this.mobileHeight / mobileScale) * pcCurrentScale;
     this.DOM.style.height = this.height + 'px';
     this.width = this.height * this.resolution;
     this.DOM.style.width = this.width + 'px';
