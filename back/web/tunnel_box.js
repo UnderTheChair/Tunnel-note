@@ -386,11 +386,11 @@ function checkStuck() {
       return 5;
   if(tunnel.DOM.offsetTop - containerDOM.scrollTop < 0)
     return 1;
-  if(tunnel.DOM.offsetLeft - containerDOM.scrollLeft < 0)
-    return 2;
-  if(tunnel.DOM.offsetTop + tunnel.DOM.offsetHeight
+    if(tunnel.DOM.offsetTop + tunnel.DOM.offsetHeight
       + toolbar_height - window.innerHeight - containerDOM.scrollTop > 0)
     return 3;
+    if(tunnel.DOM.offsetLeft - containerDOM.scrollLeft < 0)
+    return 2;
   if(tunnel.DOM.offsetLeft + tunnel.DOM.offsetWidth
       - window.innerWidth - containerDOM.scrollLeft > 0)
     return 4;
