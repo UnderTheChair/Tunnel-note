@@ -5,6 +5,7 @@ import { tunnelBox_app } from './tunnelnote_app.js';
 var socketTimestamp = performance.now();
 var scaleChanging = false;
 
+let isPCScroll = true;
 function socketReady() {
   if(performance.now() - socketTimestamp > 0.05) {
     socketTimestamp = performance.now();
@@ -225,7 +226,7 @@ class TunnelBox {
     return {
       pagePoint : [p1, p2],
       currentPage : currentPage,
-      // For setting size of screen corresponded with the tunnel box
+     // For setting size of screen corresponded with the tunnel box
       width: document.body.clientWidth,
       currentScale : pdfViewer.currentScale,
       boxHeight : this.height,
@@ -243,15 +244,12 @@ class TunnelBox {
     [tmpX, tmpY] = pdfViewer._pages[0].viewport.convertToViewportPoint(pagePoint[0].x, pagePoint[0].y);
     let p1 = { x: tmpX, y: tmpY };
 
-     //scroll pc view by mobile scroll
-    var changeTop = p1.y - this.top; 
-    screenControl.addScrollTop(changeTop);
-
     this.left = p1.x + currentPageElment.offsetLeft;
     this.top = p1.y;
     
     this.DOM.style.top = this.top + 'px';
     this.DOM.style.left = this.left + 'px';
+    maintainBoxPositionSticky();
   }
   setBoxSizeInit(sizeData){
     this.mobileHeight = sizeData.height;
@@ -282,6 +280,7 @@ tunnelBoxSocket.on('BOX_SIZE_INIT', (sizeData) => {
 
 tunnelBoxSocket.on('MOBILE_MOVE', (position) => {
   if(tunnel === undefined) return;
+  isPCScroll = false;
   tunnel.setBoxPosition(position);
 });
 
@@ -302,34 +301,87 @@ let isBoxMove = false;
 let lastScrollTop = 0;
 let PcWindowHeight = $(window).height();
 
-setInterval(function(){
-  if(isBoxMove){
-    let position = tunnel.getPosition();
-    if(socketReady()) tunnelBoxSocket.emit('BOX_MOVE', position);
-    isBoxMove = false;
-  }
-}, 250);
+// setInterval(function(){
+//   if(isBoxMove){
+//     let position = tunnel.getPosition();
+//     if(socketReady()) tunnelBoxSocket.emit('BOX_MOVE', position);
+//     isBoxMove = false;
+//   }
+// }, 250);
 
 function maintainBoxPositionSticky() {
-  var currentScrollTop = document.querySelector('#viewerContainer').scrollTop;
-  var clientRect = tunnel.DOM.getBoundingClientRect();
-  var scrollChange = currentScrollTop - lastScrollTop;
-  if(scrollChange > 0) { 
-    //scroll down
-    if(clientRect.top <= toolbar_height+5){
-      tunnel.top = currentScrollTop;
-      tunnel.DOM.style.top = tunnel.top + 'px';
-      isBoxMove = true;
-    }
-  }else{    
-    //scroll up
-    if(clientRect.bottom >= PcWindowHeight-5){
-      tunnel.top += scrollChange;
-      tunnel.DOM.style.top = tunnel.top + 'px';
-      isBoxMove = true;
-    }
+  let containerDOM = window.PDFViewerApplication.pdfViewer.container;
+  switch(checkStuck()) {
+    case 0:
+      return;
+    case 1: // TOP
+      if(isPCScroll) {
+        tunnel.top = containerDOM.scrollTop;
+        tunnel.DOM.style.top = tunnel.top + 'px';
+        if(socketReady()) tunnelBoxSocket.emit('BOX_MOVE', tunnel.getPosition());
+      }
+      else {
+        containerDOM.scrollTop = tunnel.DOM.offsetTop;
+        isPCScroll = true;
+      }
+      break;
+    case 2: // LEFT
+      if(isPCScroll) {
+        tunnel.left = containerDOM.scrollLeft;
+        tunnel.DOM.style.left = tunnel.left + 'px';
+        if(socketReady()) tunnelBoxSocket.emit('BOX_MOVE', tunnel.getPosition());
+      }
+      else {
+        containerDOM.scrollLeft = tunnel.DOM.offsetLeft; 
+        isPCScroll = true;
+      }
+      break;
+    case 3: // BOTTOM
+      if(isPCScroll) {
+        tunnel.left = window.innerHeight + containerDOM.scrollTop
+          - tunnel.DOM.offsetHeight;
+        tunnel.DOM.style.left =  tunnel.left + 'px';
+        if(socketReady()) tunnelBoxSocket.emit('BOX_MOVE', tunnel.getPosition());
+      }
+      else {
+        containerDOM.scrollTop = tunnel.DOM.offsetTop + tunnel.DOM.offsetHeight + toolbar_height
+          - window.innerHeight;
+        isPCScroll = true;
+      }
+      break;
+    case 4: // RIGHT
+      if(isPCScroll) {
+        tunnel.top =  window.innerWidth + containerDOM.scrollLeft - tunnel.DOM.offsetWidth;
+        tunnel.DOM.style.top = tunnel.top + 'px';
+        if(socketReady()) tunnelBoxSocket.emit('BOX_MOVE', tunnel.getPosition());
+      }
+      else {
+        containerDOM.scrollLeft = tunnel.DOM.offsetLeft + tunnel.DOM.offsetWidth 
+          - window.innerWidth;
+        isPCScroll = true;
+      }
+      break;
   }
-  lastScrollTop = currentScrollTop;
+}
+
+let stickyTimestamp = 0;
+function checkStuck() {
+  if(performance.now() - stickyTimestamp < 0.01)
+    return 0;
+  stickyTimestamp = performance.now();
+
+  let containerDOM = window.PDFViewerApplication.pdfViewer.container;
+  if(tunnel.DOM.offsetTop - containerDOM.scrollTop < 0)
+    return 1;
+  if(tunnel.DOM.offsetLeft - containerDOM.scrollLeft < 0)
+    return 2;
+  if(tunnel.DOM.offsetTop + tunnel.DOM.offsetHeight
+      + toolbar_height - window.innerHeight - containerDOM.scrollTop > 0)
+    return 3;
+  if(tunnel.DOM.offsetLeft + tunnel.DOM.offsetWidth
+    - window.innerWidth - containerDOM.scrollLeft > 0)
+    return 4;
+  return 0;
 }
 
 

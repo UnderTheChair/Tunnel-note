@@ -1,5 +1,6 @@
 // J2
 var canvasContainer;
+window.customSetup = function() {};
 
 /**
  * @licstart The following is the entire license notice for the
@@ -1942,7 +1943,7 @@ var webViewerOpenFileViaURL;
 
 function webViewerPageRendered(evt) {
   /** JINU add
-   * Dispatch "pagerendered" custom event when page rendered 
+   * Dispatch "pagerendered" custom event when page rendered
    */
   var penCanvases = document.getElementsByClassName('penCanvas');
   var pageNumber = evt.pageNumber;
@@ -10820,7 +10821,7 @@ function () {
       if (this.defaultRenderingQueue) {
         this.update();
       }
-     
+
     }
   }, {
     key: "_setScale",
@@ -11031,6 +11032,9 @@ function () {
 	      cvs.style.width = firstPage.view.div.style.width;
         }
       }
+      document.getElementById('tunnelContainer').style.width = firstPage.view.div.style.width;
+      document.getElementById('viewer').style.width = firstPage.view.div.style.width;
+      document.getElementById('customContainer').style.width = firstPage.view.div.style.width;
       var pageNumber = firstPage.id;
       var pdfOpenParams = '#page=' + pageNumber;
       pdfOpenParams += '&zoom=' + normalizedScaleValue;
@@ -11830,7 +11834,7 @@ function () {
       var currentZoomLayerNode = keepZoomLayer && this.zoomLayer || null;
       var currentAnnotationNode = keepAnnotations && this.annotationLayer && this.annotationLayer.div || null;
       /** JINU add
-       * Dispatch "reset" custom event when page reset 
+       * Dispatch "reset" custom event when page reset
        */
       let index = div.getAttribute('data-page-number') - 1;
       var penCanvas = document.getElementsByClassName('penCanvas')[index];
@@ -11846,7 +11850,7 @@ function () {
 
         div.removeChild(node);
       }
-      
+
       div.removeAttribute('data-loaded');
 
       if (currentAnnotationNode) {
