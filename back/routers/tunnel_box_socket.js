@@ -60,6 +60,10 @@ module.exports = (io) => {
     socket.on('MOBILE_RESIZE', (position) => {
       socket.broadcast.to(socket.accessToken).emit('MOBILE_RESIZE', position);
     });
+
+    socket.on('MOBILE_ROTATE', () => {
+      socket.broadcast.to(socket.accessToken).emit('MOBILE_ROTATE', null);
+    })
       
     
     socket.on('DISCONNECT', ()=>{

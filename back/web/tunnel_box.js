@@ -171,6 +171,7 @@ class TunnelBox {
     if(!this.isInit){
       this.left = document.querySelector(`#viewer > div:nth-child(${1})`).offsetLeft;
       this._dragElement(this.DOM);
+      $('#viewerContainer').scroll(maintainBoxPositionSticky);
       this.isInit = true;
     }
     
@@ -183,7 +184,7 @@ class TunnelBox {
 
     let position = this.getPosition();
     tunnelBoxSocket.emit('BOX_INIT', position);
-    $('#viewerContainer').scroll(maintainBoxPositionSticky);
+    
   }
 
   deactivate() {
@@ -276,7 +277,7 @@ tunnelBoxSocket.on('BOX_SIZE_INIT', (sizeData) => {
 
   //set mobile position
   var pcPosition = tunnel.getPosition();
-  tunnelBoxSocket.emit('BOX_MOVE', pcPosition);
+  tunnelBoxSocket.emit('BOX_RESIZE', pcPosition);
 });
 
 tunnelBoxSocket.on('MOBILE_MOVE', (position) => {
@@ -288,6 +289,13 @@ tunnelBoxSocket.on('MOBILE_RESIZE', (position) => {
   if(tunnel === undefined) return;
   tunnel.setBoxSize(position.currentScale);
   tunnel.setBoxPosition(position);
+});
+
+tunnelBoxSocket.on('MOBILE_ROTATE', () => {
+  console.log("mobile rotate socket emit");
+  if(tunnel === undefined) return;
+  tunnel.deactivate();
+  tunnel.activate();
 });
 
 //check box move by pc scroll

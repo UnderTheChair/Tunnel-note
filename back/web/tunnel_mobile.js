@@ -36,7 +36,6 @@ class TunnelMobile {
   }
   rcvDeactivate() {
     this.on = false;
-    this.deactivate();
   }
 
   getPosition() {
@@ -112,21 +111,32 @@ let tunnel;
 let toolbar_height = document.getElementById('toolbarContainer').offsetHeight;
 let isMobileScroll = false;
 let isMobileResize = false;
+let isInit = false;
 
 //pc -> mobile
 tunnelBoxSocket.on('BOX_INIT', (position) => {
-  tunnel = tunnelBox_app;
+  console.log("box init");
+  if(!isInit){
+    tunnel = tunnelBox_app;
+
+    //add event for detect mobile window control
+    $('#viewerContainer').scroll(function(event){
+      isMobileScroll = true;
+    });
+    // window.addEventListener("resize", function(){
+    //   console.log("is mobile resize: ", isMobileResize);
+    //   isMobileResize = true;
+    // }, false);
+    setAllInterval();
+    window.addEventListener("orientationchange", function(){
+      tunnelBoxSocket.emit('MOBILE_ROTATE', null);
+    }, false);
+
+    isInit = true;
+  }
   if (tunnel.on == true) return;
   tunnel.on = true;
-
-  //detect mobile window control
-  $('#viewerContainer').scroll(function(event){
-    isMobileScroll = true;
-  });
-  window.customScaleCallback = () => {
-    isMobileResize = true;
-  };
-  setAllInterval();
+  if(tunnel === undefined) return;
   
   //set tunnel size value by mobile screen size
   var mobileWidth = $( window ).width();
