@@ -9,7 +9,7 @@ let otherEndDrawing = false;
 let mousePos = { x: 0, y: 0 };
 let ctx = [];
 let pdfViewer;
-let modeBeforeStylus = 'hand';
+let lastPenMode = 'pen';
 let isStylus = false;
 
 var selColor = document.getElementById("selColor");
@@ -33,7 +33,13 @@ let mousePenEvent = {
     let pdfMousePos;
     let x, y;
     var mode = window.drawService.mode;
+
     currentPageNum = e.target.getAttribute('data-page-number');
+
+    if(mode !== 'hand')
+      lastPenMode = mode;
+    if(isStylus)
+      mode = lastPenMode;
 
     mousePos = await getMousePos(e);
 
@@ -80,6 +86,8 @@ let mousePenEvent = {
     let x, y;
     let pageNum = e.target.getAttribute('data-page-number');
     var mode = window.drawService.mode;
+    if(isStylus)
+      mode = lastPenMode;
 
     if (pageNum !== currentPageNum) {
       return;
@@ -113,11 +121,9 @@ let touchPenEvent = {
 
     if(touch.touchType == 'stylus') {
       isStylus = true;
-      modeBeforeStylus = mode;
-      window.drawService.mode = 'pen';
     }
 
-    if (mode !== 'hand') { e.preventDefault(); }
+    if (isStylus || mode !== 'hand') { e.preventDefault(); }
     mousePos = await getTouchPos(e);
     let mouseEvent = new MouseEvent("mousedown", {
       clientX: touch.clientX,
@@ -131,18 +137,15 @@ let touchPenEvent = {
     var mode = window.drawService.mode;
 
     if(isStylus) {
-      window.drawService.mode = modeBeforeStylus;
       isStylus = false;
     }
 
-    if (mode !== 'hand') {
-      e.preventDefault();
-    }
+    if (mode !== 'hand') { e.preventDefault(); }
     canvas.dispatchEvent(mouseEvent);
   },
   touchMove(e) {
     var mode = window.drawService.mode;
-    if (mode !== 'hand') { e.preventDefault(); }
+    if (isStylus || mode !== 'hand') { e.preventDefault(); }
     let touch = e.touches[0];
     let canvas = e.target;
     let mouseEvent = new MouseEvent("mousemove", {
