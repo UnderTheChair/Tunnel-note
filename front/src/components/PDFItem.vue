@@ -56,11 +56,10 @@ export default {
           const blob = new Blob([response.data], {
             type: "application/pdf"
           });
-
           const fileURL = URL.createObjectURL(blob);
           localStorage.setItem("fileURL", fileURL);
           localStorage.setItem("pdfName", this.name);
-          window.open("http://13.125.136.140/web/");
+          window.open('/web');
           this.isLoading = false;
         })
         .catch(error => {

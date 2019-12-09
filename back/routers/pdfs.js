@@ -60,8 +60,8 @@ const storageCvs = multer.diskStorage({
 const upload = multer({ storage: storage })
 const uploadCvs = multer({ storage: storageCvs })
 
-//router.use('/', authMiddleware);
-router.use('/', anyMiddleware); // USING DEVELOPMENT
+router.use('/', authMiddleware);
+//router.use('/', anyMiddleware); // USING DEVELOPMENT
 
 router.post('/upload', upload.single('pdfFile'), (req, res) => {
   let { name, size } = req.body
