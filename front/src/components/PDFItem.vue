@@ -1,18 +1,17 @@
 <template>
   <div class="PDFItem">
     <div class="card">
-      <button type="button" class="btn btn-light" v-on:click="removePDF">
-        <icon name="trash" />
-      </button>
+      <b-dropdown id="dropdown-header" text="SET" >
+        <b-dropdown-item-button aria-describedby="dropdown-header-label" v-on:click="renamePDF">Rename</b-dropdown-item-button>
+        <b-dropdown-item-button aria-describedby="dropdown-header-label" v-on:click="removePDF">Remove</b-dropdown-item-button>
+      </b-dropdown>
       <img
         v-bind:src="getThumbnail()"
-        width="250"
-        height="250"
-        style="margin: auto;"
+        style="margin: auto;   max-width: 100%;"
         v-on:click="movePDF()"
       />
 
-      <h4>{{pdfName}}</h4>
+      <h4>{{name}}</h4>
     </div>
     <loading v-bind:isLoading="isLoading" />
   </div>
@@ -26,6 +25,7 @@ export default {
   data() {
     return {
       baseURL: this.$store.getters.getBaseUrl,
+      name: this.pdfName,
       isLoading: false
     };
   },
@@ -44,7 +44,7 @@ export default {
           `${this.baseURL}/pdfs/blob`,
           {
             pdfId: this.pidId,
-            pdfName: this.pdfName
+            pdfName: this.name
           },
           {
             responseType: "blob"
@@ -59,7 +59,7 @@ export default {
 
           const fileURL = URL.createObjectURL(blob);
           localStorage.setItem("fileURL", fileURL);
-          localStorage.setItem("pdfName", this.pdfName);
+          localStorage.setItem("pdfName", this.name);
           window.open("http://13.125.136.140/web/");
           this.isLoading = false;
         })
@@ -70,27 +70,59 @@ export default {
       //localStorage.setItem("pdf-file",  )
     },
     removePDF: function() {
-      let isRemove = confirm('Do you really want to remove it?');
-      
+      let isRemove = confirm("Do you really want to remove it?");
+
       if (isRemove) {
         this.isLoading = true;
-        this.$http.post(
-          `${this.baseURL}/pdfs/remove`,{
+        this.$http
+          .post(`${this.baseURL}/pdfs/remove`, {
             pdfId: this.pdfId,
-            pdfName: this.pdfName
+            pdfName: this.name
           })
           .then(() => {
-            window.location.reload()
+            window.location.reload();
           })
-          .catch((err) => {
+          .catch(err => {
             this.isLoading = false;
             console.log(err);
-          })
+          });
       }
+    },
+    renamePDF: function() {
+      let newName = window.prompt("Enter new PDF name");
+
+      if(newName) {
+        this.isLoading = true;
+        this.$http
+          .post(`${this.baseURL}/pdfs/rename`, {
+            pdfId: this.pdfId,
+            pdfName: this.name,
+            pdfNewName: newName
+          })
+          .then(({data}) => {
+            this.noticeToastMsg('Success renaming PDF');
+            console.log(data);
+            this.name = data.name;
+            this.isLoading = false;
+          })
+          .catch(err => {
+            this.isLoading = false;
+            console.log(err);
+          });
+      }
+    },
+    noticeToastMsg: function(msg) {
+      this.$bvToast.toast(msg, {
+        title: `Notice`,
+        solid: true
+      });
     }
   },
   props: ["pdfName", "thumbnail", "pdfId"]
 };
 </script>
 <style scoped>
+.pdf-set {
+  text-align: right;
+}
 </style>

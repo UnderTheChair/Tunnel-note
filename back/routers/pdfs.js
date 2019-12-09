@@ -126,6 +126,29 @@ router.post('/remove', (req, res) => {
   })
 })
 
+router.post('/rename', (req, res) => {
+  let pdfId = req.body.pdfId;
+  let filePattern = /\.([0-9a-z]+)(?:[\?#]|$)/i;
+  let oldName = req.body.pdfName;
+  let newName = req.body.pdfNewName;
+  
+  if (!newName.match(filePattern)) {
+    newName = newName + '.pdf';
+  }
+  
+  pdfModel.updateOne({ _id: pdfId }, { name: newName }).then(() => {
+    let oldPath = __dirname + '/../temp/' + req.decoded + `/${req.body.pdfName}`;
+    let newPath = __dirname + '/../temp/' + req.decoded + `/${req.body.pdfNewName}`;
+
+    fs.renameSync(oldPath + `/${oldName}`, oldPath + `/${newName}`);
+    fs.renameSync(oldPath, newPath);
+    res.send({
+      _id: pdfId,
+      name: newName,
+    });
+  })
+})
+
 router.post('/blob', (req, res) => {
   let userData = { email: req.decoded, pdfName: req.body.pdfName };
 
