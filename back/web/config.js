@@ -1,4 +1,4 @@
-let SERVER_IP = "192.168.8.210";
+let SERVER_IP = "192.168.31.211";
 
 export {
     SERVER_IP

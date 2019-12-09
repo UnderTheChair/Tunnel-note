@@ -7,13 +7,13 @@
         <form id="loginForm">
           <div class="form-group">
             <label>Your email</label>
-            <input class="form-control" placeholder="Email" type="email" name="email" />
+            <input class="form-control" placeholder="Email" type="email" name="email" autocomplete="off" />
           </div>
           <!-- form-group// -->
           <div class="form-group">
             <a class="float-right" href="#">Forgot?</a>
             <label>Your password</label>
-            <input class="form-control" placeholder="******" type="password" name="password" />
+            <input class="form-control" placeholder="******" type="password" name="password" autocomplete="off"  />
           </div>
           <!-- form-group// -->
           <!-- form-group// -->

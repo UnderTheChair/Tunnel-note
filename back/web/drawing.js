@@ -358,6 +358,9 @@ function drawLine(index) {
 function eraseLine(index) {
   let target = ctx[index];
   let rate = curScale;
+  let tempTransparent = target.globalAlpha;
+  
+  target.globalAlpha = 1;
   target.beginPath();
   target.globalCompositeOperation = "destination-out";
   target.arc(mousePos.x, mousePos.y, 20 * rate, 0, Math.PI * 2, false);
@@ -368,6 +371,9 @@ function eraseLine(index) {
   target.globalCompositeOperation = "destination-out";
   target.arc(mousePos.x, mousePos.y, 20 * rate, 0, Math.PI * 2, false);
   target.fill();
+
+  target.globalAlpha = tempTransparent
+  
 }
 
 // Get the position of the mouse relative to the canvas
