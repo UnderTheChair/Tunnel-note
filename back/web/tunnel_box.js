@@ -258,7 +258,8 @@ class TunnelBox {
     this.setBoxSize(this.initScaleValue);
   }
   setBoxSize(mobileScale) {
-    this.height = (this.mobileHeight / mobileScale) * 13 / 12;
+    let currentScale = window.PDFViewerApplication.pdfViewer.currentScale;
+    this.height = (this.mobileHeight / mobileScale) * currentScale; 
     this.DOM.style.height = this.height + 'px';
     this.width = this.height * this.resolution;
     this.DOM.style.width = this.width + 'px';
@@ -286,6 +287,7 @@ tunnelBoxSocket.on('MOBILE_MOVE', (position) => {
 
 tunnelBoxSocket.on('MOBILE_RESIZE', (position) => {
   if(tunnel === undefined) return;
+  console.log(position);
   tunnel.setBoxSize(position.currentScale);
   tunnel.setBoxPosition(position);
 });
