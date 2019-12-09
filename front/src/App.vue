@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <div id="nav">
-      <router-link to="/">Home</router-link> 
+      <router-link to="/"><img src="./assets/Tunnel-note.jpg" width="50" height="50"/> Home</router-link> 
       <!-- <router-link to="/about">About</router-link> -->
     </div>
     <router-view/>

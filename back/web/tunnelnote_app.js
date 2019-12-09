@@ -7,6 +7,7 @@ let isSetup = false;
 var scale;
 var scaleTimestamp = 0;
 let tunnelBox_app;
+let pinchTimestamp = 0;
 
 window.customSetup = () => {
   if (isSetup == true) return false;
@@ -39,23 +40,36 @@ window.customSetup = () => {
     touchAction: 'pan-x pan-y'
   });
 
-  hammer.get('pinch').set({ enable: true });
+  hammer.get('pinch').set({ enable: true, threshold: 0.001 });
 
-  let curScale = window.PDFViewerApplication.pdfViewer._currentScale;
-  let lastScale = curScale;
+  let curScale, prevScale;
+  let pdfViewer = window.PDFViewerApplication.pdfViewer;
+  let prevEventScale, prevScrollLeft, prevScrollTop;
 
   hammer.on('pinchstart pinchmove pinchend', (e) => {
     if (drawService.mode === 'hand') {
       switch (e.type) {
         case 'pinchstart':
-          curScale = lastScale;
+          prevScale = window.PDFViewerApplication.pdfViewer._currentScale;
+          prevEventScale = 1;
+          prevScrollLeft = pdfViewer.container.scrollLeft;
+          prevScrollTop = pdfViewer.container.scrollTop;
           break;
         case 'pinchmove':
-          lastScale = curScale * e.scale;
-          window.PDFViewerApplication.pdfViewer._setScale(lastScale)
+          if(performance.now() - pinchTimestamp > 0.1) {
+            pinchTimestamp = performance.now()
+            curScale = prevScale * e.scale;
+            window.PDFViewerApplication.pdfViewer._setScale(curScale)
+
+            var scaleCorrectionFactor = e.scale - prevEventScale;
+            console.log(scaleCorrectionFactor);
+            pdfViewer.container.scrollLeft += prevScrollLeft * scaleCorrectionFactor;
+            pdfViewer.container.scrollTop += prevScrollTop * scaleCorrectionFactor;
+            prevEventScale = e.scale;
+          }
           break;
         case 'pinchend':
-          curScale = lastScale;
+          prevScale = curScale;
           break;
       }
     }

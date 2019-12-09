@@ -4,16 +4,12 @@
       <img v-bind:src="getThumbnail()" width="250" height="250" style="margin: auto;" />
       <h4>{{pdfName}}</h4>
     </div>
-    <loading :active.sync="isLoading" 
-        :can-cancel="true" 
-        :on-cancel="onCancel"
-        :is-full-page="fullPage"/>
+    <loading v-bind:isLoading="isLoading"/>
   </div>
 </template>
 
 <script>
-import Loading from 'vue-loading-overlay';
-import 'vue-loading-overlay/dist/vue-loading.css';
+import Loading from '@/components/Loading';
 
 export default {
   name: "PDFItem",
@@ -21,7 +17,6 @@ export default {
     return{
       baseURL: this.$store.getters.getBaseUrl,
       isLoading: false,
-      fullPage: true,
     }
   },
   components: {

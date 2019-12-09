@@ -1,102 +1,102 @@
 <template>
   <div class="signupForm">
-    <div class="container">
-      <div class="row">
-        <div class="col-sm-6 col-md-offset-3" style="margin: 0 auto;">
-          <div class="card">
-            <article class="card-body">
-              <h4 class="card-title mb-4 mt-1">Sign up</h4>
-              <form role="form" id="signupForm">
-                <div class="form-group">
-                  <label for="inputName">성명</label>
-                  <input type="text" class="form-control" id="inputName" name="name" placeholder="이름을 입력해 주세요" />
-                </div>
-                <div class="form-group">
-                  <label for="InputEmail">이메일 주소</label>
-                  <input
-                    type="email"
-                    class="form-control"
-                    id="inputEmail"
-                    name="email"
-                    placeholder="이메일 주소를 입력해주세요"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="inputPassword">비밀번호</label>
-                  <input
-                    type="password"
-                    class="form-control"
-                    id="inputPassword"
-                    name="password"
-                    placeholder="비밀번호를 입력해주세요"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="inputPasswordCheck">비밀번호 확인</label>
-                  <input
-                    type="password"
-                    class="form-control"
-                    id="inputPasswordCheck"
-                    name="passwordCheck"
-                    placeholder="비밀번호 확인을 위해 다시한번 입력 해 주세요"
-                  />
-                </div>
-
-              </form>
-              <div class="form-group text-center">
-                <button id="join-submit" class="btn btn-primary" v-on:click="reqJoin">
-                  회원가입
-                </button>
-                <button id="cancel-submit" class="btn btn-warning" v-on:click="$router.go(-1)">
-                  취소
-                </button>
-              </div>
-            </article>
+    <div class="card">
+      <article class="card-body">
+        <h4 class="card-title mb-4 mt-1">Sign up</h4>
+        <form role="form" id="signupForm">
+          <div class="form-group">
+            <label for="inputName">Name</label>
+            <input
+              type="text"
+              class="form-control"
+              id="inputName"
+              name="name"
+              placeholder="Enter Name"
+            />
           </div>
+          <div class="form-group">
+            <label for="InputEmail">Email</label>
+            <input
+              type="email"
+              class="form-control"
+              id="inputEmail"
+              name="email"
+              placeholder="Enter Email"
+            />
+          </div>
+          <div class="form-group">
+            <label for="inputPassword">Password</label>
+            <input
+              type="password"
+              class="form-control"
+              id="inputPassword"
+              name="password"
+              placeholder="Enter Password"
+            />
+          </div>
+          <div class="form-group">
+            <label for="inputPasswordCheck">Confirm Password</label>
+            <input
+              type="password"
+              class="form-control"
+              id="inputPasswordCheck"
+              name="passwordCheck"
+              placeholder="Enter Confirm Password"
+            />
+          </div>
+        </form>
+        <div class="form-group text-center">
+          <button id="join-submit" class="btn btn-primary" v-on:click="reqJoin">Signup</button>
+          &nbsp;
+          <button id="cancel-submit" class="btn btn-warning" v-on:click="$router.go(-1)">Cancle</button>
         </div>
-      </div>
+      </article>
     </div>
+    <Loading v-bind:isLoading='isLoading'/>
   </div>
 </template>
 <script>
-import $ from 'jquery';
+import $ from "jquery";
+import Loading from '@/components/Loading.vue';
 
 export default {
   name: "signupForm",
   data() {
     return {
-      baseUrl: this.$store.getters.getBaseUrl
-    }
+      baseUrl: this.$store.getters.getBaseUrl,
+      isLoading: false
+    };
   },
   methods: {
     reqJoin: function() {
-      let url = this.baseUrl + '/users/signup';
-      let form = $('#signupForm')
+      let url = this.baseUrl + "/users/signup";
+      let form = $("#signupForm");
       let signupData = this.getFormData(form);
-      
+
       if (this.evalSignupData(signupData) == false) {
         this.noticeToastMsg("Passwords are different");
         return;
       }
-
-      this.$http.post(url, signupData).then((res) => {
+      this.isLoading = true;
+      this.$http.post(url, signupData).then(res => {
         let data = res.data;
         if (data.data == "ok") {
-          this.$store.commit('setPreSignup', true);
-          this.$router.push('/login');
-        }else {
+          this.$store.commit("setPreSignup", true);
+          this.$router.push("/login");
+        } else {
           if (data.code === 11000) {
             this.noticeToastMsg("Email duplication");
+            this.isLoading = false;
           }
         }
-      })
+      });
     },
     getFormData: function(form) {
       var unindexed_array = form.serializeArray();
       var indexed_array = {};
 
       $.map(unindexed_array, item => {
-          indexed_array[item['name']] = item['value'];
+        indexed_array[item["name"]] = item["value"];
       });
 
       return indexed_array;
@@ -113,6 +113,9 @@ export default {
         solid: true
       });
     }
+  },
+  components: {
+    Loading
   }
 };
 </script>
