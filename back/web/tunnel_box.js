@@ -2,8 +2,10 @@ import { tunnelBoxSocket } from './socket.io.js';
 import { screenControl } from './screen_control.js';
 import { tunnelBox_app } from './tunnelnote_app.js';
 
+let tunnel;
+
 var socketTimestamp = performance.now();
-var scaleChanging = false;
+let lastBoxPosition = null;
 
 let isPCScroll = true;
 function socketReady() {
@@ -30,6 +32,7 @@ class TunnelBox {
     this.mobileWidth = 300;
     this.mobileHeight = 150;
     this.initScaleValue = 1.5;
+    this.mobileScale = 1.5;
 
     this.isHandMode = true;
     this.isMobileDrag = true;
@@ -172,8 +175,18 @@ class TunnelBox {
     if(!this.isInit){
       this.left = document.querySelector(`#viewer > div:nth-child(${1})`).offsetLeft;
       this._dragElement(this.DOM);
-      $('#viewerContainer').scroll(maintainBoxPositionSticky);
+      $('#viewerContainer').on('scroll', maintainBoxPositionSticky);
       this.isInit = true;
+
+      let canvases = document.getElementsByClassName('penCanvas');
+      let cvsLen = canvases.length
+
+      for (let i = 0; i < cvsLen; i++) {
+        canvases[i].addEventListener("pagerendered", (event) => {
+          if(lastBoxPosition)
+            this.setBoxPosition(lastBoxPosition);
+        });
+      }
     }
     
     this.resizeDOM.style.borderRadius = '50%';
@@ -240,6 +253,7 @@ class TunnelBox {
     let pdfViewer = window.PDFViewerApplication.pdfViewer;
     let currentPageElment = document.querySelector(`#viewer > div:nth-child(${currentPage})`);
     let tmpX, tmpY;
+    lastBoxPosition = _.clone(position);
 
     [tmpX, tmpY] = pdfViewer._pages[0].viewport.convertToViewportPoint(pagePoint[0].x, pagePoint[0].y);
     let p1 = { x: tmpX, y: tmpY };
@@ -258,14 +272,15 @@ class TunnelBox {
     this.setBoxSize(this.initScaleValue);
   }
   setBoxSize(mobileScale) {
-    this.height = (this.mobileHeight / mobileScale) * 13 / 12;
+    let pcCurrentScale = window.PDFViewerApplication.pdfViewer.currentScale
+    this.mobileScale = this.mobileScale;
+    this.height = (this.mobileHeight / mobileScale) * pcCurrentScale;
     this.DOM.style.height = this.height + 'px';
     this.width = this.height * this.resolution;
     this.DOM.style.width = this.width + 'px';
   }
 }
 
-let tunnel;
 let toolbar_height = document.getElementById('toolbarContainer').offsetHeight;
 
 //mobile -> pc
@@ -301,15 +316,7 @@ let isBoxMove = false;
 let lastScrollTop = 0;
 let PcWindowHeight = $(window).height();
 
-// setInterval(function(){
-//   if(isBoxMove){
-//     let position = tunnel.getPosition();
-//     if(socketReady()) tunnelBoxSocket.emit('BOX_MOVE', position);
-//     isBoxMove = false;
-//   }
-// }, 250);
-
-function maintainBoxPositionSticky() {
+function maintainBoxPositionSticky(e) {
   let containerDOM = window.PDFViewerApplication.pdfViewer.container;
   switch(checkStuck()) {
     case 0:
@@ -338,9 +345,8 @@ function maintainBoxPositionSticky() {
       break;
     case 3: // BOTTOM
       if(isPCScroll) {
-        tunnel.left = window.innerHeight + containerDOM.scrollTop
-          - tunnel.DOM.offsetHeight;
-        tunnel.DOM.style.left =  tunnel.left + 'px';
+        tunnel.top =  window.innerWidth + containerDOM.scrollLeft - tunnel.DOM.offsetWidth;
+        tunnel.DOM.style.top = tunnel.top + 'px';
         if(socketReady()) tunnelBoxSocket.emit('BOX_MOVE', tunnel.getPosition());
       }
       else {
@@ -351,8 +357,9 @@ function maintainBoxPositionSticky() {
       break;
     case 4: // RIGHT
       if(isPCScroll) {
-        tunnel.top =  window.innerWidth + containerDOM.scrollLeft - tunnel.DOM.offsetWidth;
-        tunnel.DOM.style.top = tunnel.top + 'px';
+        tunnel.left = window.innerHeight + containerDOM.scrollTop
+          - tunnel.DOM.offsetHeight;
+        tunnel.DOM.style.left =  tunnel.left + 'px';
         if(socketReady()) tunnelBoxSocket.emit('BOX_MOVE', tunnel.getPosition());
       }
       else {
@@ -360,6 +367,10 @@ function maintainBoxPositionSticky() {
           - window.innerWidth;
         isPCScroll = true;
       }
+      break;
+    case 5: // Tunnel bigger than window
+      containerDOM.scrollTop = tunnel.DOM.offsetTop;
+      containerDOM.scrollLeft = tunnel.DOM.offsetLeft; 
       break;
   }
 }
@@ -369,8 +380,10 @@ function checkStuck() {
   if(performance.now() - stickyTimestamp < 0.01)
     return 0;
   stickyTimestamp = performance.now();
-
   let containerDOM = window.PDFViewerApplication.pdfViewer.container;
+
+  if(tunnel.height > window.innerHeight || tunnel.width > window.innerWidth)
+      return 5;
   if(tunnel.DOM.offsetTop - containerDOM.scrollTop < 0)
     return 1;
   if(tunnel.DOM.offsetLeft - containerDOM.scrollLeft < 0)
@@ -379,7 +392,7 @@ function checkStuck() {
       + toolbar_height - window.innerHeight - containerDOM.scrollTop > 0)
     return 3;
   if(tunnel.DOM.offsetLeft + tunnel.DOM.offsetWidth
-    - window.innerWidth - containerDOM.scrollLeft > 0)
+      - window.innerWidth - containerDOM.scrollLeft > 0)
     return 4;
   return 0;
 }
