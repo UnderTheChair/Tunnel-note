@@ -7,6 +7,8 @@ const anyMiddleware = require('../middlewares/any')
 const multer = require('multer');
 const fs = require('fs');
 const PDF2Pic = require("pdf2pic");
+const rimraf = require("rimraf");
+
 
 const pdf2pic = new PDF2Pic({
   density: 100,           // output pixels per inch
@@ -88,12 +90,12 @@ router.post('/upload', upload.single('pdfFile'), (req, res) => {
         pdfData['user'] = { _id: user._id };
 
         pdfModel.create(pdfData).then((pdf) => {
+          pdfData._id = pdf._id;
           user['pdf_list'] = [{ _id: pdf._id }, ...user['pdf_list']];
           return userModel.updateOne(userData, user)
+        }).then((user) => {
+          res.send({ data: "ok", name: name, thumbnail: pdfData.thumbnail, _id: pdfData._id });
         })
-      })
-      .then(() => {
-        res.send({ data: "ok", name: name, thumbnail: pdfData.thumbnail });
       })
       .catch((err) => {
         console.log(err);
@@ -107,6 +109,20 @@ router.get('/', (req, res) => {
 
   userModel.findOne(userData).populate('pdf_list').exec((err, data) => {
     res.send(data.pdf_list);
+  })
+})
+
+router.post('/remove', (req, res) => {
+  let userData = { email: req.decoded };
+  let pdfId = req.body.pdfId;
+  let path = __dirname + '/../temp/' + req.decoded + `/${req.body.pdfName}`;
+
+  userModel.findOne(userData).then((data) => {
+    data.pdf_list.pull({ _id: pdfId })
+    data.save()
+  }).then(() => {
+    rimraf.sync(path);
+    res.send({ data: "ok" });
   })
 })
 

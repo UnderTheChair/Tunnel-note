@@ -22,7 +22,7 @@
           <PDFItem
             v-bind:pdfName="pdf.name"
             v-bind:thumbnail="pdf.thumbnail"
-            v-bind:pdfId="pdf.id"
+            v-bind:pdfId="pdf._id"
             style="margin: 3% 0%;"
           />
         </div>
