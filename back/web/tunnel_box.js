@@ -2,6 +2,8 @@ import { tunnelBoxSocket } from './socket.io.js';
 import { screenControl } from './screen_control.js';
 import { tunnelBox_app } from './tunnelnote_app.js';
 
+let tunnel;
+
 var socketTimestamp = performance.now();
 var scaleChanging = false;
 
@@ -173,7 +175,7 @@ class TunnelBox {
     if(!this.isInit){
       this.left = document.querySelector(`#viewer > div:nth-child(${1})`).offsetLeft;
       this._dragElement(this.DOM);
-      $('#viewerContainer').scroll(maintainBoxPositionSticky);
+      $('#viewerContainer').on('scrolldelta', maintainBoxPositionSticky);
       this.isInit = true;
 
       let canvases = document.getElementsByClassName('penCanvas');
@@ -279,7 +281,6 @@ class TunnelBox {
   }
 }
 
-let tunnel;
 let toolbar_height = document.getElementById('toolbarContainer').offsetHeight;
 
 //mobile -> pc
@@ -300,6 +301,7 @@ tunnelBoxSocket.on('MOBILE_MOVE', (position) => {
 
 tunnelBoxSocket.on('MOBILE_RESIZE', (position) => {
   if(tunnel === undefined) return;
+  console.log(position);
   tunnel.setBoxSize(position.currentScale);
   tunnel.setBoxPosition(position);
 });
@@ -315,15 +317,7 @@ let isBoxMove = false;
 let lastScrollTop = 0;
 let PcWindowHeight = $(window).height();
 
-// setInterval(function(){
-//   if(isBoxMove){
-//     let position = tunnel.getPosition();
-//     if(socketReady()) tunnelBoxSocket.emit('BOX_MOVE', position);
-//     isBoxMove = false;
-//   }
-// }, 250);
-
-function maintainBoxPositionSticky() {
+function maintainBoxPositionSticky(e) {
   let containerDOM = window.PDFViewerApplication.pdfViewer.container;
   switch(checkStuck()) {
     case 0:
@@ -352,9 +346,8 @@ function maintainBoxPositionSticky() {
       break;
     case 3: // BOTTOM
       if(isPCScroll) {
-        tunnel.left = window.innerHeight + containerDOM.scrollTop
-          - tunnel.DOM.offsetHeight;
-        tunnel.DOM.style.left =  tunnel.left + 'px';
+        tunnel.top =  window.innerWidth + containerDOM.scrollLeft - tunnel.DOM.offsetWidth;
+        tunnel.DOM.style.top = tunnel.top + 'px';
         if(socketReady()) tunnelBoxSocket.emit('BOX_MOVE', tunnel.getPosition());
       }
       else {
@@ -365,8 +358,9 @@ function maintainBoxPositionSticky() {
       break;
     case 4: // RIGHT
       if(isPCScroll) {
-        tunnel.top =  window.innerWidth + containerDOM.scrollLeft - tunnel.DOM.offsetWidth;
-        tunnel.DOM.style.top = tunnel.top + 'px';
+        tunnel.left = window.innerHeight + containerDOM.scrollTop
+          - tunnel.DOM.offsetHeight;
+        tunnel.DOM.style.left =  tunnel.left + 'px';
         if(socketReady()) tunnelBoxSocket.emit('BOX_MOVE', tunnel.getPosition());
       }
       else {
@@ -374,6 +368,10 @@ function maintainBoxPositionSticky() {
           - window.innerWidth;
         isPCScroll = true;
       }
+      break;
+    case 5: // Tunnel bigger than window
+      containerDOM.scrollTop = tunnel.DOM.offsetTop;
+      containerDOM.scrollLeft = tunnel.DOM.offsetLeft; 
       break;
   }
 }
@@ -383,8 +381,10 @@ function checkStuck() {
   if(performance.now() - stickyTimestamp < 0.01)
     return 0;
   stickyTimestamp = performance.now();
-
   let containerDOM = window.PDFViewerApplication.pdfViewer.container;
+
+  if(tunnel.height > window.innerHeight || tunnel.width > window.innerWidth)
+      return 5;
   if(tunnel.DOM.offsetTop - containerDOM.scrollTop < 0)
     return 1;
   if(tunnel.DOM.offsetLeft - containerDOM.scrollLeft < 0)
@@ -393,7 +393,7 @@ function checkStuck() {
       + toolbar_height - window.innerHeight - containerDOM.scrollTop > 0)
     return 3;
   if(tunnel.DOM.offsetLeft + tunnel.DOM.offsetWidth
-    - window.innerWidth - containerDOM.scrollLeft > 0)
+      - window.innerWidth - containerDOM.scrollLeft > 0)
     return 4;
   return 0;
 }
