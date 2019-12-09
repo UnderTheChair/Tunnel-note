@@ -30,16 +30,14 @@
         </div>
       </div>
     </div>
-    <loading :active.sync="isLoading" 
-        :can-cancel="true" 
-        :on-cancel="onCancel"
-        :is-full-page="fullPage"/>
+    <Loading v-bind:isLoading="isLoading"/>
+
   </div>
 </template>
 
 <script>
 import PDFItem from "@/components/PDFItem";
-import Loading from 'vue-loading-overlay';
+import Loading from '@/components/Loading';
 import 'vue-loading-overlay/dist/vue-loading.css';
 
 export default {
@@ -49,7 +47,6 @@ export default {
       baseURL: this.$store.getters.getBaseUrl,
       pdfList: [],
       isLoading: false,
-      fullPage: true,
     };
   },
   computed: {
@@ -90,8 +87,12 @@ export default {
     reqGetPDFs() {
       const reqURL = `${this.baseURL}/pdfs`;
       
+      this.isLoading = true;
       this.$http.get(reqURL).then(({data}) => {
         this.pdfList = data;
+        this.isLoading = false;
+      }).catch(() => {
+        this.isLoading = false;
       })
     },
     onCancel() {

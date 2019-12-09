@@ -52,16 +52,19 @@
         </div>
       </article>
     </div>
+    <Loading v-bind:isLoading='isLoading'/>
   </div>
 </template>
 <script>
 import $ from "jquery";
+import Loading from '@/components/Loading.vue';
 
 export default {
   name: "signupForm",
   data() {
     return {
-      baseUrl: this.$store.getters.getBaseUrl
+      baseUrl: this.$store.getters.getBaseUrl,
+      isLoading: false
     };
   },
   methods: {
@@ -74,7 +77,7 @@ export default {
         this.noticeToastMsg("Passwords are different");
         return;
       }
-
+      this.isLoading = true;
       this.$http.post(url, signupData).then(res => {
         let data = res.data;
         if (data.data == "ok") {
@@ -83,6 +86,7 @@ export default {
         } else {
           if (data.code === 11000) {
             this.noticeToastMsg("Email duplication");
+            this.isLoading = false;
           }
         }
       });
@@ -109,6 +113,9 @@ export default {
         solid: true
       });
     }
+  },
+  components: {
+    Loading
   }
 };
 </script>

@@ -24,24 +24,27 @@
       </article>
     </div>
     <!-- card.// -->
+    <Loading v-bind:isLoading="isLoading"/>
   </div>
 </template>
 
 <script>
 import $ from "jquery";
+import Loading from '@/components/Loading.vue';
 
 export default {
   name: "LoginForm",
   data() {
     return {
-      baseUrl: this.$store.getters.getBaseUrl
+      baseUrl: this.$store.getters.getBaseUrl,
+      isLoading: false,
     };
   },
   methods: {
     reqLogin: function() {
       let form = $("#loginForm");
       let loginData = this.getFormData(form);
-
+      this.isLoading = true;
       this.$store
         .dispatch("LOGIN", loginData)
         .then(res => {
@@ -49,7 +52,10 @@ export default {
           if (res.status === 200) {
             this.noticeToastMsg(data.message);
             this.redirect();
-          } else this.noticeToastMsg(data.message);
+          } else { 
+            this.noticeToastMsg(data.message)
+            this.isLoading = false;
+          }
         })
         .catch(({ message }) => (this.msg = message));
     },
@@ -64,15 +70,6 @@ export default {
       return indexed_array;
     },
     redirect() {
-      // const { search } = window.location;
-      // const tokens = search.replace(/^\?/, "").split("&");
-      // const { returnPath } = tokens.reduce((qs, tkn) => {
-      //   const pair = tkn.split("=");
-      //   qs[pair[0]] = decodeURIComponent(pair[1]);
-      //   return qs;
-      // }, {});
-
-      // this.$router.push(returnPath);
       this.$router.push("/");
     },
     noticeToastMsg(msg) {
@@ -81,6 +78,9 @@ export default {
         solid: true
       });
     }
+  },
+  components: {
+    Loading
   }
 };
 </script>
