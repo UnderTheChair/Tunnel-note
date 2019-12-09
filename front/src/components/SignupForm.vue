@@ -12,6 +12,7 @@
               id="inputName"
               name="name"
               placeholder="Enter Name"
+              autocomplete="off" 
             />
           </div>
           <div class="form-group">
@@ -22,6 +23,7 @@
               id="inputEmail"
               name="email"
               placeholder="Enter Email"
+              autocomplete="off" 
             />
           </div>
           <div class="form-group">
@@ -32,6 +34,7 @@
               id="inputPassword"
               name="password"
               placeholder="Enter Password"
+              autocomplete="off" 
             />
           </div>
           <div class="form-group">
@@ -42,6 +45,7 @@
               id="inputPasswordCheck"
               name="passwordCheck"
               placeholder="Enter Confirm Password"
+              autocomplete="off" 
             />
           </div>
         </form>
