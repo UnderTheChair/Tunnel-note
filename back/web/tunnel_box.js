@@ -5,7 +5,7 @@ import { tunnelBox_app } from './tunnelnote_app.js';
 let tunnel;
 
 var socketTimestamp = performance.now();
-var scaleChanging = false;
+let lastBoxPosition = null;
 
 let isPCScroll = true;
 function socketReady() {
@@ -175,7 +175,7 @@ class TunnelBox {
     if(!this.isInit){
       this.left = document.querySelector(`#viewer > div:nth-child(${1})`).offsetLeft;
       this._dragElement(this.DOM);
-      $('#viewerContainer').on('scrolldelta', maintainBoxPositionSticky);
+      $('#viewerContainer').on('scroll', maintainBoxPositionSticky);
       this.isInit = true;
 
       let canvases = document.getElementsByClassName('penCanvas');
@@ -183,9 +183,8 @@ class TunnelBox {
 
       for (let i = 0; i < cvsLen; i++) {
         canvases[i].addEventListener("pagerendered", (event) => {
-          this.setBoxSize(this.mobileScale);
-          this.DOM.style.top = this.top + 'px';
-          this.DOM.style.left = this.left + 'px';
+          if(lastBoxPosition)
+            this.setBoxPosition(lastBoxPosition);
         });
       }
     }
@@ -254,6 +253,7 @@ class TunnelBox {
     let pdfViewer = window.PDFViewerApplication.pdfViewer;
     let currentPageElment = document.querySelector(`#viewer > div:nth-child(${currentPage})`);
     let tmpX, tmpY;
+    lastBoxPosition = _.clone(position);
 
     [tmpX, tmpY] = pdfViewer._pages[0].viewport.convertToViewportPoint(pagePoint[0].x, pagePoint[0].y);
     let p1 = { x: tmpX, y: tmpY };
@@ -301,7 +301,6 @@ tunnelBoxSocket.on('MOBILE_MOVE', (position) => {
 
 tunnelBoxSocket.on('MOBILE_RESIZE', (position) => {
   if(tunnel === undefined) return;
-  console.log(position);
   tunnel.setBoxSize(position.currentScale);
   tunnel.setBoxPosition(position);
 });
