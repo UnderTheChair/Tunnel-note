@@ -9,6 +9,8 @@ let otherEndDrawing = false;
 let mousePos = { x: 0, y: 0 };
 let ctx = [];
 let pdfViewer;
+let modeBeforeStylus = 'hand';
+let isStylus = false;
 
 var selColor = document.getElementById("selColor");
 var color = selColor.value;
@@ -109,6 +111,12 @@ let touchPenEvent = {
     let touch = e.touches[0];
     var mode = window.drawService.mode;
 
+    if(touch.touchType == 'stylus') {
+      isStylus = true;
+      modeBeforeStylus = mode;
+      window.drawService.mode = 'pen';
+    }
+
     if (mode !== 'hand') { e.preventDefault(); }
     mousePos = await getTouchPos(e);
     let mouseEvent = new MouseEvent("mousedown", {
@@ -121,6 +129,11 @@ let touchPenEvent = {
     let canvas = e.target;
     let mouseEvent = new MouseEvent("mouseup", {});
     var mode = window.drawService.mode;
+
+    if(isStylus) {
+      window.drawService.mode = modeBeforeStylus;
+      isStylus = false;
+    }
 
     if (mode !== 'hand') {
       e.preventDefault();
@@ -154,7 +167,7 @@ class DrawService {
 
     /**
      * BUG : handling if curScale is auto
-     * 
+     *
      */
     pdfViewer = window.PDFViewerApplication.pdfViewer;
     curScale = window.PDFViewerApplication.pdfViewer._currentScale;
