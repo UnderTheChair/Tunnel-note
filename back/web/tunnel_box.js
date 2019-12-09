@@ -311,6 +311,11 @@ tunnelBoxSocket.on('MOBILE_ROTATE', () => {
   tunnel.activate();
 });
 
+tunnelBoxSocket.on('DISCONNECT', () => {
+  if (tunnel === undefined) return;
+  tunnel.deactivate();
+});
+
 //check box move by pc scroll
 let isBoxMove = false;
 let lastScrollTop = 0;
