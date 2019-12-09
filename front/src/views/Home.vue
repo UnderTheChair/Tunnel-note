@@ -22,7 +22,7 @@
           <PDFItem
             v-bind:pdfName="pdf.name"
             v-bind:thumbnail="pdf.thumbnail"
-            v-bind:pdfId="pdf.id"
+            v-bind:pdfId="pdf._id"
             style="margin: 3% 0%;"
           />
         </div>
@@ -69,12 +69,21 @@ export default {
       }
       let formData = new FormData();
 
+      for (let pdfFile of this.pdfList) {
+        if (pdfFile.name === name) {
+          this.noticeToastMsg("Exist the file duplicated with name. Please upload the other file.");
+          event.target.value = "";
+          return;
+        }
+      }
+      
       formData.append("pdfFile", files[0]);
       formData.append("name", name);
       formData.append("size", size);
       
       if (type !== "application/pdf") {
         this.noticeToastMsg("File supplied is not a valid PDF");
+        event.target.value = "";
         return;
       }
       
