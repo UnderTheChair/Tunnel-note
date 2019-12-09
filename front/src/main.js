@@ -9,6 +9,10 @@ import 'expose-loader?$!expose-loader?jQuery!jquery'
 import VueSession from 'vue-session'
 import store from './store'
 
+//Font awesome
+import 'vue-awesome/icons'
+import Icon from 'vue-awesome/components/Icon'
+Vue.component('icon', Icon)
 
 Vue.use(VueSession)
 Vue.use(BootstrapVue);
