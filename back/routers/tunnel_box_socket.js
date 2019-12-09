@@ -39,10 +39,6 @@ module.exports = (io) => {
     socket.on('BOX_RESIZE', (position) => {
       socket.broadcast.to(socket.accessToken).emit('BOX_RESIZE', position);
     });
-    
-    socket.on('PC_MOVE_END', () => {
-      socket.broadcast.to(socket.accessToken).emit('PC_MOVE_END', null);
-    });
 
     socket.on('BOX_CLEAR', (position) => {
       socket.broadcast.to(socket.accessToken).emit('BOX_CLEAR');
@@ -64,6 +60,10 @@ module.exports = (io) => {
     socket.on('MOBILE_RESIZE', (position) => {
       socket.broadcast.to(socket.accessToken).emit('MOBILE_RESIZE', position);
     });
+
+    socket.on('MOBILE_ROTATE', () => {
+      socket.broadcast.to(socket.accessToken).emit('MOBILE_ROTATE', null);
+    })
       
     
     socket.on('DISCONNECT', ()=>{

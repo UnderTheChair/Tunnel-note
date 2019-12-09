@@ -1,11 +1,12 @@
 import { TunnelBox } from './tunnel_box.js';
+import { TunnelMobile } from './tunnel_mobile.js';
 import { DrawService } from './drawing.js';
-import { drawSocket } from './socket.io.js';
+import { drawSocket, tunnelBoxSocket } from './socket.io.js';
 
 let isSetup = false;
 var scale;
 var scaleTimestamp = 0;
-const tunnelBox_app = new TunnelBox();
+let tunnelBox_app;
 let pinchTimestamp = 0;
 
 window.customSetup = () => {
@@ -14,6 +15,13 @@ window.customSetup = () => {
   isSetup = true;
   let canvases = document.getElementsByClassName('penCanvas');
   let viewerPage = document.querySelector("#viewer > div:nth-child(1)");
+
+  if(detectMobile()){
+    tunnelBox_app = new TunnelMobile();
+  }else{
+    tunnelBox_app = new TunnelBox();
+    document.querySelector("#tunnelMode").addEventListener('click', tunnelToggle);
+  }
 
   let height = viewerPage.style.height.split('px')[0];
   let width = viewerPage.style.width.split('px')[0];
@@ -67,8 +75,6 @@ window.customSetup = () => {
     }
   });
 
-
-
   return true;
 }
 
@@ -105,14 +111,28 @@ function initDraw(drawService) {
 
 let tunnelToggle = function () {
   var windowWidth = $(window).width();
-  if (windowWidth < 900) {     //mobile
+  if (detectMobile()) {     //mobile
     console.log("mobile is not support tunnel box");
     return;
   }
   if (tunnelBox_app.on) tunnelBox_app.deactivate();
   else tunnelBox_app.activate();
 }
-document.querySelector("#tunnelMode").addEventListener('click', tunnelToggle);
+
+function detectMobile() { 
+  if( navigator.userAgent.match(/Android/i)
+  || navigator.userAgent.match(/webOS/i)
+  || navigator.userAgent.match(/iPhone/i)
+  || navigator.userAgent.match(/iPad/i)
+  || navigator.userAgent.match(/iPod/i)
+  || navigator.userAgent.match(/BlackBerry/i)
+  || navigator.userAgent.match(/Windows Phone/i)
+  ){
+    return true;
+  }else{
+    return false;
+  }
+}
 
 drawSocket.on('SETUP', () => {
   window.dispatchEvent(new Event('click'));

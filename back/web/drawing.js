@@ -242,10 +242,10 @@ class DrawService {
   registerDrawToolButton(btn, tool) {
     btn.addEventListener("click", (e) => {
       window.drawService.mode = tool;
-      if (tool !== 'hand') {
-        tunnelBox_app.isHandMode = false;
-      } else {
+      if (tool === 'hand') {
         tunnelBox_app.isHandMode = true;
+      } else {
+        tunnelBox_app.isHandMode = false;
       }
       drawSocket.emit("SETUP");
 

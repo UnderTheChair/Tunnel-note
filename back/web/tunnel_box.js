@@ -5,6 +5,7 @@ import { tunnelBox_app } from './tunnelnote_app.js';
 var socketTimestamp = performance.now();
 var scaleChanging = false;
 
+let isPCScroll = true;
 function socketReady() {
   if(performance.now() - socketTimestamp > 0.05) {
     socketTimestamp = performance.now();
@@ -19,15 +20,20 @@ class TunnelBox {
     this.resizeDOM = document.getElementById('resizer');
     this.on = false;
     this.isInit = false;
-    // width = height * screenRatio
+    // width = height * resolution
     this.resolution = 2;
     this.width = 300;
     this.height = 150;
     this.left = 0;
     this.top = 0;
-    this.mobileDrag = true;
-    this.isMobile = true;
+
+    this.mobileWidth = 300;
+    this.mobileHeight = 150;
+    this.initScaleValue = 1.5;
+
     this.isHandMode = true;
+    this.isMobileDrag = true;
+    this.isMobile = true;
   }
   _dragElement(elmnt) {
     let container = document.getElementById('penContainer');
@@ -43,7 +49,6 @@ class TunnelBox {
 
     function currentMouseMove(e){
       if(!self.isHandMode){
-        console.log("is not hand mode");
         closeDragElement();
         container.style.cursor = "default";
         return;
@@ -68,7 +73,7 @@ class TunnelBox {
       lastPos.y = e.clientY;
       container.removeEventListener("mousemove", currentMouseMove);
       container.addEventListener("mousemove", elementResize);
-      container.addEventListener("mouseup", closeDragElement);
+      container.addEventListener("mouseup", closeResizeElement);
     }
     function dragMouseDown(e) {
       container.style.cursor = "grabbing";
@@ -93,9 +98,6 @@ class TunnelBox {
       elmnt.style.width = self.width + "px";
       
       lastPos.y = currentPos.y;
-
-      let position = self.getPosition();
-      if(socketReady()) tunnelBoxSocket.emit('BOX_RESIZE', position);
     }
     function elementDrag(e) {
       e = e || window.event;
@@ -112,21 +114,27 @@ class TunnelBox {
       elmnt.style.left = self.left + "px";
       lastPos.x = currentPos.x;
       lastPos.y = currentPos.y;
-
-      let position = self.getPosition();
-      if(socketReady()) tunnelBoxSocket.emit('BOX_MOVE', position);
     }
     function closeDragElement() {
       // stop moving when mouse button is released:
       container.style.cursor = "grab";
       container.removeEventListener("mouseup", closeDragElement);
       container.removeEventListener("mousedown", dragMouseDown);
-      container.removeEventListener("mousedown", resizeMouseDown);
       container.removeEventListener("mousemove", elementDrag);
+      container.addEventListener("mousemove", currentMouseMove);
+
+      let position = self.getPosition();
+      if(socketReady()) tunnelBoxSocket.emit('BOX_MOVE', position);
+    }
+    function closeResizeElement() {
+      container.style.cursor = "default";
+      container.removeEventListener("mouseup", closeResizeElement);
+      container.removeEventListener("mousedown", resizeMouseDown);
       container.removeEventListener("mousemove", elementResize);
       container.addEventListener("mousemove", currentMouseMove);
 
-      tunnelBoxSocket.emit('PC_MOVE_END', null);
+      let position = self.getPosition();
+      if(socketReady()) tunnelBoxSocket.emit('BOX_RESIZE', position);
     }
     function isRectLine(x, y){
       if(rect.left-5 < x && x < rect.left+5){
@@ -156,13 +164,15 @@ class TunnelBox {
   activate() {
     this.isMobile = false;
     this.on = true;
-    this.left = document.querySelector(`#viewer > div:nth-child(${1})`).offsetLeft;
+    this.DOM.style.top = this.top + 'px';
     this.DOM.style.left = this.left + 'px';
     this.DOM.style.height = this.height + 'px';
     this.DOM.style.width = this.width + 'px';
     this.DOM.style.border = '2px solid #abc';
     if(!this.isInit){
+      this.left = document.querySelector(`#viewer > div:nth-child(${1})`).offsetLeft;
       this._dragElement(this.DOM);
+      $('#viewerContainer').scroll(maintainBoxPositionSticky);
       this.isInit = true;
     }
     
@@ -175,10 +185,7 @@ class TunnelBox {
 
     let position = this.getPosition();
     tunnelBoxSocket.emit('BOX_INIT', position);
-  }
-
-  rcvActivate() {
-    this.on = true;
+    
   }
 
   deactivate() {
@@ -196,12 +203,6 @@ class TunnelBox {
     
     tunnelBoxSocket.emit('BOX_CLEAR');
   }
-
-  rcvDeactivate() {
-    this.on = false;
-    this.deactivate();
-  }
-
   getPosition() {
     let pdfViewer = window.PDFViewerApplication.pdfViewer;
     let clientX, clientY;
@@ -214,57 +215,23 @@ class TunnelBox {
     // pt1 has [x, y] converted to PDF point
     [x, y]= pdfViewer._pages[0].viewport.convertToPdfPoint(clientX, clientY);
     p1 = {x : x, y : y};
-    
+
     [x, y] = pdfViewer._pages[0].viewport.convertToPdfPoint(clientX + this.width, clientY - this.height);
     p2 = {x : x, y : y};
+
+    if(p1.y <= 0){
+      currentPage = 1;
+    }
 
     return {
       pagePoint : [p1, p2],
       currentPage : currentPage,
-      // For setting size of screen corresponded with the tunnel box
+     // For setting size of screen corresponded with the tunnel box
       width: document.body.clientWidth,
       currentScale : pdfViewer.currentScale,
       boxHeight : this.height,
       boxWidth : this.width
     }
-  }
-
-  //mobile
-  setMobilePosition(position) {
-    let {pagePoint, currentPage, width, currentScale, boxHeight, boxWidth} = position;
-    let pdfViewer = window.PDFViewerApplication.pdfViewer;
-    let currentPageElment = document.querySelector(`#viewer > div:nth-child(${currentPage})`);
-    let x, y, p1, p2;
-    let newScale;
-    
-    [x, y] = pdfViewer._pages[0].viewport.convertToViewportPoint(pagePoint[0].x, pagePoint[0].y);
-    p1 = {x : x, y : y}; 
-    
-    [x, y] = pdfViewer._pages[0].viewport.convertToViewportPoint(pagePoint[1].x, pagePoint[1].y);
-    p2 = {x : x, y : y};
-
-    this.left = p1.x + currentPageElment.offsetLeft;
-    this.top = p1.y;
-    
-    screenControl.setScrollTop(currentPageElment.offsetTop + this.top);
-    screenControl.setScrollLeft(currentPageElment.offsetLeft + this.left);
-    screenControl.setOffsetWidth(boxWidth);
-    screenControl.setOffsetHeight(boxHeight);
-
-    newScale = (document.body.clientWidth / (width / currentScale)) * (width / boxWidth);
-    scaleChanging = true;
-    pdfViewer._setScale(newScale);
-    scaleChanging = false;
-  }
-
-  //mobile
-  setSize(width, height){
-    this.width = width;
-    this.height = height;
-  }
-  setPos(){
-    this.top = document.querySelector('#viewerContainer').scrollTop;
-    this.left = document.querySelector('#viewerContainer').scrollLeft;
   }
 
   //pc by mobile control
@@ -280,106 +247,142 @@ class TunnelBox {
     this.left = p1.x + currentPageElment.offsetLeft;
     this.top = p1.y;
     
-    tunnel.DOM.style.top = this.top + 'px';
-    tunnel.DOM.style.left = this.left + 'px';
-    //this.width = currentScale * this.width;
+    this.DOM.style.top = this.top + 'px';
+    this.DOM.style.left = this.left + 'px';
+    maintainBoxPositionSticky();
   }
-  //pc by mobile control
-  setBoxSize(mobileWidth, mobileHeight, mobileScale) {
-    this.width = mobileWidth / mobileScale;
-    this.DOM.style.width = this.width + 'px';
-    this.height = mobileHeight / mobileScale;
+  setBoxSizeInit(sizeData){
+    this.mobileHeight = sizeData.height;
+    this.mobileWidth = sizeData.width;
+    this.resolution = this.mobileWidth/ this.mobileHeight;
+    this.setBoxSize(this.initScaleValue);
+  }
+  setBoxSize(mobileScale) {
+    this.height = (this.mobileHeight / mobileScale) * 13 / 12;
     this.DOM.style.height = this.height + 'px';
-    this.resolution = this.width / this.height;
+    this.width = this.height * this.resolution;
+    this.DOM.style.width = this.width + 'px';
   }
 }
 
 let tunnel;
-
-//pc -> mobile
-tunnelBoxSocket.on('BOX_INIT', (position) => {
-  tunnel = tunnelBox_app;
-  if (tunnel.on == true) return;
-
-  //detect mobile window control
-  $('#viewerContainer').scroll(mobileScrollCallback);
-  window.customScaleCallback = () => {
-    // var position = tunnel.getPosition();
-    // if(!scaleChanging && socketReady()) tunnelBoxSocket.emit('MOBILE_RESIZE', position);
-    // window.drawService.updateCanvas()
-  };
-
-  let toolbar_height = document.getElementById('toolbarContainer').offsetHeight;
-  let mobile_width = $( window ).width();
-  let mobile_height = $( window ).height() - toolbar_height;
-
-  tunnelBoxSocket.emit('BOX_SIZE_INIT', { 
-    width: mobile_width, 
-    height: mobile_height
-  });
-  tunnel.setSize(mobile_width, mobile_height);
-  tunnel.setMobilePosition(position);
-  tunnel.rcvActivate();
-});
-
-tunnelBoxSocket.on('BOX_MOVE', (position) => {
-  // Temporary remove for continue operating when page referch at remote device
-  if (tunnel.on == false ) return;
-  tunnel.mobileDrag = false;
-  tunnel.setMobilePosition(position);
-});
-
-tunnelBoxSocket.on('BOX_RESIZE', (position) => {
-  tunnel.setMobilePosition(position);
-  tunnel.mobileDrag = false;
-});
-
-tunnelBoxSocket.on('PC_MOVE_END', () => {
-  tunnel.mobileDrag = true;
-});
-
-tunnelBoxSocket.on('BOX_CLEAR', (position) => {
-  if (tunnel.on == false) return;
-  tunnel.rcvDeactivate();
-});
-
-tunnelBoxSocket.on('BOX_DOWN', (position) => {
-  if (tunnel.on = false) return;
-});
-
-tunnelBoxSocket.on('DISCONNECT', () => {
-  if (tunnel === undefined) return;
-  tunnel.rcvDeactivate();
-});
+let toolbar_height = document.getElementById('toolbarContainer').offsetHeight;
 
 //mobile -> pc
 tunnelBoxSocket.on('BOX_SIZE_INIT', (sizeData) => {
   tunnel = tunnelBox_app;
-  tunnel.setBoxSize(sizeData.width, sizeData.height, 1.5);
-  var position = tunnel.getPosition();
-  tunnelBoxSocket.emit('BOX_MOVE', position);
-  tunnelBoxSocket.emit('PC_MOVE_END', null);
+  tunnel.setBoxSizeInit(sizeData);
+
+  //set mobile position
+  var pcPosition = tunnel.getPosition();
+  tunnelBoxSocket.emit('BOX_RESIZE', pcPosition);
 });
 
 tunnelBoxSocket.on('MOBILE_MOVE', (position) => {
   if(tunnel === undefined) return;
+  isPCScroll = false;
   tunnel.setBoxPosition(position);
 });
 
 tunnelBoxSocket.on('MOBILE_RESIZE', (position) => {
   if(tunnel === undefined) return;
+  tunnel.setBoxSize(position.currentScale);
   tunnel.setBoxPosition(position);
-  tunnel.setBoxSize(position.boxWidth, position.boxHeight, position.currentScale);
 });
 
-//in mobile call
-let mobileScrollCallback = () => {
-  // callback
-  if(tunnel.mobileDrag){
-    tunnel.setPos();
-    var position = tunnel.getPosition();
-    if(socketReady()) tunnelBoxSocket.emit('MOBILE_MOVE', position);
+tunnelBoxSocket.on('MOBILE_ROTATE', () => {
+  if(tunnel === undefined) return;
+  tunnel.deactivate();
+  tunnel.activate();
+});
+
+//check box move by pc scroll
+let isBoxMove = false;
+let lastScrollTop = 0;
+let PcWindowHeight = $(window).height();
+
+// setInterval(function(){
+//   if(isBoxMove){
+//     let position = tunnel.getPosition();
+//     if(socketReady()) tunnelBoxSocket.emit('BOX_MOVE', position);
+//     isBoxMove = false;
+//   }
+// }, 250);
+
+function maintainBoxPositionSticky() {
+  let containerDOM = window.PDFViewerApplication.pdfViewer.container;
+  switch(checkStuck()) {
+    case 0:
+      return;
+    case 1: // TOP
+      if(isPCScroll) {
+        tunnel.top = containerDOM.scrollTop;
+        tunnel.DOM.style.top = tunnel.top + 'px';
+        if(socketReady()) tunnelBoxSocket.emit('BOX_MOVE', tunnel.getPosition());
+      }
+      else {
+        containerDOM.scrollTop = tunnel.DOM.offsetTop;
+        isPCScroll = true;
+      }
+      break;
+    case 2: // LEFT
+      if(isPCScroll) {
+        tunnel.left = containerDOM.scrollLeft;
+        tunnel.DOM.style.left = tunnel.left + 'px';
+        if(socketReady()) tunnelBoxSocket.emit('BOX_MOVE', tunnel.getPosition());
+      }
+      else {
+        containerDOM.scrollLeft = tunnel.DOM.offsetLeft; 
+        isPCScroll = true;
+      }
+      break;
+    case 3: // BOTTOM
+      if(isPCScroll) {
+        tunnel.left = window.innerHeight + containerDOM.scrollTop
+          - tunnel.DOM.offsetHeight;
+        tunnel.DOM.style.left =  tunnel.left + 'px';
+        if(socketReady()) tunnelBoxSocket.emit('BOX_MOVE', tunnel.getPosition());
+      }
+      else {
+        containerDOM.scrollTop = tunnel.DOM.offsetTop + tunnel.DOM.offsetHeight + toolbar_height
+          - window.innerHeight;
+        isPCScroll = true;
+      }
+      break;
+    case 4: // RIGHT
+      if(isPCScroll) {
+        tunnel.top =  window.innerWidth + containerDOM.scrollLeft - tunnel.DOM.offsetWidth;
+        tunnel.DOM.style.top = tunnel.top + 'px';
+        if(socketReady()) tunnelBoxSocket.emit('BOX_MOVE', tunnel.getPosition());
+      }
+      else {
+        containerDOM.scrollLeft = tunnel.DOM.offsetLeft + tunnel.DOM.offsetWidth 
+          - window.innerWidth;
+        isPCScroll = true;
+      }
+      break;
   }
-};
+}
+
+let stickyTimestamp = 0;
+function checkStuck() {
+  if(performance.now() - stickyTimestamp < 0.01)
+    return 0;
+  stickyTimestamp = performance.now();
+
+  let containerDOM = window.PDFViewerApplication.pdfViewer.container;
+  if(tunnel.DOM.offsetTop - containerDOM.scrollTop < 0)
+    return 1;
+  if(tunnel.DOM.offsetLeft - containerDOM.scrollLeft < 0)
+    return 2;
+  if(tunnel.DOM.offsetTop + tunnel.DOM.offsetHeight
+      + toolbar_height - window.innerHeight - containerDOM.scrollTop > 0)
+    return 3;
+  if(tunnel.DOM.offsetLeft + tunnel.DOM.offsetWidth
+    - window.innerWidth - containerDOM.scrollLeft > 0)
+    return 4;
+  return 0;
+}
+
 
 export { TunnelBox, };
