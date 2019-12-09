@@ -1,6 +1,12 @@
 <template>
   <div class="home">
-    <LoginFrom />
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-4" style="margin: 0 auto;">
+          <LoginFrom />
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -18,8 +24,8 @@ export default {
 
     if (preSignup == true) {
       this.noticeCompletedSignup();
-      this.$store.commit('setPreSignup', false);
-    } 
+      this.$store.commit("setPreSignup", false);
+    }
   },
   methods: {
     noticeCompletedSignup: function() {

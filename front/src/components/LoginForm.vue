@@ -1,41 +1,29 @@
 <template>
   <div class="loginForm">
-    <div class="container">
-      <div class="row">
-        <div class="col-sm-4" style="margin: 0 auto;">
-          <div class="card">
-            <article class="card-body">
-              <a
-                v-on:click="$router.push('/signup')"
-                class="float-right btn btn-outline-primary"
-              >Sign up</a>
-              <h4 class="card-title mb-4 mt-1">Sign in</h4>
-              <form id="loginForm">
-                <div class="form-group">
-                  <label>Your email</label>
-                  <input class="form-control" placeholder="Email" type="email" name="email" />
-                </div>
-                <!-- form-group// -->
-                <div class="form-group">
-                  <a class="float-right" href="#">Forgot?</a>
-                  <label>Your password</label>
-                  <input class="form-control" placeholder="******" type="password" name="password" />
-                </div>
-                <!-- form-group// -->
-                <!-- form-group// -->
-              </form>
-              <div class="form-group">
-                <button type="submit" class="btn btn-primary btn-block" v-on:click="reqLogin">Login</button>
-              </div>
-            </article>
+    <div class="card">
+      <article class="card-body">
+        <a v-on:click="$router.push('/signup')" class="float-right btn btn-outline-primary">Sign up</a>
+        <h4 class="card-title mb-4 mt-1">Sign in</h4>
+        <form id="loginForm">
+          <div class="form-group">
+            <label>Your email</label>
+            <input class="form-control" placeholder="Email" type="email" name="email" />
           </div>
-          <!-- card.// -->
+          <!-- form-group// -->
+          <div class="form-group">
+            <a class="float-right" href="#">Forgot?</a>
+            <label>Your password</label>
+            <input class="form-control" placeholder="******" type="password" name="password" />
+          </div>
+          <!-- form-group// -->
+          <!-- form-group// -->
+        </form>
+        <div class="form-group">
+          <button type="submit" class="btn btn-primary btn-block" v-on:click="reqLogin">Login</button>
         </div>
-        <!-- col.// -->
-      </div>
-      <!-- row.// -->
+      </article>
     </div>
-    <!-- container.// -->
+    <!-- card.// -->
   </div>
 </template>
 
