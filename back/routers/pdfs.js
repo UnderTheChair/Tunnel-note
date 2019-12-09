@@ -68,7 +68,7 @@ router.post('/upload', upload.single('pdfFile'), (req, res) => {
   let pdfData = { name: name, size: size, path: path };
   let pdfPath = __dirname + '/..' + path + `/${name}`;
 
-  console.log(req.file);
+  // TODO: Handling the same name of file"
   if (req.file.mimetype !== "application/pdf") {
     res.send({ data: "failed", message: "File supplied is not a valid PDF" })
   } else {
